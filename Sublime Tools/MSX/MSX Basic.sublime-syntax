@@ -1,0 +1,152 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+#
+# See  https://github.com/farique1/basic-dignified
+# for the complete Basic Dignified Suite
+#
+# 03-01-2023
+# v1.3.2
+#   Small adjustments.
+
+author: Fred Rique (farique)
+url: https://github.com/farique1/basic-dignified
+comment: v1.3.2
+
+name: MSX Basic
+file_extensions: [bas, asc, mlt, amx, lmx]
+scope: source.msxbasic
+
+# All case insensitive
+contexts:
+  main:
+    # Token List specific
+    - match: '((^[0-9a-fA-F]{4})(:)([ 0-9a-fA-F]{5}(?:[ 0-9a-fA-F]{5})?)([ 0-9a-fA-F]{3})+)?(\s+|^)(start|end|lines|size|)'
+      captures:
+        1: keyword.operator.msxbasic
+        2: support.function.msxbasic
+        3: comment.msxbasic
+        4: constant.numeric.msxbasic
+        7: keyword.control.msxbasic
+
+    # Double quotes
+    - match: '"'
+      push: double_quoted_string
+
+    # Comment line ' and REM
+    - match: (?i)((')|(rem))(.*)$
+      captures:
+        2: comment.msxbasicdignified
+        3: keyword.control.msxbasicdignified
+        4: comment.msxbasicdignified
+
+    # DATA line highlights elements and comma only
+    - match: '(?i:data)'
+      push: data_line
+      scope: keyword.control.msxbasic
+
+    # Round brackets balancing warning (only highlights missing closed)
+    - match: \(
+      scope: keyword.operator.msxbasic
+      push: brackets
+    - match: \)
+      scope: invalid.msxbasic
+
+    # Special cases for on xxx goto/gosub (there are more?)
+    - match: '(?i:error|interval|key|sprite|stop|strig)\s*(?=(?i:goto|gosub))'
+      scope: support.function.msxbasic
+
+    # Functions with precedence over Instructions
+    - match: (?i:asc)
+      scope: support.function.msxbasic
+
+    #def fn
+    - match: (?i:(fn)\s*(\w+)(\$|\%|\!|\#)?(?=\())
+      captures:
+        1: support.function.msxbasic
+        2: support.function.msxbasic
+        3: keyword.operator.msxbasic
+
+    # Instructions (several are position and context sensitive)
+    # review: base key play strig stick pdl pad time date set...
+    # catching 'key' if after ^ or : unless folowed by (
+    - match: (?i:\?|as(?=\s*#|\s*\w+\$)|auto|as|beep|bload|bsave|circle|clear|cload|close|cls|cmd|color|cont|copy|copy|csave|csrlin|data|(def)(dbl|(?=\s?fn)|int|sng|str|\s?usr)|delete|dim|draw|dsko\$|else|end|erase|error|field|files|for|get|gosub|goto|if|input|ipl|kanji|(?<=:|^|\d)\s*key(?!\()|kill|let|line|list|llist|load|locate|lprint|lset|maxfiles|merge|motor|name|new|next|off|on|open|out|output|paint|play(?!(\()| +\()|point|poke|preset|print|pset|put|read|renum|restore|resume|return|rset|run|run|save|screen|(set)(\sadjust|\sbeep|\spage|\spassword|\sprompt|\sscreen|\sscroll|\stitle|\svideo|\b)|sound|sprite\$|sprite|step|stop|swap|then|to|troff|tron|using|vpoke|wait|width)
+      scope: keyword.msxbasic
+
+    # Functions (several are position and context sensitive)
+    # review: base key play strig stick pdl pad time date set...
+    - match: (?i:abs|asc|atn|attr\$|base|bin\$|cdbl|cdbl|chr\$|cint|cint|cos|csng|csng|cvd|cvi|cvs|date|dskf|eof|erl|err|exp|fix|fn|fpos|fre|hex\$|inkey\$|inp|input\$|instr|interval|int|key|left\$|len|loc|lof|log|lpos|mid\$|mkd\$|mki\$|mks\$|oct\$|pad|pdl|peek|play(?=(\(|\s+\())|pos|right\$|rnd|sgn|sin|space\$|spc|sqr|stick|str\$|strig|string\$|tab|tan|time|usr|val|varptr|varptr|vdp|vpeek)
+      scope: support.function.msxbasic
+
+   # Call and _ get any 15 char string.
+    - match: (call\s+|_\s*)(\w{,15})
+      captures:
+        1: keyword.msxbasic
+        2: support.function.msxbasic
+
+    # colon - instruction separator
+    - match: ':'
+      scope: comment.msxbasic
+
+    # Separators
+    - match: '[.,;]'
+      scope: keyword.operator.msxbasic
+
+    # Operators
+    - match: (?i:\+|-|\*|/|\^|\\|=|<|>|and|or|not|xor|eqv|imp|mod)
+      scope: keyword.operator.msxbasic
+
+    # Numbers
+    - match: '(#?)([1-9]+[0-9]*|0)(\.?)([ed][+-])?([%!#]?)'
+      captures:
+        1: keyword.operator.msxbasic
+        2: constant.numeric.msxbasic
+        3: keyword.operator.msxbasic
+        4: keyword.operator.msxbasic
+        5: keyword.operator.msxbasic
+
+    # Variables
+    - match: '(#?)([A-Za-z]\d*)([%!#\$]?)'
+      captures:
+        1: keyword.operator.msxbasic
+        2: constant.global.msxbasic
+        3: keyword.operator.msxbasic
+
+    # Hex and binary numbers (bug if word after hex touching and beggining with a-f)
+    - match: '(&[hH])([0-9a-fA-F]+|)|(&[bB])([01]+|)|(&[oO])([1-7]+|)'
+      captures:
+        1: keyword.operator.msxbasic
+        2: constant.numeric.msxbasic
+        3: keyword.operator.msxbasic
+        4: constant.numeric.msxbasic
+        5: keyword.operator.msxbasic
+        6: constant.numeric.msxbasic
+
+    # Quotes: show join line character _
+  double_quoted_string:
+    - meta_scope: string.msxbasic
+    - match: '"|$'
+      pop: true
+
+    # DATA: show join lines character _ and continue next line with _ (stops if :)
+    # Bug > ## comment stops the highlight. can be avoided adding _ at the end
+  data_line:
+    - meta_scope: constant.global.msxbasic
+    - match: ','
+      scope: variable.parameter.msxbasic
+    - match: '"'
+      push:
+        - match: ':'
+          scope: constant.global.msxbasic
+        - match: '("|(?=\n))'
+          pop: true
+    - match: '($\n|:)'
+      scope: comment.msxbasic
+      pop: true
+
+    # Round brackets
+  brackets:
+    - match: \)
+      scope: keyword.operator.msxbasic
+      pop: true
+    - include: main

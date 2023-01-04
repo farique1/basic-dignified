@@ -1,0 +1,17 @@
+<snippet>
+	<content><![CDATA[
+##BB:export_file=${1:}
+##BB:convert_only=${2:False}
+##BB:arguments=${3:}
+
+##BB:override_machine=${4:}
+##BB:override_extension=${5:}
+##BB:monitor_exec=${6:True}
+##BB:throttle=${7:False}
+${8:## add a space between ## and BB to deactivate}
+
+]]></content>
+	<tabTrigger>remtags</tabTrigger>
+	<scope>source.msxbasicdignified</scope>
+	<!-- <description>Basic Dignified REM tags</description> -->
+</snippet>

@@ -1,0 +1,23 @@
+%YAML 1.2
+---
+author: Fred Rique (farique)
+url: https://github.com/farique1/MSX-Sublime-Tools
+comment: v1.2
+
+name: MSX Badig Build Output
+scope: source.msxbasicdignified.build
+
+contexts:
+  main:
+    - match: '^\*\*\*.*$'
+      scope: invalid.msxbasic
+    - match: '^  \*.*$'
+      scope: invalid.deprecated.msxbasic
+    - match: '^.*<log level="error">.*$'
+      scope: invalid.msxbasic
+    - match: '^.*<log level="warning">.*$'
+      scope: invalid.deprecated.msxbasic
+    - match: '^.*( error: |"nok").*$'
+      scope: invalid.msxbasic
+    - match: '^(  -|---|   ).*$'
+      scope: comment.msxbasic

@@ -1,0 +1,28 @@
+{
+  "file_regex": "(?:^\\*\\*\\*\\s)(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+  "selector": "source.msxbasicdignified",
+  "working_dir": "$project_path",
+  "file_patterns": [ "*.bmx", "*.bad"],
+  "syntax": "MSX Badig Build.sublime-syntax",
+  "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-monitor", "-id", "msx"],
+  "windows": {
+	  "cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-monitor", "-id", "msx"]
+  },
+
+  "variants": [
+
+		{ "name": "Don't monitor",
+		  "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-id", "msx"],
+		  "windows": {
+				"cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-id", "msx"]
+		  },
+		},
+
+		{ "name": "Convert only",
+		  "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-convert", "-id", "msx"],
+		  "windows": {
+				"cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-convert", "-id", "msx"]
+		  }
+	}
+  ]
+} 

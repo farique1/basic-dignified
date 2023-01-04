@@ -1,0 +1,34 @@
+{
+  "selector": "source.msxbasic",
+  "working_dir": "$project_path",
+  "file_patterns": ["*.amx", "*.asc", "*.bas"],
+  "syntax": "MSX Badig Build.sublime-syntax",
+  "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-id", "msx"],
+  "windows": {
+      "cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-id", "msx"]
+  }, 
+
+  "variants": [
+
+    { "name": "Tokenize only",
+      "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-convert", "-id", "msx"],
+      "windows": {
+        "cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-convert", "-id", "msx"]
+      },
+    },
+
+    { "name": "Tokenize and save list",
+      "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-convert", "-list", "-id", "msx"],
+      "windows": {
+        "cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-convert", "-list", "-id", "msx"]
+      },
+    },
+    
+    { "name": "Tokenize and run",
+        "cmd": ["python3", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-id", "msx"],
+      "windows": {
+        "cmd": ["python", "-u", "PATH_TO/sublimebuild.py", "$file", "-classic", "-tokenize", "-id", "msx"]
+      }
+    }
+  ]
+}

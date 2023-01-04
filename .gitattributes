@@ -1,0 +1,5 @@
+*.bad linguist-language=BASIC
+*.dmx linguist-language=BASIC
+*.asc linguist-language=BASIC
+*.amx linguist-language=BASIC
+*.bas linguist-language=BASIC

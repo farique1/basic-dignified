@@ -1,0 +1,12 @@
+{
+    "scope": "source.msxbasicdignified",
+
+    "completions":
+    [
+        { "trigger": "for", "contents": "for ${1:f} = ${2:1} to ${3:}${4: step }$5\n\t${6:}\nnext" },
+        { "trigger": "if", "contents": "if $1 then $2${4: else }" },
+        { "trigger": "locate", "contents": "locate ${1:0},${2:0}:print ${3:}" },
+        { "trigger": "screen", "contents": "screen ${1:0} :width ${2:40}${3: :key off}${4: :color }" },
+        { "trigger": "func", "contents": "func .${1:name}(${2:})\n\t${3:}\nret" },
+    ]
+}

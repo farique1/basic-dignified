@@ -1,0 +1,13 @@
+{
+	"extensions":
+	[
+		"amx",
+		"BAS",
+		"bas",
+		"asc",
+		"lst",
+		"lmx"
+	],
+	"default_encoding": "Western (Windows 1252)",
+	"default_line_ending": "windows"
+}
