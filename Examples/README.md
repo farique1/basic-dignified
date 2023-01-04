@@ -5,7 +5,7 @@ A MSX program written with Basic Dignified and converted to classic MSX Basic.
 Change Graph Kit is an utility to find and modify uncompressed game graphics straight from a disk.
   
 **Dignified version**   
-  [`CGK173.bmx`](https://github.com/farique1/basic-dignified/blob/master/Examples/CGK173.bmx)  
+  [`CGK173.dmx`](https://github.com/farique1/basic-dignified/blob/master/Examples/CGK173.dmx)  
 An MSX Basic program written the Dignified way.  
   
 **Classic version**  
