@@ -94,6 +94,7 @@ class Description(Dignified.Description, Classic.Description):
         self.space = r'\s'
         self.newline = r'\r'
         self.newline_str = '\r'
+        self.newline_str_n = '\n'
         self.newline_classic = '\r\n'
 
         # General groups
@@ -1719,7 +1720,7 @@ class Parser:
         self.c_code = []
 
         lr = self.des.c_lab_rep_rem
-        nl = self.des.newline_str
+        nn = self.des.newline_str_n
 
         while True:
 
@@ -1773,7 +1774,7 @@ class Parser:
                         labels = ' '.join(self.label_report[line_number])
                         self.c_line = f'{self.c_line.rstrip()}{lr}{labels}'
 
-                self.c_line = self.c_line.rstrip() + nl
+                self.c_line = self.c_line.rstrip() + nn
 
                 # Check line size
                 line_len = len(self.c_line) - 1
