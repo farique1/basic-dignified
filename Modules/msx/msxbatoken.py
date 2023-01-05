@@ -4,7 +4,7 @@ MSX Basic Tokenizer
 v2.0
 Convert ASCII MSX Basic to tokenized format
 
-Copyright (C) 2019-2022 - Fred Rique (farique)
+Copyright (C) 2019-2023 - Fred Rique (farique)
 https://github.com/farique1/basic-dignified
 
 The complete suite includes:
@@ -16,11 +16,8 @@ Basic DignifieR
 Syntax Highlight, Theme, Build System, Comment Preference and Auto Completion
     for Sublime Text 3 and 4
 
-msxbatoken.py <source> <destination> [args...]
-msxbatoken.py -h for help.
-
-New: 2.0v 25/03/2022
-    Modular design for integration with Basic Dignified v2.0
+New: 2.0v 04/01/2023
+    Integrated on the Dignified Suite
 
 Notes:
     Known discrepancies:
@@ -128,6 +125,7 @@ def save_file(tokenized_code, file_save):
         Info.log(1, f'Save folder not found: {file_save}')
 
 
+# Convert information to the logger module format -----------------------------
 class Info():
     def log(lvl, desc, data=None, bullet=None, show_file=False):
         if data:

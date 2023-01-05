@@ -22,8 +22,10 @@ class SettingsBuild:
 
         # Configs
         self.INI_MAIN = 'CONFIGS'
-        self.INI_WIN = 'WINPATHS'
-        self.INI_MAC = 'MACPATHS'
+        self.INI_WIN = 'WINDOWS'
+        self.INI_LNX = 'LINUX'
+        self.INI_MAC = 'DARWIN'
+        self.CURRENT_SYSTEM = platform.system().upper()  # Get the operating system
 
         # System
         self.system_id = 'msx'
@@ -44,7 +46,8 @@ class SettingsBuild:
         self.verbose_level = 3          # Show processing status: 0-silent 1-+errors 2-+warnings 3-+steps 4-+details
         self.emulator_filepath = ''     # Path to the emulator to run the program ('' = local path)
 
-        self.is_windows = platform.system() == "Windows"  # Get the operating system
+        if self.CURRENT_SYSTEM != self.INI_WIN and self.CURRENT_SYSTEM != self.INI_LNX and self.CURRENT_SYSTEM != self.INI_MAC:
+            infolog.log(1, f'System not recognized:{self.CURRENT_SYSTEM}')
 
     def init(self):
         '''Initialize the settings module'''
@@ -102,7 +105,7 @@ class SettingsBuild:
 
         ini_path = os.path.join(self.LOCAL_PATH, self.SUBLIMEBUILD_INI)
         if os.path.isfile(ini_path):
-            ini_section = self.INI_WIN if self.is_windows else self.INI_MAC
+            ini_section = self.CURRENT_SYSTEM
             config = configparser.ConfigParser()
             config.sections()
             try:

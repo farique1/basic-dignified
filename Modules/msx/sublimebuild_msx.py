@@ -77,11 +77,11 @@ class Run:
         call_monitor_tcl = ''
         TCL_SCRIPT = 'openMSXoutput.tcl'
 
-        if self.stg.is_windows:
+        if self.stg.CURRENT_SYSTEM == self.stg.INI_WIN or self.stg.CURRENT_SYSTEM == self.stg.INI_LNX:
             if not os.path.isfile(self.stg.emulator_filepath) \
                     and (not self.stg.convert_only or self.stg.monitor_exec):
                 infolog.log(1, f'Emulator not found: {self.stg.emulator_filepath}')
-        else:
+        elif self.stg.CURRENT_SYSTEM == self.stg.INI_MAC:
             if not os.path.isdir(self.stg.emulator_filepath) \
                     and (not self.stg.convert_only or self.stg.monitor_exec):
                 infolog.log(1, f'Emulator not found: {self.stg.emulator_filepath}')
@@ -115,10 +115,12 @@ class Run:
 
         self.stg.file_path = self.stg.file_path.replace(' ', r'\ ')
 
-        if self.stg.is_windows:
+        if self.stg.CURRENT_SYSTEM == self.stg.INI_WIN:
             self.stg.file_path = self.stg.file_path.replace('\\', '/')  # cmd apparently needs forward slashes even on Windows
             cmd = [self.stg.emulator_filepath, '-control', 'stdio']
-        else:
+        elif self.stg.CURRENT_SYSTEM == self.stg.INI_LNX:
+            cmd = [self.stg.emulator_filepath, '-control', 'stdio']
+        elif self.stg.CURRENT_SYSTEM == self.stg.INI_MAC:
             cmd = [os.path.join(self.stg.emulator_filepath, 'contents', 'macos', 'openmsx'), '-control', 'stdio']
 
         if self.stg.machine_name != '':
@@ -180,7 +182,7 @@ class Run:
         self.proc.stdin.write(f'<command>type_via_keybuf cls:run{nl}</command>{endline}')
         self.output(True, 'Typing cls and run')
 
-        if self.stg.monitor_exec and self.stg.is_windows:
+        if self.stg.monitor_exec and self.stg.CURRENT_SYSTEM == self.stg.INI_WIN:
             infolog.log(2, 'Execution monitoring not yet supported on Windows')
 
         elif self.stg.monitor_exec:
