@@ -1,1 +1,103 @@
-  # Implementation Ideias and Known Bugs    Not all topics presented here are going to be implemented. Some are just ideas and brainstormings.    ## Known Bugs  **General**  - If the last function definition has no arguments, all functions loose their arguments in the conversion.  - `REM` and `'` literals capitalizing after conversion.  - `REM` instruction not capitalizing.  - Space after define variable being removed when substituting.  - Settings with boolean values are buggy.    **Highlighting**  - Toggles, labels, ~, declares, defines, functions and long named variables starting with a number not highlighting as error.    ## To Do    **General**  - Make defines take multiple different variables.  - Make  variables remember the `~` type (keep long format) and use it on the next occurrences without needing to precede all of them.  - If `ENDIF` after a `:` if if on another line, the line after it will be joined.  - Remove `ENDIF`  - Fix buggy interpretation of settings with boolean values.  - Update the example page and information.  - Make a tool to upgrade the dignified code from version 1.6 to version 2.0.  - Make an `IO` class in the tokenizer.  - Remove file load and save from the `.ini` file. There is no need really.  - Make the build system build generic classic and dignified code with `.bad` and `.asc` extensions, identifying the system somehow.  - Make the `-ini` argument save an `.ini` file with the current command line arguments as defaults.  - Let the classic module deal with all the tokenizer functions. The main script should only call its class.  - `c_litquo` defined on regex groups on classic module but used directly on the code.  - Import Infolog module on the classic module and let it deal with its own logging.  - Make a cleaner way of executing the passes on the classic module.  - Give a warning if a variable is passed to a define without one defined.  - Move the translation characters variables to the Description class.  - Use variables for the token names.  - Understand better the operation of the `export_list` setting and arguments.  - Keep the System description variables as named tuples instead of standalone variables.  - Change the passed `tok` to `data` in the Info class on Badig to make the code clear.  - Find a way to deal with partials like `##B` or `.` (partials are needed to ensure the    capture of a token that has no intermediary match).  - Prevent variables with an `~` from starting with a number.  - Create settings specific for each system, ie: Strip `THEN` `GOTO`, change `PRINT` to `?`, etc should have system specific config.  - Remove `-frb` (`is_from_build`). Is it being used anymore? (all occurrences are commented)  - Remove the double inheritance in the Description class in the main code.  - Make all default programs configurable outside the code, tokenizers, build, DignifieR, etc.  - Make an installation script.  - Make a graphical interface for installation and configs maybe also a complete GUI.  - Make an unique module for each emulator.  - Make the tokenizer and the DignifieR work as modules inside Badig.    - Use command line arguments to utilize them ie:    `badig.py <program.asc> -br` loads an `.asc` and outputs a `.bad`.    `badig.py <program.asc> -tk` loads an `.asc` and outputs a `.bas`.  - Remove emulator stuff (like some remtags) from the general build script.    - There are remtag mentions in `sublimebuild.py` and `badig_dignified.py`    - Potential emulator specific remtags:      `##BB:override_machine=`      `##BB:override_extension=`      `##BB:monitor_exec=`      `##BB:throttle=`  - Remove `monitor_exec` and `save_list` from `badig.py` and make it a feature only of their modules.  - Pass arguments from Badig to the tokenizer as `*args` to decouple them.  - Move the paths to the emulators from `subliebuild.ini` to the `.ini` of the eventual emulator specific build module.  - Make a way to run the emulator from Badig without needing an IDE build using the standalone emulator build module.  - Better control of `show_output` to the console setting on the build.  - Make the code be read as a long string, not as a list. Line numbers are counted by the numbers of line feeds and base code and includes only mention the file name once, not every single line.    **Build**  - Remtag/settings option to turn on/off "full speed when loading" on openMSX.  - Or maybe a system to pass custom strings to control any aspect of openMSX when loading.    **DignifieR**  - Unravel `FOR` is working?  - Check if multi letter command line arguments need to have any letters. `<>` or `[]`?  - Find out why `LOCATE X,Y:PRINT` commented and upgrade to `[?](x,y)`.    **Explain in the manual**  - How to setup syntax scopes on sublime to build automatically.    ## Done    **General**  - Differentiate Linux version along with Mac and Win. I.e.: the way the emulator is called on Python, it is more like Windows.    **Explain in the manual**  - Python version 3.10+  - Remind Badig v2.0 is incompatible with pre v2.0.  - Remind of possible python / python3 naming confusion.  - Emulator needs a machine with disk drive.  - Remember to install Package Control no Sublime.  - Remind of path changes in `.sublime_build` Dignified and classic.    
+# Implementation Ideas and Known Bugs  
+  
+Not all topics presented here are going to be implemented. Some are just ideas and brainstormings.  
+  
+## Known Bugs  
+**General**  
+- If the last function definition has no arguments, all functions loose their arguments in the conversion.  
+- `REM` and `'` literals capitalizing after conversion.  
+- `REM` instruction not capitalizing.  
+- Space after define variable being removed when substituting.  
+  
+**Highlighting**  
+- Toggles, labels, ~, declares, defines, functions and long named variables starting with a number not highlighting as error.  
+  
+## To Do  
+  
+**General**  
+- Make an environment for VS Code with build, highlight and more.  
+- Make a tool to upgrade the dignified code from version 1.6 to version 2.0.  
+- Make a graphical interface for installation and configs maybe also a complete GUI.  
+- Make an installation script.  
+  
+**Language improvements**  
+- Make defines take multiple different variables.  
+- Make  variables remember the `~` type (keep long format) and use it on the next occurrences without needing to precede all of them.  
+- Give a warning if a variable is passed to a define without one defined.  
+- Remove `ENDIF`  
+  
+**Generic improvements**  
+- Remove spaces from all file names and paths.  
+- Make the code be read as a long string, not as a list. Line numbers are counted by the numbers of line feeds and base code and includes only mention the file name once, not every single line.  
+- Remove `monitor_exec` and `save_list` from `badig.py` and make it a feature only of their modules.  
+- Make the build system build generic classic and dignified code with `.bad` and `.asc` extensions, identifying the system somehow.  
+- Make the `-ini` argument save an `.ini` file with the current command line arguments as defaults.  
+- Find a way to deal with partials like `##B` or `.` (partials are needed to ensure the capture of a token that has no intermediary match).  
+- Create settings specific for each system, ie: Strip `THEN` `GOTO`, change `PRINT` to `?`, etc should have system specific config.  
+- Make a way to run the emulator from Badig without needing an IDE build, using the standalone emulator build module.  
+- Move the paths to the emulators from `subliebuild.ini` to the `.ini` of the eventual emulator specific build module.  
+- Make all default programs configurable outside the code, tokenizers, build, DignifieR, etc.  
+- Pass arguments from Badig to the tokenizer as `*args` to decouple them.  
+- Better control of `show_output` to the console setting on the build.  
+- Make an unique module for each emulator.  
+- Make the tokenizer and the DignifieR work as modules inside Badig.  
+  - Use command line arguments to utilize them ie:  
+  `badig.py <program.asc> -br` loads an `.asc` and outputs a `.bad`.  
+  `badig.py <program.asc> -tk` loads an `.asc` and outputs a `.bas`.  
+- Remove emulator stuff (like some remtags) from the general build script.  
+  - There are remtag mentions in `sublimebuild.py` and `badig_dignified.py`  
+  - Potential emulator specific remtags:  
+    `##BB:override_machine=`  
+    `##BB:override_extension=`  
+    `##BB:monitor_exec=`  
+    `##BB:throttle=`  
+  
+**Fixes**
+- If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
+- Prevent variables with an `~` from starting with a number.  
+  
+**Code cleanup**  
+- Make an `IO` class in the tokenizer.  
+- Remove file load and save from the `.ini` file. There is no need really.  
+- Let the classic module deal with all the tokenizer functions. The main script should only call its class.  
+- `c_litquo` defined on regex groups on classic module but used directly on the code.  
+- Import Infolog module on the classic module and let it deal with its own logging.  
+- Make a cleaner way of executing the passes of the classic module.  
+- Move the translation characters variables to the Description class.  
+- Use variables for the token names.  
+- Understand better the operation of the `export_list` setting and arguments and make it simpler.  
+- Keep the System description variables as named tuples instead of standalone variables.  
+- Change the passed `tok` to `data` in the Info class on Badig to make the code clear.  
+- Remove `-frb` (`is_from_build`). Is it being used anymore? (all occurrences are commented)  
+- Remove the double inheritance in the Description class in the main code.  
+  
+**Build**  
+- Remtag/settings option to turn on/off "full speed when loading" on openMSX.  
+- Or maybe a system to pass custom strings to control any aspect of openMSX when loading.  
+  
+**DignifieR**  
+- Unravel `FOR` is working?  
+- Check if multi letter command line arguments need to have any letters. `<>` or `[]`?  
+- Find out why `LOCATE X,Y:PRINT` commented and upgrade to `[?](x,y)`.  
+  
+**Explain in the manual**  
+- How to setup syntax scopes on sublime to build automatically.  
+- Explain how to download the repo.  
+  
+## Done  
+  
+**General**  
+- Update the example page and information.  
+  
+**Generic improvements**  
+- Differentiate Linux version along with Mac and Win. I.e.: the way the emulator is called on Python, it is more like Windows.  
+- Fixed buggy settings with boolean values.  
+
+**Explain in the manual**  
+- Python version 3.10+  
+- Remind Badig v2.0 is incompatible with pre v2.0.  
+- Remind of possible python / python3 naming confusion.  
+- Emulator needs a machine with disk drive.  
+- Remember to install Package Control no Sublime.  
+- Remind of path changes in `.sublime_build` Dignified and classic.  
+  

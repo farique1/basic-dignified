@@ -215,11 +215,13 @@ are comments **stripped** during the conversion, they are defined by `##`.
     ''  
 	```  
 	`badig.py rems.dmx`  
+  
 	```BASIC  
     10 REM this will stay  
     20 ' this also will stay  
     30 'This will stay  
 	```  
+  
 - **Line toggles**  
 tags parts of the code to be **removed** on **demand** when converted. They have the format `#name` where `name` can have **letters**, **numbers** and **underscore** and cannot be only numbers or begin with a number. They can be kept by simply using `keep #name1 #name2 #etc` on a line **before** them. `keep` can take **none**, **one** or **more** toggles on the same line, separated by spaces.  
 There are two **special** toggles, `#all` **keeps** everything and  `#none` **removes** everything. If using both, `#none` has the precedence.  
@@ -236,7 +238,9 @@ Toggles are used at the **start** of a line (`#p print "Hello"`) or they can be 
     print "And neither will this"  
     #c  
 	```  
+  
 	`badig.py toggles.dmx`  
+  
 	```BASIC  
     10 PRINT "this will be converted"  
     20 PRINT "this also will be converted"  
@@ -257,7 +261,9 @@ The supported **unicode** characters for the **MSX ASCII** set are:
     print "│SAVING│"  
     print "└──────┘"  
     ```  
+  
     `badig.py transl.dmx -tr`  
+  
     ```BASIC  
     10 PRINT "XWWWWWWY"  
     20 PRINT "VSAVINGV"  
@@ -273,6 +279,7 @@ Included files have **separated** namespaces. **Rem toggles**, **functions**, **
 **Long named** variables are also assigned **different short names** across includes however they cannot have the same **names** across included files and a **warning** will be given if the **same hardcoded** variables are used across includes.  
   
 	`include.dmx`  
+  
 	```BASIC  
     print "This is the main file."  
     '  
@@ -280,12 +287,16 @@ Included files have **separated** namespaces. **Rem toggles**, **functions**, **
     '  
     print "This is the main file again."  
 	```  
+  
 	`help.dmx`  
+  
 	```BASIC  
     print "this is a helper code."  
     print "Saved on another file."  
 	```  
+  
 	`badig.py include.dmx`  
+  
 	```BASIC  
     10 PRINT "This is the main file."  
     20 '  
@@ -303,7 +314,9 @@ statements can be used with **numeric** variables, they will be converted to `-1
     condition = false  
     if condition then var_bool = not var_bool  
 	```  
+  
 	`badig.py bool.dmx`  
+  
 	```BASIC  
     10 ZZ=-1  
     20 ZY=0  
@@ -317,7 +330,9 @@ arithmetic operators (`++`, `--`, `+=`, `-=`, `*=`, `/=`, `^=`) can be used and 
     var1++ :var2--  
     var3 += 20 :var4 -= 10  
 	```  
+  
 	`badig.py operat.dmx`  
+  
 	```BASIC  
     10 ZZ=ZZ+1:ZY=ZY-1  
     20 ZX=ZX+20:ZW=ZW-10  
@@ -618,8 +633,9 @@ Additional settings for each **individual** conversion can be passed through arg
 	```  
 - **The remtags**  
 Remtags are special **exclusive rem** lines that are used on the Dignified code itself to **alter** the behaviour of the conversion and execution of the code.  
-Their main use is to allow for **quick** settings changes if you are using a **build system** but they can also be used on a command line setting and will override them and all the previous settings.  
+Their main use is to allow for **quick** settings changes if you are using a **build system** but they can also be used on a command line setting and will ovesride them and all the previous settings.  
 They are commonly used at the start of the Dignified code:  
+
 	```ini  
 	##BB:export_file=  
 	##BB:convert_only=  
@@ -630,6 +646,7 @@ They are commonly used at the start of the Dignified code:
 	##BB:monitor_exec=  
 	##BB:throttle=  
 	```  
+
 	> You can easily **disable** a remtag by simply **adding a space** between `##` and `BB`, transforming them in a regular **comment**.  
   
   - The first **three** are general Dignified remtags:  

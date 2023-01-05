@@ -33,7 +33,7 @@ Move the **contents** of the folder `\Sublime Tools\` to the Sublime **packages*
 **Windows**: `C:\Users\<USER_NAME>\AppData\Roaming\Sublime Text\Packages\`.  
 **macOS**: `~/Library/Application Support/Sublime Text 3/Packages/`  
 **Linux**: `~/config/sublime-text-3/Packages/`  
-Yours may be different. You can find the location of your **packages** folder on Sublime in the menu: **Preferences > Browse Packages**.  
+Yours may be different. You can find the location of your **packages** folder on Sublime on the menu **Preferences > Browse Packages**.  
 These are the files Sublime needs to configure the Dignified environment.  
   
 The **first time** you open a basic program, **classic** or **Dignified**, you may need to **chose** the appropriated **highlight** on the bottom right of Sublime Text inside **User >**.  
