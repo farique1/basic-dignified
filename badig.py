@@ -25,19 +25,17 @@ import re
 import sys
 import time
 import os.path
-import importlib
 from collections import namedtuple, defaultdict
 
 # Custom modules
-from Modules.Support import io
-from Modules.Support import infolog
-from Modules.Settings.badig_settings import Settings
+from support.helper import IO
+from support.helper import Infolog
+from support.badig_settings import Settings
 
-# Language definitions
-from Modules.Support import badig_dignified as Dignified
-
-# if comming from a build, as a module,
+# if coming from a module
 # pass the file name as argument to the init() method
+# Badig is not being called by a module anymore
+# But it is left here in case it's needed
 external = None
 if __name__ != '__main__':
     external = [os.path.basename(sys.argv[1])]
@@ -46,17 +44,17 @@ if __name__ != '__main__':
 stg = Settings()
 stg.init(external)
 
-# Prepare the classical system information for the module name
-system_id = stg.system_id
-system_module = f'..{system_id}.badig_{system_id}'
-system_package = f'Modules.{system_id}'
+# Classic modules
+Classic = stg.Classic
+Tools = stg.Tools
 
-# Classic system module
-try:
-    Classic = importlib.import_module(system_module, system_package)
-except ModuleNotFoundError as e:
-    infolog.log(1, f'Classic system not found: {e}')
+# Dignified module
+Dignified = stg.Dignified
 
+# Initlalize Infolog
+infolog = Infolog()
+
+# Apply verbose
 infolog.level = stg.verbose_level
 
 
@@ -94,8 +92,12 @@ class Description(Dignified.Description, Classic.Description):
         self.space = r'\s'
         self.newline = r'\r'
         self.newline_str = '\r'
-        self.newline_str_n = '\n'
         self.newline_classic = '\r\n'
+
+        if stg.CURRENT_SYSTEM == 'WINDOWS':
+            self.newline_str_n = '\n'
+        else:
+            self.newline_str_n = '\r'
 
         # General groups
         m_eof = r'^EOF$'
@@ -141,6 +143,8 @@ class Token:
         self.val = val
         self.pos = pos
 
+        self.c_idnttp_grp = Description().c_idnttp_grp
+
         if self.tok:
             self.tok = self.tok.upper()
 
@@ -153,6 +157,27 @@ class Token:
     def lval(self):
         '''Create a lowercase value'''
         return str(self.val).lower()
+
+    @property
+    def var_name(self):
+        '''Give variable identifier'''
+        g = re.match(self.c_idnttp_grp, self.val)
+        var_name = g.group(1)
+        return str(var_name).lower()
+
+    @property
+    def val_w_file(self):
+        '''Give variable + file name'''
+        val_w_file = self.var_name
+        val_w_file += f'@{self.pos.file}'
+        return str(val_w_file).lower()
+
+    @property
+    def var_type(self):
+        '''Give variable type'''
+        g = re.match(self.c_idnttp_grp, self.val)
+        var_type = g.group(2)
+        return str(var_type).lower()
 
     def copy(self):
         '''Make a copy of the object'''
@@ -222,13 +247,9 @@ class Lexer:
         self.des = Description()
         self.pos = Position(d_code, lin=0, col=-1)
 
-        # Run initialization on the classic module
+        # Run classic module lexer initialization
         self.clc = Classic.Lexer(self, self.stg, Token)
-        response = self.clc.initialization()
-        if response:
-            info_level = response[0]
-            info_content = response[1]
-            getattr(Info, info_level)(*info_content)
+        self.clc.initialization()
 
     # General -----------------------------------------------------------------
     def advance(self):
@@ -463,14 +484,10 @@ class Lexer:
             # Lex functions on the classic module
             # and deal with their response
             else:
-                response, ctk = self.clc.lexing()
-                if response is None:
+                ctk = self.clc.lexing()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Create list -----------------------------------------------------
@@ -492,20 +509,18 @@ class Parser:
        short_vars = List of short named vars used
                     (prevent conflict on included files)'''
 
-    def __init__(self, stg, lexed, des, short_vars):
+    def __init__(self, stg, lexed, des, include_vars):
         self.tok_list_in = lexed
         self.stg = stg
         self.reset_pass()
         self.des = des
-        self.des.c_used_short_vars.update(short_vars)
+        self.des.c_hard_short_vars.update(include_vars[0])
+        self.des.c_hard_long_vars.update(include_vars[1])
+        self.des.d_declares.update(include_vars[2])
 
         # Run initialization on the classic module
         self.clc = Classic.Parser(self, stg, Token)
-        response = self.clc.initialization()
-        if response:
-            info_level = response[0]
-            info_content = response[1]
-            getattr(Info, info_level)(*info_content)
+        self.clc.initialization()
 
     def reset_pass(self):
         '''Reset the variables to prepare for another pass at the token list'''
@@ -648,6 +663,10 @@ class Parser:
         if not def_def:
             Info.log(1, f'Define blank.', self.tk)
 
+        if not def_def.lval.replace(self.des.d_idsnake, '').isalnum() \
+                and def_def.lval != self.des.c_print_alt:
+            Info.log(1, f'{def_def.val} invalid define name.', def_def)
+
         if def_def.lval not in self.des.d_defines:
             Info.log(1, f'{def_def.val} define not defined.', def_def)
 
@@ -698,61 +717,102 @@ class Parser:
     def get_declares(self):
         '''Get the declares definitions'''
 
-        ag = self.des.d_decass
-        ds = self.des.d_decsep
-        nl = self.des.newline_str
+        vc = self.des.c_var_valid_chars
 
         while True:
+
+            # Get long variable
             dec_long = self.next_tok()
-            dec_long_val = dec_long.lval
 
-            if not re.match(self.des.d_identf, dec_long_val):
-                Info.log(1, f'Invalid declare long name: {dec_long.val}', dec_long)
+            if not re.match(self.des.d_identf, dec_long.lval):
+                Info.log(1, f'Invalid declared variable: {dec_long.val}', dec_long)
 
-            if len(dec_long_val) <= 2:
+            if len(dec_long.lval) == 1:
+                Info.log(1, f'Declared variable too short: {dec_long.lval}', dec_long)
 
-                if self.peek_ahead().val == ds \
-                        or self.peek_ahead().val == nl:
+            if dec_long.uval in self.des.c_reserved_kw:
+                Info.log(1, f'Variable is a reserved keyword: {dec_long.lval}', dec_long)
 
-                    if len(dec_long_val) == 1:
-                        Info.log(1, f'Reserved name too short: {dec_long.val}', dec_long)
+            # If there is no assignment (:)
+            if self.peek_ahead().val == self.des.d_decsep \
+                    or self.peek_ahead().tok == 'NEWLINE':
 
-                    self.des.c_used_short_vars.update({dec_long_val})
-                    self.des.c_pure_short_vars.update({dec_long_val})
+                for var in self.des.d_declares:
+                    val_n_file = var.split('@')[0]
+                    if dec_long.lval[:vc] == self.des.d_declares[var]:
+                        Info.log(2, f'Declared variable conflict: '
+                                    f'{dec_long.lval} '
+                                    f'{val_n_file}:{self.des.d_declares[var]}', dec_long)
+                    if dec_long.val_w_file == var:
+                        Info.log(1, f'Long variable already reserved: '
+                                    f'{dec_long.lval} '
+                                    f'{val_n_file}:{self.des.d_declares[var]}', dec_long)
 
-                    if self.peek_ahead().val == nl:
-                        break
+                for var in self.des.c_hard_long_vars:
+                    if dec_long.lval[:vc] == var.var_name[:vc]:
+                        Info.log(2, f'Reserved long variable conflict: '
+                                    f'{dec_long.lval} {var.var_name}', dec_long)
 
+                for var in self.des.c_hard_short_vars:
+                    if dec_long.lval[:vc] == var:
+                        Info.log(2, f'Reserved short variable conflict: '
+                                    f'{dec_long.lval} {var}', dec_long)
+
+                if len(dec_long.lval) == vc:
+                    self.des.c_hard_short_vars.update({dec_long.lval})
+                else:
+                    self.des.c_hard_long_vars.update({dec_long})
+
+                if self.peek_ahead().tok == 'NEWLINE':
+                    break
+
+                if self.peek_ahead().val == self.des.d_decsep:
                     self.next_tok()
-
                     continue
 
-                else:
-                    Info.log(1, f'Long name too short: {dec_long.val}', dec_long)
+            self.next_tok()
 
-            assign = self.next_tok()
-            if assign.val != ag:
-                Info.log(1, f'Declare missing: {ag}', assign)
-
+            # Get short variable
             dec_short = self.next_tok()
-            dec_short_val = dec_short.lval
 
-            if not re.match(self.des.c_varsna, dec_short_val):
-                Info.log(1, f'Invalid declare short name: {dec_short.val}', dec_short)
+            if not re.match(self.des.c_varsna, dec_short.lval):
+                Info.log(1, f'Invalid declared short variable: {dec_short.lval}', dec_short)
 
-            if dec_long_val in self.des.d_declares:
-                Info.log(1, f'Long name duplicated: {dec_long.val}', dec_long)
+            for var in self.des.d_declares:
+                val_n_file = var.split('@')[0]
+                if dec_long.val_w_file == var:
+                    Info.log(1, f'Long variable already declared: '
+                                f'{dec_long.lval}:{dec_short.lval} '
+                                f'{val_n_file}:{self.des.d_declares[var]}', dec_short)
+                if dec_short.lval == self.des.d_declares[var]:
+                    Info.log(1, f'Short variable already declared: '
+                                f'{dec_long.lval}:{dec_short.lval} '
+                                f'{val_n_file}:{self.des.d_declares[var]}', dec_short)
 
-            if dec_short_val in self.des.c_used_short_vars:
-                Info.log(1, f'Short name duplicated: {dec_short.val}', dec_short)
+            for var in self.des.c_hard_long_vars:
+                if dec_long.val_w_file == var.val_w_file:
+                    Info.log(1, f'Long variable already reserved: '
+                                f'{dec_long.lval}:{dec_short.lval} '
+                                f'{var.lval}', dec_long)
 
-            self.des.d_declares[dec_long_val] = dec_short_val
-            self.des.c_used_short_vars.update({dec_short_val})
+            for var in self.des.c_hard_long_vars:
+                if dec_short.lval == var.var_name[:vc]:
+                    Info.log(2, f'Reserved long variable conflict: '
+                                f'{dec_long.lval}:{dec_short.lval} '
+                                f'{var.var_name}', dec_short)
+
+            for var in self.des.c_hard_short_vars:
+                if dec_short.lval == var:
+                    Info.log(2, f'Reserved short variable conflict: '
+                                f'{dec_long.lval}:{dec_short.lval} '
+                                f'{var}', dec_short)
+
+            self.des.d_declares[dec_long.val_w_file] = dec_short.lval
 
             tk = self.next_tok()
-            if tk.val != ds:
+            if tk.val != self.des.d_decsep:
                 if tk.tok != 'NEWLINE':
-                    Info.log(1, f'Expecting: {ds}', self.tk)
+                    Info.log(1, f'Expecting: {self.des.d_decsep}', self.tk)
                 break
 
     # Labels ------------------------------------------------------------------
@@ -832,7 +892,7 @@ class Parser:
     # Helper function ---------------------------------------------------------
     def get_in_bracket(self, delim):
         '''Get content inside delimiters.
-           delim  = Opening and closing delimiter characters'''
+           delim: Opening and closing delimiter characters'''
 
         assert len(delim) == 2
         do = delim[0]
@@ -910,7 +970,7 @@ class Parser:
         last_ret_tok = self.tk
         fs = self.des.d_funcsep
         ar = self.des.c_altrem
-        func_def = namedtuple('func_def', 'args rets')
+        func_def = namedtuple('func_def', 'args rets equl')
 
         if not self.in_func:
             Info.log(1, f'Ret without function.', self.tk)
@@ -936,7 +996,7 @@ class Parser:
             Info.log(1, f'Function return missing variable.', last_ret_tok)
 
         self.tk = self.tok_str(self.des.c_func_ret)[0]
-        self.des.d_functions[self.in_func.lval] = func_def(self.func_def_args, ret_list)
+        self.des.d_functions[self.in_func.lval] = func_def(self.func_def_args, ret_list, self.func_def_equl)
         self.in_func = None
 
     def replace_func_calls(self):
@@ -1000,9 +1060,10 @@ class Parser:
                             f'{var[1].val}', var[1])
 
         cal_args = self.get_func_args(func)
-        cal_equl = self.func_def_equl
+        # cal_equl = self.func_def_equl
         def_args = self.des.d_functions[func.lval].args
         def_rets = self.des.d_functions[func.lval].rets
+        cal_equl = self.des.d_functions[func.lval].equl
 
         if len(cal_args) > len(def_args):
             Info.log(1, f'Function arguments mismatch.', func)
@@ -1157,7 +1218,7 @@ class Parser:
         include_file = include.val.strip(qs).strip()
 
         if include.tok != 'C_LITQUO' or not include_file:
-            Info.log(1, f'Include error in: {include.val}', self.tk)
+            Info.log(1, f'Include error: {include.val}', self.tk)
 
         if not os.path.isabs(include_file):
             include_file = os.path.join(self.stg.file_path, include_file)
@@ -1168,7 +1229,7 @@ class Parser:
                             include.pos.offset,
                             include.pos.text,
                             include.pos.file)
-        include_code = io.load_file(include, include_file,
+        include_code = IO.load_file(include, include_file,
                                     self.stg.load_format, self.stg.tab_lenght)
 
         verbose = self.stg.verbose_level
@@ -1177,10 +1238,16 @@ class Parser:
         lex = Lexer(self.stg, include_code)
         lexed = lex.lex()
 
-        par = Parser(self.stg, lexed, lex.des, self.des.c_used_short_vars)
-        parsed, short_vars = par.par()
+        include_vars = (self.des.c_hard_short_vars,
+                        self.des.c_hard_long_vars,
+                        self.des.d_declares)
 
-        self.des.c_used_short_vars.update(short_vars)
+        par = Parser(self.stg, lexed, lex.des, include_vars)
+        parsed, include_vars = par.par()
+
+        self.des.c_hard_short_vars = include_vars[0]
+        self.des.c_hard_long_vars = include_vars[1]
+        self.des.d_declares = include_vars[2]
 
         if self.is_main_file():
             self.stg.verbose_level = verbose
@@ -1190,9 +1257,9 @@ class Parser:
     # Rem header --------------------------------------------------------------
     def insert_rem_header(self, idx, lin, text):
         '''Add an information rem header on the final code
-           idx = Token list index to insert the line
-           lin = Line number for the position object
-           text = Text to insert'''
+           idx: Token list index to insert the line
+           lin: Line number for the position object
+           text: Text to insert'''
 
         tok_rem = self.tok_str(self.des.c_altrem, pos=self.tk.pos.copy(col=0))[0]
         tok_lit = Token(tok='C_LINREM', val=text, pos=self.tk.pos.copy(col=1))
@@ -1261,14 +1328,18 @@ class Parser:
             self.pass_4()
             self.pass_5()
 
-        return self.tok_list_out, self.des.c_used_short_vars
+        include_vars = (self.des.c_hard_short_vars,
+                        self.des.c_hard_long_vars,
+                        self.des.d_declares)
+
+        return self.tok_list_out, include_vars
 
     # Pass 1 ------------------------------------------------------------------
     def pass_1(self):
         '''First parser pass
         Preparations, rem toggles, dignified instructions and replace defines'''
 
-        Info.log(4, f'Pass 1.')
+        Info.log(5, f'Pass 1.')
 
         self.in_func = None
         self.tok_list_out.append(self.next_tok())
@@ -1328,14 +1399,10 @@ class Parser:
 
             # Classic module functions ----------------------------------------
             else:
-                response, ctk = self.clc.pass_1()
-                if response is None:
+                ctk = self.clc.pass_1()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Create list -----------------------------------------------------
@@ -1350,7 +1417,7 @@ class Parser:
         '''Second parser pass, record code flow
         Function calls and labels'''
 
-        Info.log(4, f'Pass 2.')
+        Info.log(5, f'Pass 2.')
 
         self.tok_list_in = self.tok_list_out
         self.reset_pass()
@@ -1384,14 +1451,10 @@ class Parser:
 
             # Classic module functions ----------------------------------------
             else:
-                response, ctk = self.clc.pass_2()
-                if response is None:
+                ctk = self.clc.pass_2()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Create list -----------------------------------------------------
@@ -1413,7 +1476,7 @@ class Parser:
         '''Third parser pass, add and remove
         Includes, rem blocks, remove excess newlines, join lines and strings'''
 
-        Info.log(4, f'Pass 3.')
+        Info.log(5, f'Pass 3.')
 
         self.tok_list_in = self.tok_list_out
         self.reset_pass()
@@ -1433,14 +1496,10 @@ class Parser:
 
             # Classic module functions ----------------------------------------
             else:
-                response, ctk = self.clc.pass_3()
-                if response is None:
+                ctk = self.clc.pass_3()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Adjust lines ----------------------------------------------------
@@ -1524,9 +1583,9 @@ class Parser:
     # Pass 4 ------------------------------------------------------------------
     def pass_4(self):
         '''Fourth parser pass, apply code flow and line numbers
-        Replace labels with lines and apply line numbers and apply header'''
+        Replace labels with lines and apply line numbers and header'''
 
-        Info.log(4, f'Pass 4.')
+        Info.log(5, f'Pass 4.')
 
         self.tok_list_in = self.tok_list_out
         self.reset_pass()
@@ -1617,7 +1676,13 @@ class Parser:
                                          self.tk.pos.text,
                                          self.tk.pos.file))
                 line_number += self.stg.line_step
-                line = self.peek_ahead().pos.lin
+                start_tok = self.peek_ahead()
+                line = start_tok.pos.lin
+
+                # Line cannot start with number
+                if start_tok.val.isdigit():
+                    Info.log(1, f'Line starting with number: {start_tok.val}', tok=start_tok)
+
                 self.tok_list_out.append(self.tk)
                 self.tok_list_out.append(Token(tok='C_LINENB',
                                                val=line_number,
@@ -1627,14 +1692,10 @@ class Parser:
 
             # Classic module functions ----------------------------------------
             else:
-                response, ctk = self.clc.pass_4()
-                if response is None:
+                ctk = self.clc.pass_4()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Create list -----------------------------------------------------
@@ -1656,7 +1717,7 @@ class Parser:
         for l in llabels_exit:
             if llabels_ret[l.label] > line_number - self.stg.line_step:
                 error_tok = self.tok_list_out[l.index]
-                Info.log(1, f'Exit to inexisting line: {llabels_ret[l.label]}', error_tok)
+                Info.log(1, f'Loop exit past end of program.', error_tok)
             self.tok_list_out[l.index].val = llabels_ret[l.label]
 
         # Replace function calls placeholders for line numbers
@@ -1668,7 +1729,7 @@ class Parser:
         '''Fifth parser pass, classic alterations
         Mostly on the classic module, capitalize'''
 
-        Info.log(4, f'Pass 5.')
+        Info.log(5, f'Pass 5.')
 
         self.tok_list_in = self.tok_list_out
         self.reset_pass()
@@ -1682,14 +1743,10 @@ class Parser:
 
             # Classic module functions ----------------------------------------
             else:
-                response, ctk = self.clc.pass_5()
-                if response is None:
+                ctk = self.clc.pass_5()
+                if ctk is None:
                     continue
-                elif response:
-                    info_level = response[0]
-                    info_content = response[1]
-                    getattr(Info, info_level)(*info_content)
-                if ctk:
+                elif ctk:
                     self.tk = ctk
 
             # Capitalize
@@ -1708,7 +1765,7 @@ class Parser:
     def generate(self):
         '''Generate the output code'''
 
-        Info.log(4, f'Generating.')
+        Info.log(5, f'Generating.')
 
         self.tok_list_in = self.tok_list_out
         self.reset_pass()
@@ -1742,18 +1799,13 @@ class Parser:
                 for self.n, self.token in enumerate(self.line):
 
                     # Classic module functions ----------------------------------------
-                    response, ctk = self.clc.generate()
-                    if response is None:
+                    ctk = self.clc.generate()
+                    if ctk is None:
                         continue
-                    elif response:
-                        info_level = response[0]
-                        info_content = response[1]
-                        getattr(Info, info_level)(*info_content)
-                    if ctk:
+                    elif ctk:
                         self.tk = ctk
 
                     # Add spaces before token
-                    # print(self.c_line, self.stg.file_load)
                     if self.token.uval in self.des.c_reserved_kw \
                             and self.c_line[-1] != ' ' \
                             and self.line[self.n - 1].val not in self.des.c_symb_comp:
@@ -1774,6 +1826,7 @@ class Parser:
                         labels = ' '.join(self.label_report[line_number])
                         self.c_line = f'{self.c_line.rstrip()}{lr}{labels}'
 
+                # Add a linefeed to the end of the line
                 self.c_line = self.c_line.rstrip() + nn
 
                 # Check line size
@@ -1806,35 +1859,70 @@ def report_output(report_list, header, list_type, file_save, print_report):
         [print(t.rstrip()) for t in report_list]
 
     else:
-        io.save_file(None, report_list, file_save, 'UTF-8')
+        IO.save_file(None, report_list, file_save, 'UTF-8')
         Info.log(4, f'{file_save} saved.')
 
 
 # Main class ------------------------------------------------------------------
 class Main:
     def __init__(self):
-        # settings defined earlier to get the system info and import modules dinamically
+        # settings defined earlier to get the system info and import modules dynamically
         self.stg = stg
-        self.line_list = {}  # Used by the build system.
 
-    def execute(self):
-        Info.log(3, f'Basic Dignified: {self.stg.system_name}', bullet='')
-        Info.log(3, f'Converting: {os.path.basename(self.stg.file_load)}', bullet='')
+        if self.stg.code_is_ascii:
+            self.classic()
+        else:
+            self.dignified()
+
+    # Runs expecting a classic Basic code -------------------------------------
+    def classic(self):
+        Info.log(3, f'Basic Dignified: {self.stg.system_name}')
+        Info.log(3, f'  Processing: {os.path.basename(self.stg.file_load)}')
+
+        # Load classic code -------------------------------------------------
+        Info.log(4, f'Loading file: {self.stg.file_load}')
+        d_code = IO.load_file(None, self.stg.file_load,
+                              self.stg.load_format, self.stg.tab_lenght)
+
+        # Relationship between line numbers to use on the monitoring error report
+        self.line_list = {}
+        for line in d_code[1:-1]:
+            line_number = re.match(r'^\d+', line.text)
+            if not line_number:
+                err_pos = Position(d_code, lin=line.nmbr, col=-1)
+                err_pos.text = line.text
+                err_pos.file = os.path.basename(line.file)
+                err_tok = Token(pos=err_pos)
+                Info.log(1, f'Line not starting with number:', tok=err_tok)
+
+            self.line_list[line_number.group(0)] \
+                = (str(line.nmbr), line.text, os.path.basename(line.file))
+
+        self.stg.line_list = self.line_list
+
+        # Run tools -----------------------------------------------------------
+        run = Tools.Interface(self.stg)
+        run.run()
+
+    # Runs expecting a Dignified Basic code -----------------------------------
+    def dignified(self):
+        Info.log(3, f'Basic Dignified: {self.stg.system_name}')
+        Info.log(3, f'Converting: {os.path.basename(self.stg.file_load)}')
 
         # Load dignified code -------------------------------------------------
-        Info.log(3, f'Loading file: {self.stg.file_load}')
-        d_code = io.load_file(None, self.stg.file_load,
+        Info.log(4, f'Loading file: {self.stg.file_load}')
+        d_code = IO.load_file(None, self.stg.file_load,
                               self.stg.load_format, self.stg.tab_lenght)
 
         # Lex it --------------------------------------------------------------
-        Info.log(3, 'Lexing.')
+        Info.log(5, 'Lexing.')
         t0 = time.time()
 
         lex = Lexer(self.stg, d_code)
         lexed = lex.lex()
 
         tl = time.time() - t0
-        Info.log(4, f'{len(lexed)} tokens created in {tl:.4f}s.')
+        Info.log(5, f'{len(lexed)} tokens created in {tl:.4f}s.')
 
         # Save lexer token list
         if self.stg.lexer_report:
@@ -1845,14 +1933,18 @@ class Main:
                           self.stg.file_save, self.stg.print_report)
 
         # Parse it ------------------------------------------------------------
-        Info.log(3, 'Parsing.')
+        Info.log(5, 'Parsing.')
         t0 = time.time()
 
-        par = Parser(self.stg, lexed, lex.des, lex.des.c_used_short_vars)
+        include_vars = (lex.des.c_hard_short_vars,
+                        lex.des.c_hard_long_vars,
+                        lex.des.d_declares)
+
+        par = Parser(self.stg, lexed, lex.des, include_vars)
         parsed, _ = par.par()
 
         tp = time.time() - t0
-        Info.log(4, f'{len(parsed)} tokens created in {tp:.4f}s.')
+        Info.log(5, f'{len(parsed)} tokens created in {tp:.4f}s.')
 
         # Save parser token list
         if self.stg.parser_report:
@@ -1863,23 +1955,25 @@ class Main:
                           self.stg.file_save, self.stg.print_report)
 
         # Generate classic code -----------------------------------------------
-        Info.log(3, 'Generating Classic code.')
+        Info.log(5, 'Generating Classic code.')
         t0 = time.time()
 
         c_code, var_r, line_r = par.generate()
 
         tg = time.time() - t0
-        Info.log(4, f'{len(c_code)} lines created in {tg:.4f}s.')
-        Info.log(4, f'Total: {tl+tp+tg:.4f}s.')
+        Info.log(5, f'{len(c_code)} lines created in {tg:.4f}s.')
+        Info.log(5, f'Total: {tl+tp+tg:.4f}s.')
 
         # Relationship between line numbers to use on the monitoring error report
+        self.line_list = {}
         for line in line_r:
             self.line_list[str(line[0])] \
                 = (str(line[1]), line[2], os.path.basename(line[3]))
+        self.stg.line_list = self.line_list
 
         # Save variables report
         if self.stg.var_report:
-            report_list = [f'{v[1]}:{v[0]}\n'
+            report_list = [f'{v[1]}:{v[0].split("@")[0]}\n'
                            for v in sorted(var_r.items(),
                                            key=lambda kv: (kv[1], kv[0]),
                                            reverse=True)]
@@ -1901,23 +1995,19 @@ class Main:
                           self.stg.file_save, self.stg.print_report)
 
         # Save classic code ---------------------------------------------------
-        Info.log(1, f'Saving file: {self.stg.file_save}', bullet='    ')
-        io.save_file(None, c_code, self.stg.file_save)
+        Info.log(4, f'Saving file: {self.stg.file_save}')
+        IO.save_file(None, c_code, self.stg.file_save)
 
-        # Tokenize classic code -----------------------------------------------
-        if 'T' in self.stg.output_format:
-            tok = Classic.Tokenize(self.stg)
-            tok.tokenize()
-            if tok.TOK_EXISTS is False:
-                Info.log(2, 'Tokenizer not found.')
+        # Run tools -----------------------------------------------------------
+        run = Tools.Interface(self.stg)
+        run.run()
 
 
 # Main function ---------------------------------------------------------------
 def main():
     '''Do the thing'''
 
-    dig_main = Main()
-    dig_main.execute()
+    Main()
 
 
 if __name__ == '__main__':

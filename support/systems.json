@@ -1,0 +1,32 @@
+[
+ {
+   "msx": {
+      "name": "MSX",
+      "dig_ext": ".dmx",
+      "asc_ext": ".amx",
+      "bin_ext": ".bmx",
+      "lst_ext": ".lmx"
+   },
+   "coco": {
+      "name": "Color Computer",
+      "dig_ext": ".DCC",
+      "asc_ext": ".ACC",
+      "bin_ext": ".BCC",
+      "lst_ext": ".LCC"
+    },
+   "spec": {
+      "name": "ZX Spectrum",
+      "dig_ext": ".dzs",
+      "asc_ext": ".azs",
+      "bin_ext": ".bzs",
+      "lst_ext": ".lzs"
+   },
+   "c64": {
+      "name": "Commodore 64",
+      "dig_ext": ".d64",
+      "asc_ext": ".a64",
+      "bin_ext": ".b64",
+      "lst_ext": ".l64"
+   }
+}
+]

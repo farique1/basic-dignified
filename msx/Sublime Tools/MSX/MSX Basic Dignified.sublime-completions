@@ -1,0 +1,41 @@
+{
+    "scope": "source.msxbasicdignified",
+
+    "completions":
+    [
+        { "trigger": "for",
+          "annotation": "Basic Dignified",
+          "contents": "for ${1:f} = ${2:1} to ${3:}${4: step }$5\n\t${6:}\nnext",
+          "kind": "snippet",
+          "details": "Basic <code>for next</code> loop"
+        },
+
+        { "trigger": "if",
+          "annotation": "Basic Dignified",
+          "contents": "if $1 then $2${4: else }",
+          "kind": "snippet",
+          "details": "Basic <code>if then else</code> loop"
+        },
+
+        { "trigger": "locate",
+          "annotation": "Basic Dignified",
+          "contents": "locate ${1:0},${2:0}:print ${3:}",
+          "kind": "snippet",
+          "details": "<code>locate x,y:print</code>"
+        },
+
+        { "trigger": "screen",
+          "annotation": "Basic Dignified",
+          "contents": "screen ${1:0} :width ${2:40}${3: :key off}${4: :color ${15:1},${6:1},${7:1}}",
+          "kind": "snippet",
+          "details": "Screen setup"
+        },
+
+        { "trigger": "func",
+          "annotation": "Basic Dignified",
+          "contents": "func .${1:name}(${2:})\n\t${3:}\nret", 
+          "kind": "snippet",
+          "details": "Dignified <code>func</code>"
+        }
+    ]
+}

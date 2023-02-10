@@ -1,0 +1,13 @@
+<snippet>
+	<content><![CDATA[
+##BB:export_file=${1:}
+##BB:arguments=${2:}
+##BB:help=${3:}
+${4:## add a space between ## and BB to deactivate
+## build with help=true to see additional remtags}
+
+]]></content>
+	<tabTrigger>remtags</tabTrigger>
+	<scope>source.cocobasicdignified</scope>
+	<!-- <description>Basic Dignified remtags</description> -->
+</snippet>

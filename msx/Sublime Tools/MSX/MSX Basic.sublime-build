@@ -1,0 +1,79 @@
+{
+	"file_regex": "(?:^\\*\\*\\*\\s)(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+	"selector": "source.msxbasic",
+	"working_dir": "$project_path",
+	"file_patterns": ["*.amx", "*.asc", "*.bas"],
+	"syntax": "MSX Badig Build.sublime-syntax",
+
+	"osx": {
+		"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+								"$file", "-asc", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"],
+	},
+	"windows": {
+		"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+								"$file", "-asc", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"]
+	},
+	"linux": {
+		"cmd": ["python3", "-u", "/badig.py",
+								"$file", "-asc", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"]
+	},
+	"variants": [
+
+		{ "name": "Don't monitor",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--em_run", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--em_run", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--em_run", "-id", "msx"]
+			},
+		},
+		{ "name": "Don't tokenize",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--em_run", "--em_monitor", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--em_run", "--em_monitor", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "-asc", "--em_run", "--em_monitor", "-id", "msx"]
+			}
+		},
+		{ "name": "Tokenize only",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "-asc", "--tk_tokenize", "-id", "msx"]
+			},
+		},
+		{ "name": "Tokenize and save list",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--tk_list", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--tk_list", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "-asc", "--tk_tokenize", "--tk_list", "-id", "msx"]
+			},
+		}
+	]
+}

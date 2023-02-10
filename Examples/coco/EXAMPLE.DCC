@@ -1,0 +1,74 @@
+## BB:em_verbose=5
+## BB:em_machine=cocous
+## BB:em_config=xroarcp400dsk.conf
+## BB:em_bas=cp400bas.rom
+## BB:em_dos=True
+## BB:em_cart=cp400dsk.rom
+## BB:help=true
+
+' This program is just a test, it has no real purpose
+declare mode:m, posX:x, posY:y
+define [pause] [if inkey$="" then {@}]
+define [enter][a$=chr$(13)], [space][a$=" "]
+define [joyBtn] [peek(&hff00)=[]]
+keep #a
+## use keep #b to no tansparency (faster)
+
+cls
+[?](0,3) "USE joystick TO MOVE THE CIRCLE"
+[?](4,5) "JOYSTICK button TO STAMP"
+[?](4,7) "space TO SEE THE TIMING"
+[?](9,9) "enter TO RESET"
+[?](6,11) "any key TO CONTINUE"
+[pause]
+
+{start}
+	cls
+	pclear 4
+	[?](7,7)"R E N D E R I N G" 
+	size=30:page=1
+	dim c(size,size):dim b(size,size)
+	pmode page,1:pcls
+	color 0:circle(size/2,size/2),size/2:get (0,0)-(size,size),c,g
+	pcls 1
+	for f=1 to 10 step 2:
+		color rnd(2)+1:
+		line(f*25,0)-(abs(f*25-250),191),pset:
+		line(0,f*19)-(255,abs(f*19-191)),pset:
+	next
+	#a get(128,10)-(128+size,10+size),b,g
+	#b get(128,10)-(128+size,10+size),b
+	pcopy 1 to 3:pcopy 2 to 4
+	posX=128:posY=10:mode=1
+	cls
+	loop{
+		a$=inkey$
+		if [enter] then {start}
+		endif
+		timer = 0
+		pmode page,mode
+		if  [joyBtn]255 or [joyBtn]127 then _
+			#a put(posX,posY)-(posX+size,posY+size),b,pset ## erase
+			#b put(posX,posY)-(posX+size,posY+size),b ## erase
+
+		posX=joystk(0)*4:posY=joystk(1)*3
+		#a get(posX,posY)-(posX+size,posY+size),b,g ## get BG
+		#a put(posX,posY)-(posX+size,posY+size),c,or ## draw
+		#b get(posX,posY)-(posX+size,posY+size),b ## get BG
+		#b put(posX,posY)-(posX+size,posY+size),c,pset ## draw
+
+		pcopy mode to(3+1)-mode:pcopy mode+1 to((3+1)-mode)+1
+		screen 1,1
+		mode=(3+1)-mode
+
+		if [space] then .showTime(timer)
+	}
+
+	func .showTime(t)
+		print "THE FRAME TIME WAS:"
+		print t/60; "SECONDS"
+		print
+		print "PRESS any key TO CONTINUE"
+		print
+		[pause]
+	ret

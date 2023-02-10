@@ -1,0 +1,19 @@
+%YAML 1.2
+---
+author: Fred Rique (farique)
+url: https://github.com/farique1/CoCo-Sublime-Tools
+comment: v1.2
+
+name: CoCo Badig Build Output
+scope: source.cocobasicdignified.build
+
+contexts:
+  main:
+    - match: '^\*\*\*.*$'
+      scope: invalid.cocobasic
+    - match: '^  \*.*$'
+      scope: invalid.deprecated.cocobasic
+    - match: '^(   ).*$'
+      scope: comment.cocobasic
+    - match: '(?<=\:).*$'
+      scope: comment.cocobasic

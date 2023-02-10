@@ -1,0 +1,140 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+#
+# See  https://github.com/farique1/basic-dignified
+# for the complete Basic Dignified Suite
+#
+# 01-02-2023
+# v2.0
+#   Changes to the new Badig 2.0
+
+author: Fred Rique (farique)
+url: https://github.com/farique1/basic-dignified
+comment: v2.0
+
+name: CoCo Basic
+file_extensions: [bas, asc, acc]
+scope: source.cocobasic
+first_line_match: (?i)(^\d\s*'BD:CoCo\s*$)
+
+# All case insensitive
+contexts:
+  main:
+
+    # First line match
+    - match: (?i:^\s*(\d)\s*('BD:)(CoCo)\s*$)
+      captures:
+        1: constant.numeric.cocobasic
+        2: comment.cocobasic
+        3: variable.parameter.cocobasic
+
+    # Double quotes
+    - match: '"'
+      push: double_quoted_string
+
+    # Comment line ' and REM
+    - match: (?i)((')|(rem))(.*)$
+      captures:
+        2: comment.cocobasic
+        3: keyword.control.cocobasic
+        4: comment.cocobasic
+
+    # DATA line highlights elements and comma only
+    - match: '(DATA)'
+      push: data_line
+      scope: keyword.control.cocobasic
+
+    # Round brackets balancing warning (only highlights missing closed)
+    - match: \(
+      scope: keyword.operator.cocobasic
+      push: brackets
+    - match: \)
+      scope: invalid.cocobasic
+
+    # Functions with precedence over Instructions
+    - match: (ASC)
+      scope: support.function.cocobasic
+
+    #def fn
+    - match: ((FN)\s*(\w+)(\$)?(?=\())
+      captures:
+        1: support.function.cocobasic
+        2: support.function.cocobasic
+        3: keyword.operator.cocobasic
+
+    # Instructions
+    - match: (\?|AS(?=\S*#|\S*\W+\$)|AUDIO|BACKUP|CIRCLE|CLEAR|CLOAD|CLOADM|CLOSE|CLS|COLOR|CONT|COPY|CSAVE|CSAVEM|DATA|DEL|DIM|DIR|DLOAD|DRAW|DRIVE|DSKI\$|DSKINI|DSKO\$|EDIT|ELSE|END|EXEC|FIELD AS|FILES|FOR|GET|GOSUB|GOTO|IF|INPUT|KILL|LET|LINE|LIST|LLIST|LOAD|LOADM|LSET|MERGE|MOTOR|NEW|NEXT|OFF|ON|OPEN|PAINT|PCLEAR|PCLS|PCOPY|PLAY|PMODE|POKE|PRESET|PRINT(\S*TAB(?=\())?|PSET|PUT|READ|REM|RENAME|RENUM|RESET|RESTORE|RETURN|RSET|RUN|SAVE|SAVEM|SCREEN|SET|SKIPF|SOUND|STEP|STOP|THEN|TO|TROFF|TRON|UNLOAD|USING|VERIFY|WRITE)
+      scope: keyword.cocobasic
+
+    # Functions
+    - match: (ABS|ASC|ATN|COS|CVN|EOF|EXP|FIX|FREE|INSTR|INT|JOYSTK|LEN|LOC|LOF|LOG|MEM|PEEK|POINT|POS|PPOINT|RND|SGN|SIN|SQR|TAN|TIMER|USR|USRN|VAL|VARPTR|CHR\$|HEX\$|INKEY\$|LEFT\$|MID\$|MKN\$|RIGHT\$|STR\$|STRING\$)
+      scope: support.function.cocobasic
+
+    # colon - instruction separator
+    - match: ':'
+      scope: comment.cocobasic
+
+    # @
+    - match: (?<=(PRINT)|\?)\s*@
+      scope: keyword.cocobasic
+
+    # Separators
+    - match: '[.,;]'
+      scope: keyword.operator.cocobasic
+
+    # Operators
+    - match: (\+|-|\*|/|\^|\\|=|<|>|AND|OR|NOT)
+      scope: keyword.operator.cocobasic
+
+    # Numbers
+    - match: '(#?)([1-9]+[0-9]*|0)(\.?)([E][+-])?'
+      captures:
+        1: keyword.operator.cocobasic
+        2: constant.numeric.cocobasic
+        3: keyword.operator.cocobasic
+        4: keyword.operator.cocobasic
+
+    # Variables
+    - match: '(#?)([A-Z]\d*)([\$]?)'
+      captures:
+        1: keyword.operator.cocobasic
+        2: constant.global.cocobasic
+        3: keyword.operator.cocobasic
+
+    # Hex and binary numbers (bug if word after hex touching and beggining with a-f)
+    - match: '(&[H])([0-9A-F]+|)|(&[O])([1-7]+|)'
+      captures:
+        1: keyword.operator.cocobasic
+        2: constant.numeric.cocobasic
+        3: keyword.operator.cocobasic
+        4: constant.numeric.cocobasic
+
+    # Quotes: show join line character _
+  double_quoted_string:
+    - meta_scope: string.cocobasic
+    - match: '"|$'
+      pop: true
+
+    # DATA: show join lines character _ and continue next line with _ (stops if :)
+    # Bug > ## comment stops the highlight. can be avoided adding _ at the end
+  data_line:
+    - meta_scope: constant.global.cocobasic
+    - match: ','
+      scope: variable.parameter.cocobasic
+    - match: '"'
+      push:
+        - match: ':'
+          scope: constant.global.cocobasic
+        - match: '("|(?=\n))'
+          pop: true
+    - match: '($\n|:)'
+      scope: comment.cocobasic
+      pop: true
+
+    # Round brackets
+  brackets:
+    - match: \)
+      scope: keyword.operator.cocobasic
+      pop: true
+    - include: main
