@@ -18,7 +18,7 @@ The included modules use:
 **[Features and usage](#Features-and-usage)**  
 **[Configurable arguments](#Configurable-arguments)**  
 **[The settings environments](#The-settings-environments)**  
-  [The .ini file](#The-.ini-file)  
+  [The .ini file](#The-ini-file)  
   [The remtags](#The-remtags)  
   [The settings environments](#The-settings-environments)  
   
