@@ -1,0 +1,19 @@
+%YAML 1.2
+---
+author: Fred Rique (farique)
+url: https://github.com/farique1/MSX-Sublime-Tools
+comment: v1.2
+
+name: MSX Badig Build Output
+scope: source.msx-basic-dignified.build
+
+contexts:
+  main:
+    - match: '^\*\*\*.*$'
+      scope: invalid.msx-basic-dignified
+    - match: '^  \*.*$'
+      scope: invalid.deprecated.msx-basic-dignified
+    - match: '^(   ).*$'
+      scope: comment.msx-basic-dignified
+    - match: '(?<=\:).*$'
+      scope: comment.msx-basic-dignified

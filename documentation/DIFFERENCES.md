@@ -19,7 +19,7 @@ Now ends with `RET` instead of `RETURN`.
 Functions do not share names with labels anymore.  
   
 - **Includes**  
-Do not share namespace with other files except for short named variables.  
+Do not share any namespace with the main file except for short named variables.  
   
 - **Line breaks**  
 Line breaks are not supported inside quotations or `REM`s.  

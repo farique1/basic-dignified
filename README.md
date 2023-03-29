@@ -1,19 +1,17 @@
 <img src="https://github.com/farique1/basic-dignified/blob/main/images/BasicDignifiedSuite_Logo-160.png" alt="Basic Dignified" width="378" height="160">  
   
 # Basic Dignified Suite  
-**v2.0**  
+**v2.1**  
+    
+> The **2.0+ versions** of the Basic Dignified Suite is slightly **incompatible** with the **previous versions** so old Dignified code must be **updated** accordingly. A list of incompatibilities is available [here](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md).  
+    
+**Basic Dignified** is a way for programming classic 8bit computer Basics on a modern, friendly paradigm. MSX and CoCo Basics are supported but more can be added through modules.  
   
-> I think this might have come out of beta. Not really sure.   
+With **Basic Dignified** you can program for the included systems on a modern environment using Sublime Text or Visual Studio Code with syntax highlight, build systems, snippets and more.  
   
-> The **2.0 version** of the Basic Dignified Suite is slightly **incompatible** with the **previous versions** so old Dignified code must be **updated** accordingly. A list of incompatibilities is available on a link below.  
+**Basic Dignified** improves and adds to the classic Basic, keeping the syntax as close as possible to the original, making the learning curve almost inexistent (the only requirement is the use of labels instead of line numbers), while adding a lot of quality of life improvements that can be used or not. The output is converted to the classic Basics and can run automatically on an emulator.  
   
-**Basic Dignified** is a suite of tools aimed to facilitate the creation, writing and maintaining of classical Basic programs, especially the ones from computers of the **8-bit** era. Basic Dignified has a **modular** approach that makes it **easy** to **create** modules for any **dialect** of classical Basic as well as **tools** to assist the **production** and **execution** of the programs.  
-  
-**Basic Dignified** is itself a 'dialect' of the classical Basics, adding **modern** coding style and standards that can be composed on any text editor and **converted** to traditional Basic to be executed.  
-  
-**Basic Dignified** code strives to be as **similar** as the original Basics as possible, keeping the language essentially the **same**. The only necessary feature are the **labels** that replace number lines, all other components can be learned **gradually** making for a very gentle learning curve.  
-  
-Dignified Basic is written **without line numbers**, can be **indented**  and have **lines broken**, can use variables with **long names**, have macros **defined** and external files **included**, has a kind of **function** construct, can use **Unicode** special characters analogues to the original character set, as well as **rem toggles** (directives to control the suite), **true** and **false** statements, **compound arithmetic** operators and much more.  The conversion is customizable with controls for **line numbers**, **spaces**, **code cleanup** and more.  
+Dignified Basic is written **without line numbers**, can be **indented**  and have **lines broken**, can use variables with **long names**, have macros **defined** and external files **included**, has a kind of **function** construct, can use **Unicode** special characters analogues to the original character set, as well as **rem toggles**, **true** and **false** statements, **compound arithmetic** operators and much more.  The conversion is customizable with controls for **line numbers**, **spaces**, **code cleanup** and more.  
   
 The suite is designed to be very **modular**, implementing any **flavor** of Basic through modules that describe their **unique** characteristics. The **modules** are programmed **independently** and loaded as needed.  
 
@@ -25,7 +23,7 @@ The suite can be used directly from the terminal, through command line arguments
 
 By default, the suite comes with two modules, one for **MSX Basic** and one for **Color Computer Basic** and **YOU** can make the next module. **ZX Spectrum** or **Commodore 64**, anyone?  
   
-The included modules contains the **Basic language description**, control for included **tokenizers**, the ability run the code on **emulators** and support for the **Sublime Text** editor with **build system**, **syntax highlight** for the **Dignified** and **Classic** Basic versions as well as **themes**, **snippets**, **completions** and more.
+The included modules contains the **Basic language description**, control for included **tokenizers**, the ability run the code on **emulators** and support for **Visual Studio Code** and **Sublime Text**  with **build system**, **syntax highlight** for the **Dignified** and **Classic** Basic versions as well as **themes**, **snippets**, **completions** and more.
 
 >**Beyond** the Dignified code, Basic Dignified can open **classic** ASCII code to **tokenize**, **execute**, **monitor** and more.  
 
@@ -38,7 +36,9 @@ The included modules contains the **Basic language description**, control for in
   
 ### [Using Basic Dignified and the Included Modules (MSX and CoCo)](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md)  
   
-### [Additional Features of the Included Modules (Language, Tokenizers, Emulators and Sublime Text Integration)](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md)  
+### [Additional Features of the Included Modules (Language, Tokenizers and Emulators)](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md)  
+
+### [Visual Studio Code and Sublime Text Integration (Syntax Highlight, Snippets, Build System, etc)](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md)
 
 ### [Creating Modules for Other Systems (SOON)](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md)  
   
@@ -57,6 +57,8 @@ The included modules contains the **Basic language description**, control for in
 >**Basic Dignified** is constantly evolving so please report any misbehavior.  
   
 > As always, **Basic Dignified** is offered as is, with no guaranties whatsoever. Use at your own discretion.  
+
+
 Having said that, enjoy and send feedback.  
   
 Thanks.  

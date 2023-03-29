@@ -1,0 +1,47 @@
+{
+   "scope": "source.msx-basic-dignified",
+   "completions": [
+      {
+         "trigger": "for-next-step",
+         "details": "A basic FOR NEXT loop",
+         "contents": "for ${1:f} = ${2:1} to ${3:}${4: step $5}\n\t${6:}\nnext$7\n$0",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      },
+      {
+         "trigger": "if-then-else",
+         "details": "A basic IF THEN ELSE clause",
+         "contents": "if $1 then _\n\t$2\n${3:else _\n\t$5}\n$0",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      },
+      {
+         "trigger": "locate-?-print",
+         "details": "locate x,y:?",
+         "contents": "locate ${1:0},${2:0}:?$0",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      },
+      {
+         "trigger": "screen-width",
+         "details": "Screen setup",
+         "contents": "screen ${1:0} :width ${2:40}${3: :key off}${4: :color ${5:1},${6:1},${7:1}}",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      },
+      {
+         "trigger": "func-ret",
+         "details": "Function setup",
+         "contents": "func .${1:name}(${2:})\n\t${3:}\nret\n$0",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      },
+      {
+         "trigger": "remtags",
+         "details": "Remtags setup",
+         "contents": "##BB:export_file=${1:}\n##BB:arguments=${2:}\n##BB:help=${3:}\n${0:## add a space between ## and BB to deactivate\n## run with help=true to see additional remtags}",
+         "annotation": "Basic Dignified",
+         "kind": "snippet"
+      }
+   ]
+}

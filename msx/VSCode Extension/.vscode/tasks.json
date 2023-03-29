@@ -1,0 +1,54 @@
+{
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+"version": "2.0.0",
+"type": "shell",
+"command": "${config:msx-basic-dignified.pythonInterpreter}",
+"args": ["${config:msx-basic-dignified.badigPath}", "${file}"],
+"presentation": {"reveal": "always", "panel": "new"},
+"tasks":
+    [
+        {
+            "label": "Dignified: MSX Convert Only",
+            "args": ["-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "build", "isDefault": false}
+        },
+        {
+            "label": "Dignified: MSX Convert and Run",
+            "args": ["--em_run", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "build", "isDefault": false}
+        },
+        {
+            "label": "Dignified: MSX Convert and Tokenize",
+            "args": ["--tk_tokenize", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "build", "isDefault": false}
+        },
+        {
+            "label": "Dignified: MSX Convert, Tokenize and Run",
+            "args": ["--tk_tokenize", "--em_run", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "build", "isDefault": false}
+        },
+        {
+            "label": "Classic: MSX Run Only",
+            "args": ["--em_run", "-asc", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "test", "isDefault": false}
+        },
+        {
+            "label": "Classic: MSX Tokenize Only",
+            "args": ["--tk_tokenize", "-asc", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "test", "isDefault": false}
+        },
+        {
+            "label": "Classic: MSX Tokenize and Run",
+            "args": ["--tk_tokenize", "--em_run", "-asc", "-id", "msx"],
+            "problemMatcher": "$basicDignifiedProblem",
+            "group": {"kind": "test", "isDefault": false}
+        }
+    ]
+} 

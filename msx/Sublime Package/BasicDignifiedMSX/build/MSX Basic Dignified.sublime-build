@@ -1,0 +1,65 @@
+{
+	"file_regex": "(?:^\\*\\*\\*\\s)(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+	"selector": "source.msx-basic-dignified",
+	"working_dir": "$project_path",
+	"file_patterns": ["*.bmx", "*.bad"],
+	"syntax": "MSX Badig Build.sublime-syntax",
+
+	"osx": {
+		"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+								"$file", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"],
+	},
+	"windows": {
+		"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py", 
+								"$file", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"]
+	},
+	"linux": {
+		"cmd": ["python3", "-u", "/badig.py",
+								"$file", "--tk_tokenize", "--em_run", "--em_monitor", "-id", "msx"]
+	},
+	"variants": [
+
+		{ "name": "Don't monitor",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "--tk_tokenize", "--em_run", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "--tk_tokenize", "--em_run", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "--tk_tokenize", "--em_run", "-id", "msx"]
+			},
+		},
+		{ "name": "Tokenize only",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "--tk_tokenize", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "--tk_tokenize", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "--tk_tokenize", "-id", "msx"]
+			}
+		},
+		{ "name": "Convert only",
+			"osx": {
+				"cmd": ["python3", "-u", "/Users/Farique/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-id", "msx"],
+			},
+			"windows": {
+				"cmd": ["python", "-u", "D:/CloudDrivers/Dropbox/Programacao/Projetos/BasicDignified/badig.py",
+										"$file", "-id", "msx"]
+			},
+			"linux": {
+				"cmd": ["python3", "-u", "/badig.py",
+										"$file", "-id", "msx"]
+			}
+		}
+	]
+} 

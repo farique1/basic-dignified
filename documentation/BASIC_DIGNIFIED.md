@@ -1,6 +1,6 @@
 # Basic Dignified  
   
-**Basic Dignified** reads a text file containing the **Dignified** code and write back **classic** Basic in **ASCII** and/or **binary** format (the binary output needs a **tokenizer** module).  
+**Basic Dignified** reads a text file containing the **Dignified** code and write back **classic** Basic in **ASCII** and/or **binary** format (the binary output needs the included **tokenizer** modules).  
   
 Throughout the suite, the file **extensions** are derived from **generic** names and depend on the current **system module** and the **file type**.  
 The included modules use:  
@@ -14,10 +14,13 @@ The included modules use:
   
 > The  system specific extensions will **avoid conflict** when more modules are available.  
 > Generic and system specific extensions will be mentioned **interchangeably** across the documentation. i.e.: `.dmx` is the same as `.bad`.  
-
+  
 **[Features and usage](#Features-and-usage)**  
 **[Configurable arguments](#Configurable-arguments)**  
 **[The settings environments](#The-settings-environments)**  
+  [The .ini file](#The-.ini-file)  
+  [The remtags](#The-remtags)  
+  [The settings environments](#The-settings-environments)  
   
 ## Features and usage  
   
@@ -644,8 +647,9 @@ The code section is:
 
 	> Some configuration options like **Convert Print** and **Strip THEN/GOTO** are found on their respective modules.
 
-- **The .ini file**  
-The next level in the hierarchy is the `\support\badig.ini` file.  
+- #### **The .ini file**  
+  
+  The next level in the hierarchy is the `\support\badig.ini` file.  
 This is where you can enter **semi-permanent** settings, unique behaviour for the current project, maybe. This is the **friendly** place where to set the new defaults. The settings entered here will override the settings on the code.  
     
 	```
@@ -678,8 +682,9 @@ This is where you can enter **semi-permanent** settings, unique behaviour for th
 
 	> If `badig.ini` is not found, a new one will be regenerated and the execution will stop.  
   
-- **The command line arguments**  
-Additional settings for each **individual** conversion can be passed through arguments on the command line. These arguments will override the previous methods and are useful to **test** different configurations.  
+- #### **The command line arguments**  
+  
+  Additional settings for each **individual** conversion can be passed through arguments on the command line. These arguments will override the previous methods and are useful to **test** different configurations.  
 
 	```  
 	usage: badig.py [input] [output]
@@ -687,8 +692,9 @@ Additional settings for each **individual** conversion can be passed through arg
 					[-vb #] [-prr] [-lbr] [-lnr] [-var] [-lex] [-par] [-asc] [-ini] [-rtg]
 	```
 
-- **The remtags**  
-Remtags are special **exclusive rem** lines that are used on the Dignified code itself to **alter** the behaviour of the conversion and execution of the code.  
+- #### **The remtags**  
+  
+  Remtags are special **exclusive rem** lines that are used on the Dignified code itself to **alter** the behaviour of the conversion and execution of the code.  
 Their main use is to allow for **quick** settings changes if you are using a **build system** but they can also be used on a command line setting and will override them and all the previous settings.  
 They are commonly used at the start of the Dignified code:  
   
@@ -717,9 +723,10 @@ They are commonly used at the start of the Dignified code:
 
   - There is no `export_file` so this remtag will be **ignored** and the classic code will be saved with its **given** name.  
   - The **arguments** will tell Basic Dignified to print on screen (`-prr`) a label report (`-lbr`) and will capitalize all non literal words (`-ca`).  
-  - The `help` remtag is `True` but the **space** between `##` and `BB` **deactivate** it.  
-
+  - The `help` remtag is `True` but the **space** between `##` and `BB` **deactivates** it.  
+  
   > You can easily **disable** a remtag by simply **adding a space** between `##` and `BB`, transforming them in a regular **exclusive comment**.  
   
   > Command line arguments and remtags can be **expanded** by **exposing** new ones on **language** and **tools** modules.  
 	See the [modules section](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for an explanation of their **exposed** configs.  
+  

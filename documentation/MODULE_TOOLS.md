@@ -2,21 +2,17 @@
 
 There are two fairly complete included modules with Basic Dignified: **MSX** and **Tandy Color Computer**.  
 
-Beyond their Basic **dialect** description, they both have **extensive** support for the **Sublime Text** code editor, have **tokenizers** available and can automatically execute their code on emulators.
-
-The module files are kept on **sub folders** named for each system **ID**. `msx` and `coco` for the included module.
-They only need to be **accessed** during the **installation** phase and for **configuration** purposes.
+Beyond their Basic **dialect** description, they have **tokenizers** available and can automatically **execute** their code on emulators.  
 
 Below is an explanation of these modules and their uses.  
 
-> Due to the similarities between both systems, they will be described in parallel, with the differences pointed as needed.
+> Due to the similarities between both systems, they will be described in parallel, with the differences pointed as needed.  
 
-> This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md).
+> This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md).  
 
 **[Language Modules](#Language-Module)**  
 **[Tokenizer Interfaces](#Tokenizer-Interfaces)**  
 **[Emulator Interfaces](#Emulator-Interfaces)**  
-**[Sublime Text Integration](#Sublime-Text-Integration)**  
 **[Helper Tools](#Helper-Tools)**  
 
 ## Language Module
@@ -199,92 +195,6 @@ Run XRoar at full speed.
     `.ini:` `noratelimit = [True|False]`  
 	`cmdl:` `--em_noratelimit`  
     `rmtg:` `##BB:em_noratelimit=[True|False]`  
- 
-# Sublime Text Integration  
-  
-Although Basic Dignified can be **comfortably** used on a **notepad** and **command line** environment its full **potential** is revealed when **integrated** with an **IDE** or **code editor** like **Sublime Text** or **VS Code**.  
-
-**Included** on this version is a **full set** of tools for **integration** with the **Sublime Text** editor, including **support** for the **Dignified** and **classic** Basic versions.
-    
-There are tools for the **MSX** and the **CoCo**.
-
-The tools are:  
-- A **Build System** for the **Dignified** and **classic** versions of Basic.  
-- **Syntax Highlight** for the Dignified and classic versions of Basic.  
-- **Themes** based on Boxy Ocean and Monokai with special scopes for **both** Basic versions.  
-- A **Theme** simulating the blue **MSX 1 screen** and accompanying **MSX Screen 0 font**.  
-- **Snippets** for the Dignified version of Basic.  
-- A **Comment Preference** for the Dignified version.  
-
-> See the [installation](https://github.com/farique1/basic-dignified/blob/main/documentation/INSTALLATION.md) page on how to **install** the Sublime Text Tools.
-
-### Build System  
-
-**All** functions of Basic Dignified can be **achieved** and most can be **automated** from **within** Sublime Text with a few **remtags** and **shortcuts**.
-
-Once everything is **installed** and a program is being coded, the **builds** will be **available** from the `Tools > Build System` menu and are called:  
-  
-`MSX Basic`  
-`MSX Basic Dignified`  
-`CoCo Basic`  
-`CoCo Basic Dignified`  
-
-The best approach is to leave the **build type** on `automatic`. It will use the **syntax scopes** and the extensions to figure out the **correct** build.    
-
-To **run** the build just press **CONTROL-B**/**COMMAND-B**.  
- 
-Each of the **builds** have some **variants** that can be chosen by pressing **CONTROL-SHIFT-B**/**COMMAND-SHIFT-B**.  
-Once they are **chosen** they will be used as the **default** build until Sublime is **closed** or another variant is **chosen**. They are:  
-  
-- *MSX/CoCo Basic Dignified:*  
-`Default`: **convert**, **tokenize**, **run** and **monitor** the Dignified code. **(No monitoring on CoCo or Windows)**  
-`Don't monitor`: **convert**, **tokenize** and **run** the Dignified code. **(MSX only)**  
-`Don't Tokenize`: **convert** and **run** the Dignified code. **(CoCo only)**  
-`Tokenize only`: **convert** and **tokenize** the Dignified code.  
-`Convert only`: only **convert** the Dignified code.  
-  
-- *MSX/CoCo Basic:*  
-`Default`: **tokenize**, **run** and **monitor** the classic Basic code. **(No monitoring on CoCo or Windows)**  
-`Don't monitor`: **tokenize** and **run** the classic Basic code. **(MSX only)**  
-`Don't Tokenize`: **run** and **monitor** the classic Basic code  
-`Tokenize only`: only **tokenize** the classic Basic code.  
-`Tokenize and save list`: **tokenize** the classic Basic code and **save** a list file. **(MSX only)**  
-  
-You can further **refine** the build **behavior** by passing **arguments** with **remtags**, they will **override** the **default** behavior of the **chosen** build variant.  
-  
-### Syntax Highlight  
-  
-**Two** pretty decent **syntax highlights**, one for the **Dignified** and one for the **classic** version are available on **both** systems.   
-  
-The **classic** version is the one **used** by the **list** format exported by the **tokenizer**.  
-  
-There is also a **syntax highlight** for the **console** output of the **build** system.  
-  
-### Themes and color schemes  
-  
-Several **themes** and **color schemes** are included with some based on **Monokai**, **Boxy Ocean** and **Mariana**. There are also a **light** and **dark** color scheme using the **MSX** colors. They **improve** the syntax highlight (classic and Dignified) with **scopes** specific for the Dignified code: `define`, `declare`, labels, errors and warnings.  
-
-For the truly **adventurous**, there is a theme **mimicking** the blue **MSX 1 screen** and a MSX **Screen 0** **font**.  
-  
-### Auto Completion And Snippets  
-  
-Snippets for auto completion for:  
- `FOR-NEXT-STEP`  
- `IF-THEN-ELSE`  
- `FUNC-RET`  
- `PMODE-SCREEN-PCLS` **(CoCo only)**  
- `SCREEN-WIDTH-KEY OFF-COLOR` **(MSX only)**  
- `LOCATE-PRINT` **(MSX only)**  
-  
-A snippet for the creation of the standard **remtags**.  
-  
-### Comment Preference  
-  
-Set `##` as the **default comment** of the Dignified Basic.  
-`##` is a Dignified **comment** that is **deleted** when the code is **converted** to the classic version.  
-There is **no block comment** but **all lines** selected will be **commented**.  
-  
-There is **no classic comment** preference as I couldn't find a way to **insert** the `REM` or `'` **AFTER** the line number.  
   
 ## Helper Tools  
 
@@ -292,7 +202,7 @@ Bundled with the system modules are some helper tools that can be used independe
 
 ### MSX
 **[MSX Basic Tokenizer](https://github.com/farique1/basic-dignified/blob/main/documentation/BATOKEN.md)**  
-A tokenizer made **for** Basic Dignified that **can** and **should** be used **independently** of it.  
+A tokenizer made **for** Basic Dignified that **can** be used **independently** of it.  
 
 **[MSX Basic DignifieR](https://github.com/farique1/basic-dignified/blob/main/documentation/DIGNIFIER.md)**  
 A tool to convert **classic** Basic **to** the **Dignified** format.  
@@ -301,6 +211,6 @@ Helps **automate** the conversion of large **programs** or **libraries**.
 ### CoCo  
 
 **[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
-Another tool made **for** Basic Dignified that **can** and **should** be used **independently**.  
+Another tool made **for** Basic Dignified that **can** be used **independently**.  
 Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
   

@@ -9,9 +9,13 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 **Conversion**  
 - Toggles, labels, ~, declares, functions and long named variables starting with a number not giving an error and converting to erratic results.  
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
-
-## To Do  
   
+## Changes to this version
+*v2.1*
+- Added support for Visual Studio Code.
+  
+## To Do  
+
 **General**  
 - Make an environment for VS Code with build, highlight and more.  
 - Make a tool to upgrade the dignified code from version 1.6 to version 2.0.  

@@ -1,0 +1,14 @@
+{
+	"extensions":
+	[
+		"bmx",
+		"BAS",
+		"bas",
+		"asc",
+		"lst",
+		"lmx",
+		"amx",
+	],
+	"default_encoding": "Western (Windows 1252)",
+	"default_line_ending": "windows",
+}
