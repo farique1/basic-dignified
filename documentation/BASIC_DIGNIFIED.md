@@ -25,15 +25,19 @@ The included modules use:
 ## Features and usage  
   
 To run **Basic Dignified**, open a terminal window in its folder and type:  
+
 `python badig.py <DIGNIFIED_CODE> [CLASSIC_CODE] [arguments]`  
+
 > `python` may be omitted or be called `python3` depending on your installation.  
-  
+
+> Basic Dignified default system is the **MSX**. If using a **CoCo**, add `coco` to the `id` in the `.ini` file or add `-id coco` to the command line.  
+
 >From now on, when showing code, usually the first excerpt is **Dignified** code, followed by the **program call** with the relevant **arguments** and the **classic** Basic output.  
 >For the sake of clarity only arguments relevant to the current topic will be shown on the program call.  
 
 > Differences between the included **MSX** and **CoCo** modules will be stated as needed.
 
-> For an **explanation** on how to run Basic Dignified from **Sublime Text** see [the page for the included modules](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md).  
+> For an **explanation** on how to run Basic Dignified from **Visual Studio Code** or **Sublime Text** see [the page for the editor integration](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md).  
   
 Unlike traditional Basics, instructions, functions and variables in the Dignified version must be **separated** by spaces from alphanumeric characters as in modern languages. The **syntax highlight** will reflect this and there are settings to conform the spacing when the conversion is made.  
 Dignified code should always **end** with a **blank line**.  
@@ -44,7 +48,7 @@ Duplicated separate instruction symbols (`:`) are removed.
   
 > As an **example** you can **convert**, **tokenize**, **run** and **monitor** the Dignified program `test.dmx` **stripping** all spaces, **capitalizing** all instructions and adding a line **report** about the **program flow** with:  
 `python badig.py d:\msxapps\testdisk\test.dmx -ss -ca -lbr --tk_tokenize --em_run --em_monitor`  
-Or you can use the **included** **Sublime Text** tools and just **CONTROL+B** or **COMMAND+B** on the code window and be done.  
+Or you can use the **included** **Visual Studio Code extension** or the **Sublime Text package** and just **run** the code from there.  
 > See below and [the module tools page](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for a detailed explanation of the arguments.
 
 ### Structure:  
