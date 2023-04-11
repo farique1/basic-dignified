@@ -13,6 +13,13 @@ infolog = Infolog()
 class Description:
     '''A description of this system classic basic'''
 
+    def sysinfo(self):
+        '''General information about the system. Name, extensions, etc'''
+        self.system_name = 'Tandy Color Computer'
+        self.dignified_ext = '.DCC'
+        self.ascii_ext = '.ACC'
+        self.binary_ext = '.BCC'
+
     def __init__(self):
         super(Description, self).__init__()
 
@@ -256,6 +263,7 @@ class Settings:
         self.strip_then_goto = stg.args.tg.upper()
 
         return self
+
 
 # Expose elements to Badig ----------------------------------------------------
 class Expose:

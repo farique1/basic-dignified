@@ -432,6 +432,10 @@ The classic Basic file to be saved.
 `cmdl:` `[DESTINATION_FILE]`  
 `rmtg:` `##BB:export_file=[DESTINATION_FILE]`  
 If no destination is given, the *source* name will be used with the appropriate extension.  
+If only a file name is given, the file will be saved on the *source* folder.  
+if only a path name is given, the file will be saved on that path with the *source* name.  
+If no extension is given, the default extension will be used.  
+Relative paths with the format `../../teste.asc` can be used.  
 When loading a classic file, nothing will be saved.  
   
 - *System ID*  
@@ -621,11 +625,6 @@ The code section is:
 	```  
 	# System
 	self.system_id =
-	self.system_name =
-	self.dignified_ext =
-	self.ascii_ext =
-	self.binary_ext =
-	self.list_ext =
 
 	# User variables
 	self.file_load =
@@ -708,8 +707,8 @@ They are commonly used at the start of the Dignified code:
 	##BB:help=
 	```  
 
-  - `export_file` is a new file and path to **replace** the current destination file and path. Useful to easily test different **versions** of the code without overriding the previous one.  
-  - `arguments` is an **alternative** for the **command line** arguments, allowing them to be used on a build setting but they can be used on a command line setting if one prefers.  
+  - `export_file` is a new file and path to **replace** the current destination file and path. Useful to easily test different **versions** of the code without overriding the previous one or setting a different save path. All the rules of the *destination* argument are applied here as well.  
+  - `arguments` is an **alternative** for the **command line** arguments, allowing them to be used on a build setting. If using on a command line environment they have the precedence.  
   - `help` shows all remtags **available** including the ones from the **languages** and **tools** modules.  
 
   This is an example of remtag use on a Dignified listing:
@@ -725,7 +724,7 @@ They are commonly used at the start of the Dignified code:
 	}
 	```
 
-  - There is no `export_file` so this remtag will be **ignored** and the classic code will be saved with its **given** name.  
+  - `export_file` is active but is empty, so this remtag will be **ignored** and the classic code will be saved with its **given** name and path.  
   - The **arguments** will tell Basic Dignified to print on screen (`-prr`) a label report (`-lbr`) and will capitalize all non literal words (`-ca`).  
   - The `help` remtag is `True` but the **space** between `##` and `BB` **deactivates** it.  
   

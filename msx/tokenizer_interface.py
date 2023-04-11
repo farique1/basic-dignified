@@ -64,8 +64,10 @@ class Settings:
         self.file_save = self.e_stg.file_save
         self.ascii_ext = self.e_stg.ascii_ext
         self.binary_ext = self.e_stg.binary_ext
-        self.list_ext = self.e_stg.list_ext
         self.e_args = self.e_stg.args
+
+        # Extra info
+        self.list_ext = '.lmx'
 
         # Constants
         self.INI_FILE = 'tokenizer_interface.ini'
@@ -73,9 +75,9 @@ class Settings:
 
     def str2bol(self, string, same, name):
         '''String to Bool
-        string = string to convert to boolean
-        same = fallback value if string is empty
-        name = name of the object for error reporting'''
+        string: string to convert to boolean
+        same: fallback value if string is empty
+        name: name of the object for error reporting'''
 
         if string.upper() == 'TRUE':
             boolean = True

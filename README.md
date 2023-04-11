@@ -1,7 +1,7 @@
 <img src="https://github.com/farique1/basic-dignified/blob/main/images/BasicDignifiedSuite_Logo-160.png" alt="Basic Dignified" width="378" height="160">  
   
 # Basic Dignified Suite  
-**v2.1**  
+**v2.2**  
     
 > The **2.0+ versions** of the Basic Dignified Suite is slightly **incompatible** with the **previous versions** so old Dignified code must be **updated** accordingly. A list of incompatibilities is available [here](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md).  
     

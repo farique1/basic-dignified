@@ -5,15 +5,15 @@ from collections import namedtuple
 # Logger class ---------------------------------------------------------------
 class Infolog:
     '''Format and display the log activity.
-   lvl = The message importance level
-   desc = Main message
-   data = Detailed data: line = line number
-                         column = column number
-                         offset = column offset for pointer
-                         line text = the current line text
-                         filename = the current filename
-   bullet = Message leading marker
-   show_file = Show the file name'''
+    lvl: The message importance level
+    desc: Main message
+    data: Detailed data: line: line number
+                         column: column number
+                         offset: column offset for pointer
+                         line text: the current line text
+                         filename: the current filename
+    bullet: Message leading marker
+    show_file: Show the file name'''
 
     def __init__(self):
         super(Infolog, self).__init__()

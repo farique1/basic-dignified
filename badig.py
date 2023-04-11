@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""
+'''
 Basic Dignified
 v2.0
 A modern take on 8 bit classic Basics
@@ -18,7 +18,7 @@ Basic DignifieR
 
 badig.py <source> <destination> [args...]
 badig.py -h for help.
-"""
+'''
 
 # Standard libraries
 import re

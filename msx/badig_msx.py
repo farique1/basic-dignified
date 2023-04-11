@@ -13,6 +13,13 @@ infolog = Infolog()
 class Description:
     '''A description of this system classic basic'''
 
+    def sysinfo(self):
+        '''General information about the system. Name, extensions, etc'''
+        self.system_name = 'MSX'
+        self.dignified_ext = '.dmx'
+        self.ascii_ext = '.amx'
+        self.binary_ext = '.bmx'
+
     def __init__(self):
         super(Description, self).__init__()
 
@@ -28,7 +35,7 @@ class Description:
                     'OUT', 'OUTPUT', 'PAINT', 'POINT', 'POKE', 'PRESET', 'PRINT',
                     'PSET', 'PUT', 'READ', 'RSET', 'SAVE', 'SCREEN', 'SET',
                     'SOUND', 'STEP', 'STOP', 'SWAP', 'TIME', 'TO', 'TROFF',
-                    'TRON', 'USING', 'VPOKE', 'WAIT', 'WIDTH', r'\?', r'DEFUSR\d']
+                    'TRON', 'USING', 'VPOKE', 'WAIT', 'WIDTH', r'\?', r'DEFUSR(\d)?']
 
         # Functions ending with $
         c_funcdl = [r'ATTR\$', r'BIN\$', r'CHR\$', r'DSKO\$', r'HEX\$',
@@ -42,7 +49,7 @@ class Description:
                     'INP', 'INSTR', 'INT', 'KEY', 'LEN', 'LOC', 'LOF', 'LOG',
                     'LPOS', 'PAD', 'PDL', 'PEEK', 'PLAY', 'POS', 'RND', 'SGN',
                     'SIN', 'SPC', 'SPRITE', 'SQR', 'STICK', 'STRIG', 'TAB', 'TAN',
-                    r'USR\d', 'VAL', 'VARPTR', 'VDP', 'VPEEK']
+                    r'USR(\d)?', 'VAL', 'VARPTR', 'VDP', 'VPEEK']
 
         # Jump instructions
         c_jumpin = ['RESTORE', 'AUTO', 'RENUM', 'DELETE', 'RESUME', 'ERL', 'ELSE',

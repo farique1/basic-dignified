@@ -1,6 +1,5 @@
 import re
 import sys
-import json
 import os.path
 import platform
 import argparse
@@ -28,7 +27,6 @@ class Settings:
         '''Initialize variables, .ini, arguments and process the user input information'''
 
         # Files
-        self.SYSTEMS_JSON = 'systems.json'
         self.BADIG_INI = 'badig.ini'
         self.LOCAL_PATH = os.path.split(os.path.abspath(__file__))[0]
 
@@ -38,11 +36,6 @@ class Settings:
 
         # System
         self.system_id = 'msx'
-        self.system_name = 'MSX'
-        self.dignified_ext = '.dmx'
-        self.ascii_ext = '.amx'
-        self.binary_ext = '.bmx'
-        self.list_ext = '.lmx'
 
         # User variables
         self.file_load = ''              # Source file
@@ -77,7 +70,7 @@ class Settings:
 
     def init(self, external=None):
         '''Initialize the settings module
-           external = 'None' will retain the original command line arguments.
+           external: 'None' will retain the original command line arguments.
                       However if Badig is running as a module, the original
                       arguments of the program calling the module will be passed,
                       so 'external' should contain the file to be called. This will
@@ -111,6 +104,9 @@ class Settings:
         # Get remtags from the tools
         remtags_desc, remtags_list, max_remtag_len = self.get_exposed_remtags(tls_exposed, clc_exposed)
 
+        # Get information about the system
+        self.Classic.Description.sysinfo(self)
+
         # Process arguments including getting the filename to get the remtags
         parser = self.get_arguments(tls_exposed, clc_exposed)
         self.args = parser.parse_args(external)
@@ -137,7 +133,6 @@ class Settings:
         if arguments:
             # Process the arguments again including the remtags and apply
             self.args = parser.parse_args(arguments)
-            # self.args = args2
             self.properties(self.args)
 
         # Apply remtag save name and unify verbose
@@ -151,6 +146,36 @@ class Settings:
         # Process arguments on the classic module and apply them to c_stg
         c_stg = self.Classic.Settings()
         self.c_stg = c_stg.properties(self)
+
+    def new_save_file(self, old_save_file):
+        '''Build a save file path and name based on the contents os the output file
+        old_save_file: output file path to process'''
+        load_file = os.path.basename(self.file_load)
+        load_file = os.path.splitext(load_file)[0]
+
+        load_path = os.path.dirname(self.file_load)
+
+        save_file = os.path.basename(old_save_file)
+        save_path = os.path.dirname(old_save_file)
+        save_path = save_path.lstrip('\\').lstrip('/')
+
+        if not os.path.isabs(save_path):
+            save_path = os.path.abspath(os.path.join(load_path, save_path))
+
+        if old_save_file == '':
+            save_filepathext = os.path.join(load_path, load_file)
+        else:
+            if save_path and save_file:
+                save_filepathext = os.path.join(save_path, save_file)
+            elif save_file:
+                save_filepathext = os.path.join(load_path, save_file)
+            elif save_path:
+                save_filepathext = os.path.join(save_path, load_file)
+
+        if not os.path.splitext(save_filepathext)[1]:
+            save_filepathext += self.ascii_ext
+
+        return save_filepathext
 
     def show_remtag_help(self, remtags_desc, max_remtag_len):
         '''Show a help message with all exposed remtags and its functions'''
@@ -199,18 +224,8 @@ class Settings:
 
         # If remtags has export file, process it
         if save_file := code_remtags.get('EXPORT_FILE'):
-
-            # If remTAG has a path pas it straight
-            if os.path.dirname(save_file):
-                self.file_save = save_file
-            # Else use the path of the source file
-            else:
-                self.file_path = os.path.dirname(self.file_load)
-                self.file_save = os.path.join(self.file_path, save_file)
-
-            # If no extension is given use the default
-            if not os.path.splitext(self.file_save)[1]:
-                self.file_save += self.ascii_ext
+            if save_file != '':
+                self.file_save = self.new_save_file(save_file)
 
         # Unify verbose if value < 0
         if self.verbose_level < 0:
@@ -339,8 +354,6 @@ class Settings:
                                  'rem_header': str(self.rem_header),
                                  'strip_spaces': str(self.strip_spaces),
                                  'capitalize_all': str(self.capitalise_all),
-                                 # 'convert_print': str(self.convert_print),
-                                 # 'strip_then_goto': str(self.strip_then_goto),
                                  'translate': str(self.translate),
                                  'print_report': str(self.print_report),
                                  'label_report': str(self.label_report),
@@ -452,68 +465,25 @@ class Settings:
 
         return parser
 
-    def read_system(self, SYSTEMS_JSON, system_id):
-        '''Get the system information from the JSON file'''
-
-        # Get information about the current classic system
-        if os.path.isfile(SYSTEMS_JSON):
-            with open(SYSTEMS_JSON, 'r') as json_file:
-                sys_desc = json_file.read()
-        else:
-            infolog.log(1, f'{SYSTEMS_JSON} not found.')
-
-        try:
-            sys_desc = json.loads(sys_desc)[0]
-
-            curr_sys = sys_desc[system_id]
-
-            system = namedtuple('system', 'name '
-                                          'dig_ext '
-                                          'asc_ext '
-                                          'bin_ext '
-                                          'lst_ext')
-
-            system = system(curr_sys['name'],
-                            curr_sys['dig_ext'],
-                            curr_sys['asc_ext'],
-                            curr_sys['bin_ext'],
-                            curr_sys['lst_ext'])
-
-        except json.decoder.JSONDecodeError:
-            infolog.log(1, f'Problem decoding: {SYSTEMS_JSON}')
-        except KeyError as e:
-            infolog.log(1, f'Missing key on: {SYSTEMS_JSON}: {e}')
-
-        return system
-
     def properties(self, args):
         '''Prepare and expand the settings information'''
 
-        # Get system
+        # System information
         self.system_id = args.id
-        self.SYSTEMS_JSON = os.path.join(self.LOCAL_PATH, self.SYSTEMS_JSON)
-        system = self.read_system(self.SYSTEMS_JSON, self.system_id)
 
-        self.system_name = system.name
-        self.dignified_ext = system.dig_ext
-        self.ascii_ext = system.asc_ext
-        self.binary_ext = system.bin_ext
-        self.list_ext = system.lst_ext
+        # Type of code
+        self.code_is_ascii = args.asc
 
         # Process properties
         # Files
         self.file_load = args.input
         self.file_save = args.output
         self.file_path = os.path.dirname(self.file_load)
-        if self.file_save == '':
-            save_file = os.path.basename(self.file_load)
-            save_file = os.path.splitext(save_file)[0] + self.ascii_ext
-            self.file_save = os.path.join(self.file_path, save_file)
+        if self.code_is_ascii:
+            self.file_save = self.file_load
         else:
-            if not os.path.dirname(self.file_save):
-                self.file_save = os.path.join(self.file_path, self.file_save)
-            if not os.path.splitext(self.file_save)[1]:
-                self.file_save += self.ascii_ext
+            self.file_save = self.new_save_file(self.file_save)
+
         self.load_path = os.path.dirname(self.file_load)
 
         # Dignified
@@ -526,7 +496,6 @@ class Settings:
         self.translate = args.tr
         self.load_format = 'utf-8' if self.translate else 'latin1'
         self.verbose_level = args.vb
-        self.code_is_ascii = args.asc
         self.write_ini_file = args.ini
 
         # Reports

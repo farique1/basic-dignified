@@ -11,29 +11,42 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
 ## Changes to this version
-*v2.1*
-- Added support for Visual Studio Code.
+*v2.2*
+- Removed `systems.json`.  
+- The information about the system name and extension are now on the system language module.  
+- Special extensions like the `.lst` list extension are now defined on the module that uses them, like the tokenizer, in this case.  
+- Changed the terminal panel presentation in the VSCode tasks to `dedicated`.   
+- Better handling of file saving (including the `export_file` remtag). Can now use relative paths and paths without files.  
+- Fixed bug related to the scope name of the syntax configuration on the Sublime package.  
   
 ## To Do  
-
+  
 **General**  
-- Make an environment for VS Code with build, highlight and more.  
+- Publish the VSCode extensions and the Sublime package on their online stores.  
 - Make a tool to upgrade the dignified code from version 1.6 to version 2.0.  
 - Make a graphical interface for installation and configs maybe also a complete GUI.  
 - Make an installation script.  
   
 **Highlighting**  
 - Show error if `[` or `]` on define identifier.  
-  
+- highlight error if number on next line after `_` and `##`, but ok if no `##` after `_`.  
+- Highlight line or block KEEP as error if starting with number.  
+- Highlighting from hex numbers bleeding into words if touching and starting with A-F.  
+
 **Language improvements**  
-- Numbers next line after a : are being kept
+- Numbers next line after a `:` are being kept, remove.
 - Make defines take multiple different variables.  
 - Give a warning if a variable is passed to a define without one defined.  
 - Allow define (identifiers) start with `_` (and update highlighting accordingly)  
+- Use more than one KEEP on a line or block (is it already?)  
 - Remove `ENDIF`  
   
 **Generic improvements**  
-- Make the extensions modular, so they can be added according to the needs of the systems
+- Color the terminal output. Option to disable for cases like Sublime that doesn't support it.  
+- Option to control the behavior of the namespaces on the `include`d files. Allowing or denying the mixing of `define`s and labels for instance.  
+- If there is a `badig.ini` on the folder of the current project, use it as a project setting.  
+- Change the name of `bagid_dignified`, `badig_msx`, `badig_coco` to `language_dignified`, etc
+- Load modules on a non hardcoded, dynamic way, based on a name (ie. the `.module` in `tokenizer.module.py`) and find a way to sort the running order, like the tokenizer running before the emulator. They must talk to each other to define the execution order among other things.  
 - Get stdout from openMSX on Windows for monitoring and error reporting.  
 - Make the code be read as a long string, not as a list. Line numbers are counted by the numbers of line feeds.  
 - Make the build system build generic classic and dignified code with `.bad` and `.asc` extensions, identifying the system somehow.  
@@ -41,19 +54,16 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - Make DignifieR work as a module inside Badig.  
 - Consider the case of a basic not having some instructions and preventing some features
   - Like not having `:` to separate instructions or `GOSUB` to make functions
-- Make a generic build.sublime-syntax for all systems
-- Make a `Basic Dignified` folder on Sublime Text `Packages` folder to collect generic files  
 - Make Basic Dignified figure out the system based on the file extension, without the need for `-id`
   - Keep `-id` as a way to force the system regardless of the extension
 
 **Code cleanup**  
-- Put report_output inside Main class on badig
-- Move changing # from toggle rem to file number to the classic module on Pass 1
-- Remove file load and save from the `.ini` file. There is no need really.  
+- Put `report_output` inside Main class on badig
+- Move changing `#` from toggle rem to file number to the classic module on Pass 1
+- Remove file load from the `.ini` file. There is no need really.  
 - Use variables for the token names.  
-- Keep the System description variables as named tuples instead of standalone variables.  
 - Remove the double inheritance in the Description class in the main code.  
-- Change all saved values to saved tokens like in hard_long_var 
+- Change all saved values to saved tokens like in `hard_long_var` 
 
 **Build**  
 - Remtag/settings option to turn on/off "full speed when loading" on openMSX.  
@@ -67,7 +77,7 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 ## Done  
   
 **General**  
-- Update the example page and information.  
+- Make an environment for VS Code with build, highlight and more.  
   
 **Highlighting**  
 - Define identifier properly handling errors.   
