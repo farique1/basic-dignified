@@ -38,7 +38,7 @@ class Description:
                     'RESTORE', 'RETURN', 'RGB', 'RSET', 'SAVE', 'SCREEN', 'SET',
                     'SKIPF', 'SOUND', 'STEP', 'STOP', 'SUB', 'TAB', 'TO', 'TROFF',
                     'TRON', 'UNLOAD', 'VERIFY', 'WIDTH', 'WRITE', r'DSKI\$', r'DSKO\$',
-                    r'MKN\$', r'\?', r'DEFUSR\d']
+                    r'MKN\$', r'\?', r'DEFUSR(\d)?']
 
         # Functions ending with \$
         c_funcdl = [r'CHR\$', r'HEX\$', r'INKEY\$', r'LEFT\$', r'RIGHT\$', r'MID\$', r'STR\$']
@@ -47,7 +47,7 @@ class Description:
         c_funcnm = ['ABS', 'ASC', 'ATN', 'BUTTON', 'COS', 'EOF', 'ERLIN', 'ERRNO', 'EXP',
                     'FIX', 'HPOINT', 'INSTR', 'INT', 'JOYSTK', 'LEN', 'LOG', 'LPEEK', 'MEM',
                     'PEEK', 'POINT', 'POS', 'PPOINT', 'RND', 'SGN', 'SIN', 'STRING', 'SQR',
-                    'TAN', 'TIMER', r'USR\d', 'VAL', 'VARPTR']
+                    'TAN', 'TIMER', r'USR(\d)?', 'VAL', 'VARPTR']
 
         # Jump instructions
         c_jumpin = ['GOTO', 'GOSUB', 'RENUM', 'RUN', 'DEL', 'ELSE',

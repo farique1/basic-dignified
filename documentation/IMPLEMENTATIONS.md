@@ -17,7 +17,8 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - Special extensions like the `.lst` list extension are now defined on the module that uses them, like the tokenizer, in this case.  
 - Changed the terminal panel presentation in the VSCode tasks to `dedicated`.   
 - Better handling of file saving (including the `export_file` remtag). Can now use relative paths and paths without files.  
-- Fixed bug related to the scope name of the syntax configuration on the Sublime package.  
+- Fixed a bug related to the scope name of the syntax configuration on the Sublime package.  
+- Fixed a bug where `defusr` and `usr` where only being recognized as instructions if followed by a number.  
   
 ## To Do  
   
