@@ -10,8 +10,12 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - Toggles, labels, ~, declares, functions and long named variables starting with a number not giving an error and converting to erratic results.  
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
-## Changes to this version
-*v2.2*
+## Changes to this version  
+*v2.2.1*  
+- Fixed a bug recognizing an `EOF` command or variable as the end of file.
+- Changed the way the lexer finds the end of the file. It now looks for the last line instead of adding an arbitrary string at the end.
+
+*v2.2*  
 - Removed `systems.json`.  
 - The information about the system name and extension are now on the system language module.  
 - Special extensions like the `.lst` list extension are now defined on the module that uses them, like the tokenizer, in this case.  
@@ -57,7 +61,9 @@ Not all topics presented here are going to be implemented. Some are just ideas a
   - Like not having `:` to separate instructions or `GOSUB` to make functions
 - Make Basic Dignified figure out the system based on the file extension, without the need for `-id`
   - Keep `-id` as a way to force the system regardless of the extension
-
+  - Make an ultra compact code focusing on speed and not readability (join lines, remove spaces, remove variables in NEXT, move functions, etc.)  
+  - Give the option for the Infolog class to export a log file.  
+  
 **Code cleanup**  
 - Put `report_output` inside Main class on badig
 - Move changing `#` from toggle rem to file number to the classic module on Pass 1
@@ -68,7 +74,7 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 
 **Build**  
 - Remtag/settings option to turn on/off "full speed when loading" on openMSX.  
-- Or maybe a system to pass custom strings to control any aspect of the emulators o other programs when loading.  
+- Remtag to pass custom strings to control any aspect of the emulators or other programs when loading.  
   
 **DignifieR**  
 - Unravel `FOR` is working?  

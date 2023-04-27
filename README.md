@@ -1,7 +1,7 @@
 <img src="https://github.com/farique1/basic-dignified/blob/main/images/BasicDignifiedSuite_Logo-160.png" alt="Basic Dignified" width="378" height="160">  
   
 # Basic Dignified Suite  
-**v2.2**  
+**v2.2.1**  
     
 > The **2.0+ versions** of the Basic Dignified Suite is slightly **incompatible** with the **previous versions** so old Dignified code must be **updated** accordingly. A list of incompatibilities is available [here](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md).  
     
@@ -44,7 +44,7 @@ The included modules contains the **Basic language description**, control for in
   
 ### [Differences and Incompatibilities with v1.6](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md)  
   
-### [Implementation Ideas and Known Bugs](https://github.com/farique1/basic-dignified/blob/main/documentation/IMPLEMENTATIONS.md)  
+### [Implementation Ideas, changes and Known Bugs](https://github.com/farique1/basic-dignified/blob/main/documentation/IMPLEMENTATIONS.md)  
 
 #### Support Tools: [MSX Basic Tokenizer](https://github.com/farique1/basic-dignified/blob/main/documentation/BATOKEN.md), [MSX DignifieR](https://github.com/farique1/basic-dignified/blob/main/documentation/DIGNIFIER.md) and [CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)  
 

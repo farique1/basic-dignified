@@ -90,7 +90,9 @@ class IO:
         else:
             infolog.log(1, 'File name not given.', tk)
 
-        listing.append(Line(i + 1, 'EOF', ''))
+        # Badig now adds the EOF token by finding the last coded line
+        # Check if nothing else is broken then delete these lines
+        # listing.append(Line(i + 1, 'EOF', ''))
 
         return listing
 

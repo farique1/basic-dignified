@@ -100,18 +100,26 @@ class Description(Dignified.Description, Classic.Description):
             self.newline_str_n = '\r'
 
         # General groups
-        m_eof = r'^EOF$'
+
+        # Badig now adds the EOF token by finding the last coded line
+        # Check if nothing else is broken then delete these lines
+        # m_eof = r'^EOF$'
+
         m_newline = r'^\r+$'
         m_spaces = r'^[^\S\r\n]$'
 
         # Regex groups
-        main_eof = fr'(?P<eof>{m_eof})'
+        # main_eof = fr'(?P<eof>{m_eof})'
         main_new = fr'(?P<newline>{m_newline})'
         main_spc = fr'(?P<spaces>{m_spaces})'
 
         # Groups assembled for compiling (Order is important)
         self.main_groups = (''
-                            fr'{main_eof}|'
+
+                            # Badig now adds the EOF token by finding the last coded line
+                            # Check if nothing else is broken then delete these lines
+                            # fr'{main_eof}|'
+
                             fr'{main_new}|'
                             fr'{main_spc}')
 
@@ -243,6 +251,12 @@ class Lexer:
 
     def __init__(self, stg, d_code):
         self.d_code = d_code
+
+        # This is jerry rigged to repeat the last line
+        # because the advance(), advance_line(), and get_token()
+        # functions are ignoring the last one when addinf the EOF token
+        self.d_code.append(d_code[:-1][0])
+
         self.stg = stg
         self.des = Description()
         self.pos = Position(d_code, lin=0, col=-1)
@@ -253,16 +267,20 @@ class Lexer:
 
     # General -----------------------------------------------------------------
     def advance(self):
-        '''Read the current character and advance the cursor'''
+        '''Read the current character and advance the cursor
+        Returning None means the end of the program'''
 
         current_char = self.pos.text[self.pos.col]
         self.pos.col += 1
         if self.pos.col >= len(self.pos.text):
-            self.advance_line()
+            advanced = self.advance_line()
+            if advanced is None:
+                return None
         return current_char
 
     def advance_line(self):
-        '''Advance one line and prepare it for processing'''
+        '''Advance one line and prepare it for processing
+        Returning None means the end of the program'''
 
         self.pos.lin += 1
         self.pos.col = 0
@@ -271,6 +289,8 @@ class Lexer:
         if self.pos.lin <= self.pos.code_len - 1:
             self.pos.text = self.d_code[self.pos.lin].text.rstrip() + nl
             return self.pos.text
+        else:
+            return None
 
     def lookahead(self):
         '''Look at the current character without advancing'''
@@ -280,7 +300,8 @@ class Lexer:
     def get_token(self):
         '''Makes a token based on the word or character matched.
         Get characters until no match is found
-        then uses the last positive match'''
+        then uses the last positive match
+        If end of program reached, return the EOF token'''
 
         partial = ''
         match_group = ''
@@ -298,7 +319,12 @@ class Lexer:
                              val=partial.strip(' '),
                              pos=last_pos)
 
-            partial += self.advance()
+            advanced = self.advance()
+            if advanced is None:
+                return Token(tok='EOF',
+                             val='EOF',
+                             pos=last_pos)
+            partial += advanced
             match_group = g.lastgroup
 
     # Literals ----------------------------------------------------------------
@@ -355,10 +381,10 @@ class Lexer:
 
     def get_lit_line(self, tok, end, part, l_pos):
         '''Get a literal line of type depending on passed arguments
-           tok = Token of the matched literal
-           end = A character to end the capture
-           part = First part of the literal string
-           l_pos = Start position of the string'''
+           tok: Token of the matched literal
+           end: A character to end the capture
+           part: First part of the literal string
+           l_pos: Start position of the string'''
 
         nl = self.des.newline
         nls = self.des.newline_str
@@ -391,6 +417,7 @@ class Lexer:
         self.last_tok = self.tk
 
         self.advance_line()
+
         while True:
 
             self.last_tok = self.lexer[-1]
@@ -494,6 +521,7 @@ class Lexer:
             self.lexer.append(self.tk)
 
             # EOF -------------------------------------------------------------
+
             if self.tk.tok == 'EOF':
                 break
 
