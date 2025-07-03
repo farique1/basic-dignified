@@ -308,7 +308,7 @@ class Emulator:
         # Send commands and get replies
         self.output(True, f'')  # needed to synchronize responses from the emulator
 
-        self.proc.stdin.write(f'<command>set renderer SDL</command>{endline}')
+        self.proc.stdin.write(f'<command>set renderer SDLGL-PP</command>{endline}')
         self.output(True, 'Showing screen')
 
         self.proc.stdin.write('<command>set throttle off</command>' + endline)
