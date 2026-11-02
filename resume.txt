@@ -57,8 +57,8 @@ Known gaps / next actions
 3. Audit the ZX-81 command/function/token table against the intended ROM/BASIC version; expand focused tests for DATA/REM, arrays, numeric boundaries, line limits and string edge cases.
 4. Improve error reporting for bad emulator paths and tokenizer failures if needed; there is no execution monitor/error-to-editor mapping yet.
 5. Keep tests/examples based on files that are authorized for the contribution. `zx81/samples/o_coelhao_atento.dzx` and `zx81/samples/o_coelhao_atento.AZX` are preexisting untracked user files; do not stage/delete them without checking with the user. A temporary conversion of that source failed on a literal apostrophe, which the ZX-81 character set/tokenizer currently cannot represent. The new `zx81-intro.dzx` is the valid sample added for this module.
-6. Review all docs and git status before staging. Push the requested contribution to origin on branch suporte-zx81 only after the user-requested documentation/resume work is complete. Do not create a PR.
+6. Continue testing on branch `suporte-zx81`. The preexisting `o_coelhao_atento.dzx/.AZX` files remain untracked and were deliberately excluded from the contribution commit. Do not create a PR until the user asks after testing.
 
 Commit / push state
 -------------------
-Commit/push is requested for this work on branch `suporte-zx81`; do not open a PR. Remote `origin` is the user's personal GitHub repository; `upstream` is the original author's repository. Stage only intended ZX-81 implementation/docs/assets and avoid the preexisting `o_coelhao_atento` sample/output unless explicitly approved.
+Commit `a5563f7` (`Add ZX-81 module and editor integration`) is on branch `suporte-zx81` and was pushed to `origin` on 2026-11-02. No PR was created. Remote `origin` is the user's personal GitHub repository; `upstream` is the original author's repository.
