@@ -1,0 +1,30 @@
+{
+    "file_regex": "(?:^\\*\\*\\*\\s)(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+    "selector": "source.zx81-basic-classic",
+    "working_dir": "$project_path",
+    "file_patterns": ["*.AZX", "*.azx"],
+    "syntax": "zx81-basic-classic.sublime-syntax",
+    "windows": {
+        "cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--em_run", "-id", "zx81"]
+    },
+    "osx": {
+        "cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--em_run", "-id", "zx81"]
+    },
+    "linux": {
+        "cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--em_run", "-id", "zx81"]
+    },
+    "variants": [
+        {
+            "name": "Tokenize only",
+            "windows": {"cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "-id", "zx81"]},
+            "osx": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "-id", "zx81"]},
+            "linux": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "-id", "zx81"]}
+        },
+        {
+            "name": "Tokenize and run",
+            "windows": {"cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "--em_run", "-id", "zx81"]},
+            "osx": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "--em_run", "-id", "zx81"]},
+            "linux": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "-asc", "--tk_tokenize", "--em_run", "-id", "zx81"]}
+        }
+    ]
+}

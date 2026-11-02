@@ -2,6 +2,8 @@
   
 MSX Basic DignifieR **converts** **classic** MSX Basic **to** the **Dignified** format.  
 
+This standalone conversion tool is **MSX-only**. The ZX-81 module does not currently include a classic-to-Dignified converter.
+
 It **eases** the heavily **repetitive** and **error** prone task of **removing** line numbers, **creating** branching labels, **adding** spaces between keywords, etc. Helps if you want to **convert** a **lot** of files or a **long** one for **editing** or just for **better visualization** / **reading**. There are a series of **options** to configure the **appearance** of the final Dignified code according to your **preferences**.  
   
 > The interplay between all the configurable options and the variety of the Basic itself is somewhat complex and was not nearly as tested as it should so please keep an eye and report any bugs.  

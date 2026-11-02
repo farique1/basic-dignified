@@ -1,12 +1,12 @@
 # Additional Features of the included modules  
 
-There are two fairly complete included modules with Basic Dignified: **MSX** and **Tandy Color Computer**.  
+Basic Dignified includes modules for **MSX**, **Tandy Color Computer** and **ZX-81**. All three modules have editor integrations, tokenizers and emulator launch support.
 
-Beyond their Basic **dialect** description, they have **tokenizers** available and can automatically **execute** their code on emulators.  
+Beyond their Basic **dialect** description, the modules can provide **tokenizers** and automatic **emulator** execution.
 
 Below is an explanation of these modules and their uses.  
 
-> Due to the similarities between both systems, they will be described in parallel, with the differences pointed as needed.  
+> MSX and CoCo options are described together where their interfaces match; ZX-81-specific behavior is called out separately.
 
 > This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md).  
 
@@ -17,24 +17,25 @@ Below is an explanation of these modules and their uses.
 
 ## Language Module
 
-The language modules are very **similar** for both systems with some notable **exceptions** like the `[?](x,y)` handling for instance.  
-This is the module that exposed the **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` features explained on the [main Basic Dignified section](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md) section. Their `.ini` files are `\msx\badig_msx.ini` and `\coco\badig_coco.ini`.  
+MSX and CoCo share language options with some system-specific differences such as `[?](x,y)`. The ZX-81 also supports `[?](row,column)`, expanding it to native `PRINT AT row,column;`. **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` are MSX/CoCo-only options. Their language `.ini` files are `msx/badig_msx.ini` and `coco/badig_coco.ini`; ZX-81 currently has no language-specific `.ini` options.
 
 ## Tokenizer Interfaces
 
-**Both** included systems have tokenizer modules **available**.  
+All three included systems have tokenizer modules **available**.
 They **control** the actual tokenizers, **bridging** them with Basic Dignified and expose **command line arguments** and **remtags**.  
 Their **default** behavior can be **set** on `tokenizer_interface.ini` on their respective **modules** folder.  
-The tokenized used for the **MSX** is the **custom** made **MSX Batoken**.  
-The tokenized used for the **CoCo** is Toolshed's **decb**. There are executables for **Windows** and **MacOS** on the folder.
+The **MSX** tokenizer is the custom **MSX Batoken**. The **CoCo** tokenizer uses Toolshed's **decb**. The **ZX-81** tokenizer is implemented in Python and generates a `.p` program file.
+
+**ZX-81 pipeline**
+Use `-id zx81` to select this module. A Dignified `.DZX` source is converted to numbered BASIC in `.AZX`, then tokenized to `.p`. Tokenization is enabled by default for this module; pass `--tk_ascii_only` to keep only the `.AZX` file. `--em_run` launches `C:\zeddy\EightyOne.exe` with the `.p` file. The emulator path can be changed in `zx81/emulator_interface.ini`.
 
 `.ini:` `.ini` file.  
 `cmdl:` Command line arguments.  
 `rmtg:` Remtags.  
 
   - *Tokenize*  
-Creates a tokenized version of the converted ASCII classic code.  
-	`Default:` `False`  
+Creates a tokenized version of the converted ASCII classic code. MSX/CoCo default to `False`; ZX-81 defaults to `True`.
+  `Default:` `False` (MSX/CoCo); `True` (ZX-81)
     `.ini:` `tokenize = [True|False]`.  
 	`cmdl:` `--tk_tokenize`  
     `rmtg:` `##BB:tk_tokenize=[True|False]`  
@@ -46,7 +47,13 @@ Delete the converted ASCII code if only the tokenized version is required.
 	`cmdl:` `--tk_del_ascii`  
     `rmtg:` `##BB:tk_del_ascii=[True|False]`  
 
-  - *Verbose level*  
+  - *ASCII-only conversion* **(ZX-81 only)**
+  Skip `.p` generation and keep only the numbered `.AZX` file.
+    `Default:` `False`
+    `cmdl:` `--tk_ascii_only`
+    `rmtg:` `##BB:arguments=--tk_ascii_only`
+
+  - *Verbose level* **(MSX/CoCo only)**
 Set the level of feedback given by the tokenizer module.  
 **MSX**: Level 5 will show a byte by byte representation of the tokenization process.  
 **CoCo**: Level 5 is not used.  
@@ -65,11 +72,19 @@ Exports a list file similar to the ones exported by assemblers with the tokens a
  
 ## Emulator Interfaces
 
-**Both** included systems have modules that can automatically **run** the converted code on **emulators**.  
-The emulators are **openMSX** for the **MSX** and **XRoar** for the **CoCo**.  
-The modules **control** the actual emulators, **bridging** them with Basic Dignified and expose **command line arguments** and **remtags**.  
-Their **default** behavior can be **set** on `emulator_interface.ini` on their respective **modules** folder.  
-Both emulators will be **opened** with their **default** settings but this can be **changed** if a specif configuration is **needed** for the code execution, for instance, a disk drive for the **MSX** or if a **different** machine is needed for **testing** proposes.  
+All three modules can automatically **run** converted code on an emulator. The emulators are **openMSX** for MSX, **XRoar** for CoCo, and **EightyOne** for ZX-81. Each interface bridges its emulator with Basic Dignified and can expose settings, command-line arguments and remtags.
+
+MSX and CoCo emulator settings are configurable in their module `.ini` files. The ZX-81 interface currently launches EightyOne with the tokenized `.p` file; it does not yet monitor execution or expose machine/profile options.
+
+**ZX-81** uses `--em_run` or `##BB:em_run=True`; its default is `False`. The executable path is read from the `[WINDOWS] emulator_path` setting in `zx81/emulator_interface.ini`. No `--em_verbose` option is exposed by this interface.
+
+```ini
+[CONFIGS]
+run = false
+
+[WINDOWS]
+emulator_path = C:\zeddy\EightyOne.exe
+```
 
 **MSX particularities**  
 To **run** the code on **openMSX**, a machine with a **disk drive** is needed. It will load the **folder** where the converted code is **as a disk** before loading the program. Be aware that all **limitations** of the **MSX disk system** will apply to that folder. File names must have **8 characters** with a **3 characters** extension, cannot have **spaces** and the total file size of the folder should not **exceed** ~700kb. The interface will try to **mitigate** some of these but **caution** is the better approach.    
@@ -85,19 +100,19 @@ The converted code will be loaded on **XRoar** as a **tape** file. Since XRoar c
 `rmtg:` Remtags.  
 
   - *Emulator executable location*   
-The location of openMSX or XRoar executable. This is the full path and file name of the `.exe` for Windows, `.app` for MacOS and the Linux executable.  
+The location of the emulator executable. This is the full path and file name of the `.exe` for Windows, `.app` for MacOS and the Linux executable.
 Add them under your system description in the `.ini` file: `[WINDOWS]`, `[LINUX]` or `[DARWIN]` for MacOS  
-	`Default:` `None`  
+  `Default:` EightyOne uses `C:\zeddy\EightyOne.exe`; MSX/CoCo paths are installation-specific.
     `.ini:` `emulator_path = [PATH_TO_THE_EXECUTABLE]`.  
 
   - *Run code*  
-Run the converted code on the emulator. Both systems will try to load a binary tokenized code, if none is found they will load the ASCII file.  
+Run the converted code on the emulator. MSX/CoCo can use tokenized output or their ASCII fallback; ZX-81 requires the tokenized `.p` output.
 	`Default:` `False`  
     `.ini:` `run = [True|False]`.  
 	`cmdl:` `--em_run`  
-    `rmtg:` `##BB:em_run==[True|False]`  
+    `rmtg:` `##BB:em_run=[True|False]`
 
-  - *Verbose level*  
+  - *Verbose level* **(MSX/CoCo only)**
 Set the level of feedback given by the tokenizer module.  
 	`Default:` `3`  
     `.ini:` `verbose = [0-5]`  

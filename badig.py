@@ -386,6 +386,9 @@ class Lexer:
            part: First part of the literal string
            l_pos: Start position of the string'''
 
+        if tok == 'C_LITQUO' and hasattr(self.clc, 'quoted_string'):
+            return self.clc.quoted_string(tok, end, part, l_pos)
+
         nl = self.des.newline
         nls = self.des.newline_str
 

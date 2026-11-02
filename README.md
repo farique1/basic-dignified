@@ -5,13 +5,13 @@
     
 > The **2.0+ versions** of the Basic Dignified Suite is slightly **incompatible** with the **previous versions** so old Dignified code must be **updated** accordingly. A list of incompatibilities is available [here](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md).  
     
-**Basic Dignified** is a way for programming classic 8bit computer Basics on a modern, friendly paradigm. MSX and CoCo Basics are supported but more can be added through modules.  
+**Basic Dignified** is a way for programming classic 8bit computer Basics on a modern, friendly paradigm. MSX, CoCo and ZX-81 Basics are supported through system modules.
   
 With **Basic Dignified** you can program for the included systems on a modern environment using Sublime Text or Visual Studio Code with syntax highlight, build systems, snippets and more.  
   
 **Basic Dignified** improves and adds to the classic Basic, keeping the syntax as close as possible to the original, making the learning curve almost inexistent (the only requirement is the use of labels instead of line numbers), while adding a lot of quality of life improvements that can be used or not. The output is converted to the classic Basics and can run automatically on an emulator.  
   
-Dignified Basic is written **without line numbers**, can be **indented**  and have **lines broken**, can use variables with **long names**, have macros **defined** and external files **included**, has a kind of **function** construct, can use **Unicode** special characters analogues to the original character set, as well as **rem toggles**, **true** and **false** statements, **compound arithmetic** operators and much more.  The conversion is customizable with controls for **line numbers**, **spaces**, **code cleanup** and more.  
+Dignified Basic is written **without line numbers**, can be **indented** and have **lines broken**, can use variables with **long names**, have macros **defined** and external files **included**, has a kind of **function** construct, and can use **Unicode** characters analogous to the original character set where the selected module supports them. It also provides **rem toggles**, **true** and **false** statements, **compound arithmetic** operators and more. The conversion is customizable with controls for **line numbers**, **spaces**, **code cleanup** and more.
   
 The suite is designed to be very **modular**, implementing any **flavor** of Basic through modules that describe their **unique** characteristics. The **modules** are programmed **independently** and loaded as needed.  
 
@@ -21,9 +21,9 @@ The module and tools can add their own **commands** and **directives** to the ov
 
 The suite can be used directly from the terminal, through command line arguments, but it is best experienced inside  **IDEs** and code editors like **Sublime Text**, **VSCode** and others.  
 
-By default, the suite comes with two modules, one for **MSX Basic** and one for **Color Computer Basic** and **YOU** can make the next module. **ZX Spectrum** or **Commodore 64**, anyone?  
+The suite includes modules for **MSX Basic**, **Color Computer Basic** and **ZX-81 BASIC**. **YOU** can make the next module. **ZX Spectrum** or **Commodore 64**, anyone?
   
-The included modules contains the **Basic language description**, control for included **tokenizers**, the ability run the code on **emulators** and support for **Visual Studio Code** and **Sublime Text**  with **build system**, **syntax highlight** for the **Dignified** and **Classic** Basic versions as well as **themes**, **snippets**, **completions** and more.
+The included modules contain the **Basic language description**, **tokenizers**, and emulator launch support. MSX, CoCo, and ZX-81 have Visual Studio Code and Sublime Text integrations with system-specific syntax highlighting, builds, and snippets. ZX-81 programs run in EightyOne from tokenized `.p` files.
 
 >**Beyond** the Dignified code, Basic Dignified can open **classic** ASCII code to **tokenize**, **execute**, **monitor** and more.  
 
@@ -34,13 +34,13 @@ The included modules contains the **Basic language description**, control for in
 ---  
 ### [Installation](https://github.com/farique1/basic-dignified/blob/main/documentation/INSTALLATION.md)  
   
-### [Using Basic Dignified and the Included Modules (MSX and CoCo)](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md)  
+### [Using Basic Dignified and the Included Modules (MSX, CoCo and ZX-81)](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md)
   
 ### [Additional Features of the Included Modules (Language, Tokenizers and Emulators)](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md)  
 
 ### [Visual Studio Code and Sublime Text Integration (Syntax Highlight, Snippets, Build System, etc)](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md)
 
-### [Creating Modules for Other Systems (SOON)](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md)  
+### [Creating Modules for Other Systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md)
   
 ### [Differences and Incompatibilities with v1.6](https://github.com/farique1/basic-dignified/blob/main/documentation/DIFFERENCES.md)  
   

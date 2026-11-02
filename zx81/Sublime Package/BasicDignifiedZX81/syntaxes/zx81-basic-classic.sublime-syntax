@@ -1,0 +1,44 @@
+%YAML 1.2
+---
+name: ZX-81 BASIC
+file_extensions:
+  - azx
+scope: source.zx81-basic-classic
+contexts:
+  main:
+    - match: '^\s*\d+'
+      scope: constant.numeric.line-number.zx81-basic-classic
+    - include: comments
+    - include: strings
+    - match: '(?i)\b(?:COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GOSUB|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)\b'
+      scope: keyword.control.zx81-basic-classic
+    - match: '(?i)\b(?:CHR\$|STR\$|INKEY\$|USR|PEEK|ABS|SGN|SQR|INT|EXP|LN|ATN|ACS|ASN|TAN|COS|SIN|LEN|VAL|CODE|TAB|AT|PI|RND)\b'
+      scope: support.function.zx81-basic-classic
+    - match: '<>|>=|<=|\*\*|[=<>+*/(),;:-]'
+      scope: keyword.operator.zx81-basic-classic
+    - match: '(?<![A-Za-z0-9_])[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][-+]?\d+)?'
+      scope: constant.numeric.zx81-basic-classic
+    - match: '(?i)\b[A-Z]\$?\b'
+      scope: variable.other.zx81-basic-classic
+  comments:
+    - match: '(?i)\bREM\b.*$'
+      scope: comment.line.rem.zx81-basic-classic
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.zx81-basic-classic
+      push: string
+  string:
+    - meta_scope: string.quoted.double.zx81-basic-classic
+    - match: '""'
+      scope: constant.character.escape.zx81-basic-classic
+    - match: '\\"'
+      scope: constant.character.escape.zx81-basic-classic
+    - match: '%[A-Za-z0-9]'
+      scope: constant.character.zx81-basic-classic
+    - match: '\\(?:  |'' | ''|''''|\. |: |\.''|:''|##|,,|~~|::|\.:|:\.|\.\.|'':| :|''\.| \.)'
+      scope: constant.character.zx81-basic-classic
+    - match: '"(?!")'
+      scope: punctuation.definition.string.end.zx81-basic-classic
+      pop: true
+    - match: '$'
+      pop: true

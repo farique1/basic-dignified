@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "type": "shell",
+  "command": "${config:zx81-basic-dignified.pythonInterpreter}",
+  "args": ["${config:zx81-basic-dignified.badigPath}", "${file}"],
+  "presentation": {"reveal": "always", "panel": "new"},
+  "tasks": [
+    {
+      "label": "Dignified: ZX-81 Convert to ASCII",
+      "args": ["--tk_ascii_only", "-id", "zx81"],
+      "problemMatcher": "$basicDignifiedProblem",
+      "group": {"kind": "build", "isDefault": false}
+    },
+    {
+      "label": "Dignified: ZX-81 Convert and Tokenize",
+      "args": ["--tk_tokenize", "-id", "zx81"],
+      "problemMatcher": "$basicDignifiedProblem",
+      "group": {"kind": "build", "isDefault": true}
+    },
+    {
+      "label": "Dignified: ZX-81 Convert, Tokenize and Run",
+      "args": ["--em_run", "-id", "zx81"],
+      "problemMatcher": "$basicDignifiedProblem",
+      "group": {"kind": "build", "isDefault": false}
+    },
+    {
+      "label": "Classic: ZX-81 Tokenize Only",
+      "args": ["-asc", "--tk_tokenize", "-id", "zx81"],
+      "problemMatcher": "$basicDignifiedProblem",
+      "group": {"kind": "test", "isDefault": false}
+    },
+    {
+      "label": "Classic: ZX-81 Tokenize and Run",
+      "args": ["-asc", "--em_run", "-id", "zx81"],
+      "problemMatcher": "$basicDignifiedProblem",
+      "group": {"kind": "test", "isDefault": false}
+    }
+  ]
+}

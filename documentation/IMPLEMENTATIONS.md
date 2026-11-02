@@ -9,6 +9,17 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 **Conversion**  
 - Toggles, labels, ~, declares, functions and long named variables starting with a number not giving an error and converting to erratic results.  
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
+
+## ZX-81 Module Status
+
+The ZX-81 module currently converts `.DZX` to numbered `.AZX`, maps long Dignified variables from `Z` down to `A`, supports `[?](row,column)` as `PRINT AT`, and tokenizes to `.p` in Python. Strings support doubled quotes (`""`) and the backslash-quote spelling in both `.DZX` and `.AZX`; inverse-video and block-graphics escapes are also supported. VS Code/Sublime sources and a VSIX are in `zx81/`.
+
+Remaining work before calling the module complete:
+- Implement and document the ZX-81 Unicode map for `-tr`.
+- Audit commands/functions and edge cases against the target ROM/BASIC version.
+- Test opening and running generated `.p` files in EightyOne, not only creating them.
+- Decide whether to support literal apostrophe another way; it is not in the ZX-81 character set and the tokenizer currently rejects it.
+- Add user-approved regression samples for strings, DATA/REM, graphics, line limits and error cases.
   
 ## Changes to this version  
 *v2.2.1*  

@@ -1,0 +1,58 @@
+%YAML 1.2
+---
+name: ZX-81 Basic Dignified
+file_extensions:
+  - dzx
+scope: source.zx81-basic-dignified
+contexts:
+  main:
+    - match: '^\s*##BB:[A-Za-z0-9_]+=.*$'
+      scope: comment.line.remtag.zx81-basic-dignified
+    - include: strings
+    - match: '^\s*##.*$'
+      scope: comment.line.exclusive.zx81-basic-dignified
+    - match: "'.*$"
+      scope: comment.line.apostrophe.zx81-basic-dignified
+    - match: '(?i)\bREM\b.*$'
+      scope: comment.line.rem.zx81-basic-dignified
+    - match: '(?i)^\s*(?:define|declare|include|keep|endif|func|ret|exit)\b'
+      scope: keyword.control.zx81-basic-dignified
+    - match: '\[[A-Za-z][A-Za-z0-9_]*\]'
+      scope: entity.name.class.define.zx81-basic-dignified
+    - match: '^\s*[A-Za-z_][A-Za-z0-9_]*(?=\{)'
+      scope: entity.name.label.loop.zx81-basic-dignified
+    - match: '\{(?:[A-Za-z_][A-Za-z0-9_]*|@)\}'
+      scope: entity.name.label.zx81-basic-dignified
+    - match: '\.[A-Za-z_][A-Za-z0-9_]*(?=\s*\()'
+      scope: entity.name.function.zx81-basic-dignified
+    - match: '(?i)\b(?:TRUE|FALSE)\b'
+      scope: constant.language.boolean.zx81-basic-dignified
+    - match: '(?i)\b(?:COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GOSUB|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)\b'
+      scope: keyword.control.zx81-basic-dignified
+    - match: '(?i)\b(?:CHR\$|STR\$|INKEY\$|USR|PEEK|ABS|SGN|SQR|INT|EXP|LN|ATN|ACS|ASN|TAN|COS|SIN|LEN|VAL|CODE|TAB|AT|PI|RND)\b'
+      scope: support.function.zx81-basic-dignified
+    - match: '<>|>=|<=|\*\*|\+=|-=|\*=|/=|\^=|[=<>+*/(),;:^~]'
+      scope: keyword.operator.zx81-basic-dignified
+    - match: '(?<![A-Za-z0-9_])[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][-+]?\d+)?'
+      scope: constant.numeric.zx81-basic-dignified
+    - match: '(?i)\b[A-Za-z][A-Za-z0-9_]*\$?\b'
+      scope: variable.other.zx81-basic-dignified
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.zx81-basic-dignified
+      push: string
+  string:
+    - meta_scope: string.quoted.double.zx81-basic-dignified
+    - match: '\\"'
+      scope: constant.character.escape.zx81-basic-dignified
+    - match: '""'
+      scope: constant.character.escape.zx81-basic-dignified
+    - match: '%[A-Za-z0-9]'
+      scope: constant.character.zx81-basic-dignified
+    - match: '\\(?:  |'' | ''|''''|\. |: |\.''|:''|##|,,|~~|::|\.:|:\.|\.\.|'':| :|''\.| \.)'
+      scope: constant.character.zx81-basic-dignified
+    - match: '"(?!")'
+      scope: punctuation.definition.string.end.zx81-basic-dignified
+      pop: true
+    - match: '$'
+      pop: true
