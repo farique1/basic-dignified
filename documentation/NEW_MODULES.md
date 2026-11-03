@@ -1,5 +1,8 @@
 # New Modules  
 
+> A complete guide on how to implement new systems is coming soon.
+> This is only a small overview.
+
 This document is an implementation overview. The repository includes MSX, CoCo and ZX-81 modules; use `zx81/` as an additional example of a module with a Python tokenizer and emulator interface.
   
 Modules for **new systems** should be placed on **folders** named with their **system ID**.  
@@ -10,7 +13,9 @@ The **language** module **describes** and adds **control** to the **conversion**
 The **tools** module **control** all **interfaces** associated with **programs** helping the **conversion** like **tokenizers** and **emulators**.  
 The **interfaces** directly **control** the **external programs** like **tokenizers** and **emulators**, making a **bridge** between them and Basic Dignified and adding **configurations** and **features**.  
 
-The **MSX** and **ZX-81** folders show two module shapes: MSX wraps external tokenizer/emulator tools, while ZX-81 tokenizes `.AZX` to `.p` in Python and launches EightyOne.
+The **MSX folder** opened with its **files** as an example of a **typical** module.
+
+The additional **ZX-81** folder shows a module that tokenizes `.AZX` to `.p` in Python and launches EightyOne.
 
 ```  
 |- documentation  
@@ -36,6 +41,7 @@ The **MSX** and **ZX-81** folders show two module shapes: MSX wraps external tok
   |  tokenizer_interface.py
   |  tokenizer_zx81.py
   |  tools_zx81.py
+  |  zx81bader.py
   |  VSCode Extension
   |  Sublime Package
   |  samples

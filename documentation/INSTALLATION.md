@@ -22,11 +22,13 @@ If all you want is the **conversion** through the **command line**, including **
   
 ### Setting up the emulators  
   
-The tokenizers are **provided** with the Suite, while emulators must be installed **independently**. The included interfaces support **openMSX** for MSX, **XRoar** for CoCo, and **EightyOne** for ZX-81.
+While the tokenizers are **provided** with the Suite, the **emulators** are not. The included **interfaces** work with **openMSX** for the **MSX** and **XRoar** for the **CoCo** and you have to install them **independently**.
+
+**ZX-81 addition:** install EightyOne independently to use this module's emulator launcher.
 
 > Note that **openMSX** needs a machine with a **disk drive** or a disk drive **extension** to load the program.   
 
-Once you have them **installed** you need to tell Basic Dignified **where** they are. Open `emulator_interface.ini` in the system folder you want to use (`msx`, `coco`, or `zx81`) and set `emulator_path` for your operating system (`[DARWIN]` is **MacOS**):
+Once you have them **installed** you need to tell Basic Dignified **where** they are. Open the `emulator_interface.ini` file from the **folder** of the **system** you want to use (`msx` or `coco`) and **add** the path to `emulator_path` depending on your **operating system** (`[DARWIN]` is **MacOS**):
 
 ```INI
 [WINDOWS]
@@ -46,14 +48,26 @@ For ZX-81 on Windows, `zx81/emulator_interface.ini` already points to `C:\zeddy\
 To convert a ZX-81 program from the repository root without launching EightyOne, pass its base name (without `.DZX`) to the helper for your shell:
 
 ```powershell
-.\zx81\convert-zx81.ps1 zx81\samples\zx81-intro
+.\zx81\convert-zx81.ps1 examples\zx81\zx81-intro
 ```
 
 ```bash
-bash zx81/convert-zx81.sh zx81/samples/zx81-intro
+bash zx81/convert-zx81.sh examples/zx81/zx81-intro
 ```
 
 Both helpers write the numbered `.AZX` and tokenized `.p` beside the source file.
+
+A numbered classic listing saved as `.DZX` is renumbered into a new `.AZX` and tokenized, without changing the source; for example, `.\zx81\convert-zx81.ps1 game` for `game.dzx`. On case-sensitive filesystems the Bash helper requires the `.DZX` suffix in uppercase.
+
+PowerShell also accepts explicit source extensions, for example `.\zx81\convert-zx81.ps1 game.AZX`. It appends `.DZX` only when no extension is present. **Before conversion it deletes the destination `.p`, if one exists**; a failed conversion therefore does not preserve the previous binary. Text sources are retained.
+
+To tokenize a Go81 `p2txt` or other numbered listing directly, keep it as `.AZX` and run from the repository root:
+
+```console
+python badig.py game.AZX -id zx81 -asc --tk_tokenize
+```
+
+No additional Python packages are needed for the ZX-81 tokenizer. Literal `\{XX}` bytes are supported in code, strings, and `REM`; see [the ZX-81 module guide](MODULE_TOOLS.md#zx-81-usage-and-byte-escapes) for the syntax and hidden numeric values. Generating `.AZX` and `.p` does not require an emulator.
 
 Now Basic Dignified can **run** your program after the **conversion**.
   
@@ -62,21 +76,27 @@ Now Basic Dignified can **run** your program after the **conversion**.
 To write your program with the help of syntax **highlighting**, **snippets completion**, a **build system** and more you need to properly **set it up** on a code editor.  
 There is currently support for **Visual Studio Code** and **Sublime Text**.  
 
-Choose the editor package for the system you want to use: **MSX**, **CoCo**, or **ZX-81**.
+> The instructons below mentions the `MSX`. Replace `MSX` with `CoCo` if you want to set up the **CoCo** module.
+
+**ZX-81 addition:** use the dedicated ZX-81 setup sections below rather than substituting ZX-81 into the original MSX/CoCo walkthrough.
 
 ### The VSCode Extension
 
 If you don't have VS Code, **download** and **install** it.  
 
-To install a VS Code extension, open **Extensions > ... > Install from VSIX...** and choose the matching file from your Basic Dignified installation:
+To **install** the extension, **run** VSCode, click on the **Extensions** icon (on the left side) and click on the `...` at the top right of the Extensions panel. Select `Install from VSIX...` and open the `basic-dignified-msx-2.0.0.vsix` file located inside `VSCode Extension` on the **folder** of the system module (`msx` or `coco`) of your Basic Dignified installation.
+
+The system-specific VSIX paths are:
 
 - MSX: `msx/VSCode Extension/basic-dignified-msx-2.0.0.vsix`
 - CoCo: `coco/VSCode Extension/basic-dignified-coco-2.0.0.vsix`
 - ZX-81: `zx81/VSCode Extension/basic-dignified-zx81-2.0.0.vsix`
 
-Restart VS Code and open **Extension Settings** for the installed system extension. Set its `badigPath` property to your `badig.py` path (for example, `D:\BasicDignified\badig.py`) and set the Python executable if it is not `python`.
+**Restart** VSCode, find `Basic Dignified: MSX` on the **Extension** panel. Click on the **gear** icon and select `Extension Settings`. On the settings page, enter the **path** to the `badig.py` file on **your** installation (ie. `D:\BasicDignified\badig.py`) and change the name of your Python **executable** if needed (might be `python`, `python3` or other).
   
-VS Code associates the system-specific source extensions with their language grammars. If needed, use **Configure File Association** to select the matching classic or Dignified language. For ZX-81, `.DZX` uses `ZX-81 Basic Dignified` and `.AZX` uses `ZX-81 BASIC`; copy its provided `.vscode/tasks.json` into your workspace to enable the builds.
+VSCode **should** correctly **interpret** the **Dignified** and **classic** Basic files based on their **extension** but you might have to **manually** chose them the first time you **create** or **open** one. With a **Dignified** or **classic** Basic file **opened**, click on the **bottom left** of VSCode (it should be reading `Plain Text`), select `Configure File Assiciation for '.xxx'...` and **select** the **appropriated** syntax description (`MSX Basic classic` or `MSX Basic Dignified`).
+
+For ZX-81, `.DZX` uses `ZX-81 Basic Dignified` and `.AZX` uses `ZX-81 BASIC`; copy its provided `.vscode/tasks.json` into your workspace to enable the builds.
   
 See [the code editor integration section](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md) on how to **use** the VSCode extension.  
   
@@ -99,9 +119,9 @@ Run it and **install** Package Control (https://packagecontrol.io/installation)
 
 Now you need to **tell** Sublime Text **where** Basic Dignified is.  
 
-Each system's Sublime package is under its module's `Sublime Package` folder. The detailed walkthrough below uses MSX; for ZX-81, use `zx81/Sublime Package/BasicDignifiedZX81` and follow the ZX-81-specific setup above.
+Inside the **folder** of the system module (`msx` or `coco`), there is a folder called `Sublime Package`. **Inside** `Sublime Package` go to `BasicDignifiedMSX` > `Build`.
 
-For MSX, open the files inside its `build` folder:
+**Open** the files inside the `build` folder on a text editor:
 `MSX Basic.sublime-build`  
 and  
 `MSX Basic Dignified.sublime-build`  
@@ -125,7 +145,9 @@ And **change all** the occurrences of `"PATH_TO/BasicDignified/badig.py"` with t
 
 If there is a **folder** called `User`, **open** it, if not, **create** one and open it.  
 
-Copy the package folder for the system you want into Sublime Text's `Packages\User\` folder and restart Sublime Text. For ZX-81, copy the complete `BasicDignifiedZX81` folder and update the `badig.py` path in both build files as described above.
+**Go back** to the Basic Dignified **installation** and move the **contents** of the `Sublime Tools` folder of the **system** you want (you want only the **contents**, **not** the folder itself) inside the `Packages\User\` folder of Sublime Text and **restart** it.
+
+**Path clarification:** the original instructions call this folder `Sublime Tools`; in the current repository the editor packages are under `Sublime Package`. For ZX-81, copy the complete `BasicDignifiedZX81` folder and update the `badig.py` path in both build files as described in the dedicated ZX-81 section above.
 
 Sublime Text **should** correctly **interpret** the **Dignified** and **classic** Basic files based on their **extension** but you might have to **manually** chose them the first time you **create** or **open** one. With a **Dignified** or **classic** Basic file **opened**, click on the **bottom left** of Sublime Text (it should be reading `Plain Text`) and go to `Open all with the current extension as...` at the **top** of the **list**, then go to `User` and **select** the **appropriated** syntax description (`MSX Basic classic` or `MSX Basic Dignified`).  
 

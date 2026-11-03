@@ -1,30 +1,39 @@
 # Additional Features of the included modules  
 
-Basic Dignified includes modules for **MSX**, **Tandy Color Computer** and **ZX-81**. All three modules have editor integrations, tokenizers and emulator launch support.
+There are two fairly complete included modules with Basic Dignified: **MSX** and **Tandy Color Computer**.
 
-Beyond their Basic **dialect** description, the modules can provide **tokenizers** and automatic **emulator** execution.
+Beyond their Basic **dialect** description, they have **tokenizers** available and can automatically **execute** their code on emulators.
+
+**ZX-81 addition:** this repository also includes a ZX-81 language module, Python tokenizer and EightyOne launcher. Its behavior and options are documented separately below; the original MSX/CoCo descriptions remain unchanged.
 
 Below is an explanation of these modules and their uses.  
 
-> MSX and CoCo options are described together where their interfaces match; ZX-81-specific behavior is called out separately.
+> Due to the similarities between both systems, they will be described in parallel, with the differences pointed as needed.
 
 > This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md).  
 
 **[Language Modules](#Language-Module)**  
 **[Tokenizer Interfaces](#Tokenizer-Interfaces)**  
+**[ZX-81 Usage and Byte Escapes](#zx-81-usage-and-byte-escapes)**
 **[Emulator Interfaces](#Emulator-Interfaces)**  
 **[Helper Tools](#Helper-Tools)**  
 
 ## Language Module
 
-MSX and CoCo share language options with some system-specific differences such as `[?](x,y)`. The ZX-81 also supports `[?](row,column)`, expanding it to native `PRINT AT row,column;`. **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` are MSX/CoCo-only options. Their language `.ini` files are `msx/badig_msx.ini` and `coco/badig_coco.ini`; ZX-81 currently has no language-specific `.ini` options.
+The language modules are very **similar** for both systems with some notable **exceptions** like the `[?](x,y)` handling for instance.
+This is the module that exposed the **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` features explained on the [main Basic Dignified section](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md) section. Their `.ini` files are `\msx\badig_msx.ini` and `\coco\badig_coco.ini`.
+
+**ZX-81 addition:** `[?](row,column)` expands to native `PRINT AT row,column;`. The `-cp` and `-tg` language options described above remain MSX/CoCo-only; ZX-81 currently has no language-specific `.ini` options.
 
 ## Tokenizer Interfaces
 
-All three included systems have tokenizer modules **available**.
+**Both** included systems have tokenizer modules **available**.
 They **control** the actual tokenizers, **bridging** them with Basic Dignified and expose **command line arguments** and **remtags**.  
 Their **default** behavior can be **set** on `tokenizer_interface.ini` on their respective **modules** folder.  
-The **MSX** tokenizer is the custom **MSX Batoken**. The **CoCo** tokenizer uses Toolshed's **decb**. The **ZX-81** tokenizer is implemented in Python and generates a `.p` program file.
+The tokenized used for the **MSX** is the **custom** made **MSX Batoken**.
+The tokenized used for the **CoCo** is Toolshed's **decb**. There are executables for **Windows** and **MacOS** on the folder.
+
+**ZX-81 addition:** its tokenizer is implemented in Python and generates a `.p` program file.
 
 **ZX-81 pipeline**
 Use `-id zx81` to select this module. A Dignified `.DZX` source is converted to numbered BASIC in `.AZX`, then tokenized to `.p`. Tokenization is enabled by default for this module; pass `--tk_ascii_only` to keep only the `.AZX` file. `--em_run` launches `C:\zeddy\EightyOne.exe` with the `.p` file. The emulator path can be changed in `zx81/emulator_interface.ini`.
@@ -34,11 +43,13 @@ Use `-id zx81` to select this module. A Dignified `.DZX` source is converted to 
 `rmtg:` Remtags.  
 
   - *Tokenize*  
-Creates a tokenized version of the converted ASCII classic code. MSX/CoCo default to `False`; ZX-81 defaults to `True`.
-  `Default:` `False` (MSX/CoCo); `True` (ZX-81)
+Creates a tokenized version of the converted ASCII classic code.
+	`Default:` `False`
     `.ini:` `tokenize = [True|False]`.  
 	`cmdl:` `--tk_tokenize`  
     `rmtg:` `##BB:tk_tokenize=[True|False]`  
+
+    **ZX-81 exception:** tokenization defaults to `True` for this module.
 
   - *Delete ASCII file*  
 Delete the converted ASCII code if only the tokenized version is required.  
@@ -53,7 +64,7 @@ Delete the converted ASCII code if only the tokenized version is required.
     `cmdl:` `--tk_ascii_only`
     `rmtg:` `##BB:arguments=--tk_ascii_only`
 
-  - *Verbose level* **(MSX/CoCo only)**
+  - *Verbose level*
 Set the level of feedback given by the tokenizer module.  
 **MSX**: Level 5 will show a byte by byte representation of the tokenization process.  
 **CoCo**: Level 5 is not used.  
@@ -70,9 +81,132 @@ Exports a list file similar to the ones exported by assemblers with the tokens a
     `rmtg:` `##BB:tk_list=[0-32]`  
 
  
+## ZX-81 Usage and Byte Escapes
+
+### Source Formats and Commands
+
+Select the module with `-id zx81`. `.DZX` is Dignified source without line numbers; `.AZX` is numbered classic BASIC; `.p` is a binary program, not a text listing. Commands below run from the repository root:
+
+```console
+python badig.py examples/zx81/zx81-intro.DZX -id zx81
+python badig.py examples/zx81/zx81-intro.DZX -id zx81 --tk_ascii_only
+python badig.py game.AZX -id zx81 -asc --tk_tokenize
+```
+
+The first command generates `.AZX` and `.p` beside the source. The second skips tokenization. The third tokenizes an existing numbered listing without Dignified conversion, preserving its line numbers. Tokenization is enabled by default unless overridden in the module configuration; `--tk_tokenize` explicitly enables it. Add `--em_run` to launch EightyOne with the `.p` output.
+
+The PowerShell helper accepts an explicit text-source path, including `.DZX` or numbered `.AZX`. If no extension is supplied, it appends `.DZX`:
+
+```powershell
+.\zx81\convert-zx81.ps1 examples\zx81\zx81-intro
+```
+
+`.\zx81\convert-zx81.ps1 game` also works when `game.dzx` contains a numbered classic listing: its numeric jump targets become labels, and the normal conversion writes a renumbered `game.AZX` (applying `-ls`, `-lp`, `-rh`, `-ca` and other options, and mapping long variable names to single letters) before tokenizing. The source remains unchanged. `badig.py -id zx81` and the editor's Dignified tasks behave the same way. Computed targets such as `GOTO 10*X` stop the conversion; use `-asc` to keep the original numbering. A numbered `.AZX` is tokenized as is and never overwritten.
+
+**Start line and step.** Dignified sources and numbered `.DZX` listings are numbered from a start line with a fixed step (default `10` and `10`). They can be set in three ways, each overriding the previous one:
+
+| Source | Start line | Step |
+| --- | --- | --- |
+| `.ini` (`support/badig.ini`, shared by all systems) | `line_start = 100` | `line_step = 5` |
+| Command line | `-ls 100` | `-lp 5` |
+| Remtag in the source | `##BB:arguments=-ls 100 -lp 5` | |
+
+Remtags also work in numbered listings: `##BB:` and other lines starting with `#` are skipped before the line numbers are read. Classic mode (`-asc`, or a numbered `.AZX`) keeps the original line numbers and ignores these settings.
+
+**Reports.** The common Badig reports work with ZX-81: `-lnr` (line map), `-var` (long name to letter map), `-lbr` (label flow as `REM` comments), `-lex` and `-par` (lexer and parser tokens), and `-prr` to print them instead of saving them. For a numbered listing, the line map and error messages refer to the original source lines.
+
+> ZX-81 BASIC has no comment after a statement on the same line, so a `.AZX` made with `-lbr` is for reading only. Use it together with `--tk_ascii_only`; a `.p` tokenized from it would not run.
+
+### Machine Code REM Lines: `remx`
+
+Many ZX-81 programs keep machine code inside a long `REM` line, usually line `1` (or line `0`, which cannot be edited on the machine), filled by a BASIC loader with `POKE` and called with `USR 16514`. The ZX-81 command `remx` creates that line:
+
+```basic
+remx <line>,<count>[,<byte>]
+```
+
+- `<line>`: the line number of the `REM`, `0` to `9999`.
+- `<count>`: how many bytes follow the `REM`, `1` to `49152`.
+- `<byte>`: the fill value, a number `0` to `255` or one quoted character such as `"A"`. If omitted, the character `0` (code `28`) is used, the usual filler.
+
+`remx` must be alone on its line and can appear anywhere in the source. It works in Dignified `.DZX` files, in numbered listings and in `.AZX` files tokenized with `-asc`. The generated line keeps the number you chose: it is not renumbered by `-ls`/`-lp`, and the conversion stops if the program also uses that number.
+
+```basic
+remx 1,100
+print usr 16514
+```
+
+`badig.py loader.dzx -id zx81 -rh`
+
+```BASIC
+1 REM 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+10 print usr 16514
+```
+
+In the generated `.AZX`, letters and digits are written as text and other bytes as `\{XX}`, so `remx 0,4,118` becomes `0 REM \{76}\{76}\{76}\{76}`.
+
+The first `REM` byte of line `1` is at address `16514` when that line is the first in the program. A `.p` file must fit, together with the screen and variables, in the 64 KB the ZX-81 can address, so the whole program area is limited to 48231 bytes: a `remx` near 49152 is accepted by the command but is rejected by the tokenizer with the number of bytes available.
+
+**Output replacement:** the PowerShell helper deletes an existing destination `.p` before starting conversion. If conversion fails, the old binary is not retained and the helper reports failure instead of announcing that stale file as created. It does not delete the text source; `.AZX` input is tokenized directly without copying it over itself, and binary `.p` input is rejected. Names containing spaces or additional dots are supported. These guarantees apply to this helper; the shared logger, Bash helper and editor tasks still need a separate failure-propagation review. See [the ZX-81 audit findings](IMPLEMENTATIONS.md#zx-81-audit-2026-11-03).
+
+For Dignified input on Bash, use `bash zx81/convert-zx81.sh examples/zx81/zx81-intro`. On case-sensitive filesystems this helper expects the source suffix `.DZX`; match that spelling when naming the source. For classic input on any platform, use the direct `badig.py ... -asc -id zx81` command.
+
+ZX-81 variables are one letter, optionally followed by `$`. Long Dignified names are allocated from `Z` down to `A`; use `declare` to choose a particular letter. `[?](row,column)` expands to `PRINT AT row,column;`; omitted coordinates default to `0`, and a single argument specifies the row.
+
+### Literal Hexadecimal Bytes
+
+In both `.AZX` and `.DZX`, `\{XX}` emits exactly one literal byte. `XX` must contain exactly two hexadecimal digits; letter case does not matter (`\{d8}` equals `\{D8}`). The escape is recognized before graphics, backslash-quote, and inverse-video escapes. It works anywhere in a line, including strings and `REM`.
+
+The emitted byte is opaque: it does not change string or `REM` state, merge with keywords or numbers, acquire surrounding byte separators, or undergo character translation. For example, `\{0B}` does not open or close a string, and `\{EA}` does not make the remaining text a comment. Normal tokenization resumes after the escape. Existing graphics and `%` inverse-video handling is unchanged; unlike `\{XX}`, those escapes are not decoded inside `REM`.
+
+Examples in numbered `.AZX` form:
+
+```basic
+600 REM \{D8}\{D8}\{D8}END OF GAME\{D8}\{D8}\{D8}
+1 REM \{C9}\{00}
+10 PRINT "\{F5}"
+20 LET \{35}OKE=6000
+```
+
+These are separate examples, not one ordered program. The first stores literal `D8` bytes around the comment. The second stores `C9 00` after the `REM` token. The third stores `F5` inside a string, without treating it as a `PRINT` command. In the fourth, escaped `35` is the letter `P`, but it is not combined with `OKE` into a `POKE` token. For `.DZX`, omit line numbers and use labels for jumps as usual.
+
+Malformed sequences such as `\{D}`, `\{GG}`, `\{D8`, and `\{D80}` stop conversion with a line-numbered error. In classic mode this is the BASIC line number; Dignified lexer errors identify the source location, and tokenizer errors identify the generated BASIC line.
+
+### Explicit Hidden Numeric Values
+
+Normally the tokenizer writes the displayed digits followed by `7E` and five calculated floating-point bytes. If a number is followed **immediately** by `\{7E}`, it writes only the displayed digits; the escaped marker and the next five escaped bytes supply the stored value literally:
+
+```basic
+30 LET A=0\{7E}\{81}\{00}\{00}\{00}\{00}
+```
+
+This line displays `0` but stores the hidden value supplied by the listing. Its body, including the final newline byte, is:
+
+```text
+F1 26 14 1C 7E 81 00 00 00 00 76
+```
+
+Provide all six escapes yourself; the tokenizer does not calculate or fill in the five bytes in this form. A space between the number and `\{7E}` disables this special case, so the calculated hidden value is also emitted. An explicit marker inside a string or `REM` is simply another literal byte.
+
+### Go81 Listings and Limits
+
+Go81 `p2txt` listings can use these escapes to preserve bytes that cannot be represented safely as ordinary BASIC text, especially machine code or stored keyword tokens inside `REM`. Keep numbered listings as `.AZX` and tokenize with `-asc` rather than sending them through Dignified conversion.
+
+For example, a Go81 listing of a game whose line 600 is `600 REM \{D8}\{D8}\{D8}END OF GAME\{D8}\{D8}\{D8}`, tokenized with `python badig.py game.AZX -id zx81 -asc --tk_tokenize`, gives this line body:
+
+```text
+EA D8 D8 D8 2A 33 29 00 34 2B 00 2C 26 32 2A D8 D8 D8 76
+```
+
+This preserves the escaped bytes in the BASIC line bodies, but does not guarantee that an entire original `.p` file is reproduced byte for byte: system variables, the display file, and the variables area are generated by the tokenizer. The ZX-81 module does not currently include a `.p` detokenizer. Unicode translation and execution monitoring are not implemented for this module; emulator launch support targets EightyOne. Go81 is an external source of listings, not an integrated emulator launcher.
+
 ## Emulator Interfaces
 
-All three modules can automatically **run** converted code on an emulator. The emulators are **openMSX** for MSX, **XRoar** for CoCo, and **EightyOne** for ZX-81. Each interface bridges its emulator with Basic Dignified and can expose settings, command-line arguments and remtags.
+**Both** included systems have modules that can automatically **run** the converted code on **emulators**.
+The emulators are **openMSX** for the **MSX** and **XRoar** for the **CoCo**.
+The modules **control** the actual emulators, **bridging** them with Basic Dignified and expose **command line arguments** and **remtags**.
+Their **default** behavior can be **set** on `emulator_interface.ini` on their respective **modules** folder.
+Both emulators will be **opened** with their **default** settings but this can be **changed** if a specif configuration is **needed** for the code execution, for instance, a disk drive for the **MSX** or if a **different** machine is needed for **testing** proposes.
 
 MSX and CoCo emulator settings are configurable in their module `.ini` files. The ZX-81 interface currently launches EightyOne with the tokenized `.p` file; it does not yet monitor execution or expose machine/profile options.
 
@@ -100,19 +234,23 @@ The converted code will be loaded on **XRoar** as a **tape** file. Since XRoar c
 `rmtg:` Remtags.  
 
   - *Emulator executable location*   
-The location of the emulator executable. This is the full path and file name of the `.exe` for Windows, `.app` for MacOS and the Linux executable.
+The location of openMSX or XRoar executable. This is the full path and file name of the `.exe` for Windows, `.app` for MacOS and the Linux executable.
 Add them under your system description in the `.ini` file: `[WINDOWS]`, `[LINUX]` or `[DARWIN]` for MacOS  
-  `Default:` EightyOne uses `C:\zeddy\EightyOne.exe`; MSX/CoCo paths are installation-specific.
+	`Default:` `None`
     `.ini:` `emulator_path = [PATH_TO_THE_EXECUTABLE]`.  
 
+    **ZX-81 exception:** the default EightyOne path is `C:\zeddy\EightyOne.exe`.
+
   - *Run code*  
-Run the converted code on the emulator. MSX/CoCo can use tokenized output or their ASCII fallback; ZX-81 requires the tokenized `.p` output.
+Run the converted code on the emulator. Both systems will try to load a binary tokenized code, if none is found they will load the ASCII file.
 	`Default:` `False`  
     `.ini:` `run = [True|False]`.  
 	`cmdl:` `--em_run`  
-    `rmtg:` `##BB:em_run=[True|False]`
+    `rmtg:` `##BB:em_run==[True|False]`
 
-  - *Verbose level* **(MSX/CoCo only)**
+    **Syntax clarification:** use a single `=` in remtags: `##BB:em_run=[True|False]`; the double `==` above is retained from the original text. ZX-81 requires tokenized `.p` output and does not provide an ASCII fallback.
+
+  - *Verbose level*
 Set the level of feedback given by the tokenizer module.  
 	`Default:` `3`  
     `.ini:` `verbose = [0-5]`  
@@ -228,4 +366,9 @@ Helps **automate** the conversion of large **programs** or **libraries**.
 **[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
 Another tool made **for** Basic Dignified that **can** be used **independently**.  
 Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
+
+### ZX-81
+
+**[ZX81 Basic DignifieR](DIGNIFIER.md#zx81-basic-dignifier)**  
+Converts numbered **classic** ZX-81 BASIC, such as programs typed from books, **to** the **Dignified** format, with labels and optional variable renaming. Badig can then renumber the program and map long variable names to ZX-81 letters.
   
