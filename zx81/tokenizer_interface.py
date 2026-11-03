@@ -27,7 +27,8 @@ class Run:
             except (OSError, ZX81TokenizeError) as error:
                 infolog.log(1, f'Tokenizer failed: {error}')
 
-            if self.stg.del_ascii:
+            # In classic mode the ASCII file is the user's source.
+            if self.stg.del_ascii and not self.e_stg.code_is_ascii:
                 os.remove(self.stg.file_save)
 
 

@@ -6,14 +6,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-if ([System.IO.Path]::GetExtension($ProgramName) -ieq '.DZX') {
-    $ProgramName = [System.IO.Path]::ChangeExtension($ProgramName, $null)
+if (-not [System.IO.Path]::GetExtension($ProgramName)) {
+    $ProgramName += '.DZX'
 }
 
 if ([System.IO.Path]::IsPathRooted($ProgramName)) {
-    $sourcePath = [System.IO.Path]::GetFullPath("$ProgramName.DZX")
+    $sourcePath = [System.IO.Path]::GetFullPath($ProgramName)
 } else {
-    $sourcePath = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) "$ProgramName.DZX"))
+    $sourcePath = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $ProgramName))
 }
 
 if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
@@ -25,13 +25,23 @@ $repositoryRoot = Split-Path -Parent $scriptDirectory
 $badigPath = Join-Path $repositoryRoot 'badig.py'
 $python = if ($env:PYTHON) { $env:PYTHON } else { 'python' }
 
-& $python $badigPath $sourcePath '-id' 'zx81' '--tk_tokenize'
+$asciiPath = [System.IO.Path]::ChangeExtension($sourcePath, '.AZX')
+$programPath = [System.IO.Path]::ChangeExtension($sourcePath, '.p')
+if ($sourcePath -ieq $programPath) {
+    throw "A tokenized .p file cannot be used as text source: $sourcePath"
+}
+if (Test-Path -LiteralPath $programPath -PathType Leaf) {
+    Remove-Item -LiteralPath $programPath
+}
+if ($sourcePath -ieq $asciiPath) {
+    & $python $badigPath $sourcePath '-id' 'zx81' '-asc' '--tk_tokenize'
+} else {
+    & $python $badigPath $sourcePath $asciiPath '-id' 'zx81' '--tk_tokenize'
+}
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$asciiPath = [System.IO.Path]::ChangeExtension($sourcePath, '.AZX')
-$programPath = [System.IO.Path]::ChangeExtension($sourcePath, '.p')
 if (-not (Test-Path -LiteralPath $asciiPath -PathType Leaf)) {
     throw "Numbered ASCII output not found: $asciiPath"
 }

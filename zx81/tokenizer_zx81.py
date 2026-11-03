@@ -121,12 +121,49 @@ GRAPHICS_CODES = {
 }
 
 TOKEN_MATCHES = tuple(sorted(TOKEN_CODES, key=len, reverse=True))
+HEX_ESCAPE_MATCH = re.compile(r'\\\{([0-9a-fA-F]{2})\}')
 NUMBER_MATCH = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?')
 LINE_MATCH = re.compile(r'^\s*(\d+)(?:\s+|$)(.*)$')
+REMX_IGNORE = r'\s*remx(?![A-Za-z0-9_$])'
+REMX_MATCH = re.compile(fr'^{REMX_IGNORE}(.*?)\s*$', re.I)
+REMX_ARGS = re.compile(r'^\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d+|"[^"]"|\'[^\']\'))?$')
+REMX_MAX = 49152
+PROGRAM_START = 0x407D
+# Display file (793) and variables end marker (3) must also fit below 64 KB.
+PROGRAM_MAX = 0x10000 - PROGRAM_START - 793 - 3
 
 
 class ZX81TokenizeError(ValueError):
     pass
+
+
+def parse_remx(arguments, source_line):
+    '''Return (line number, count, byte) for remx <line>,<count>[,<byte>]'''
+    args = REMX_ARGS.match(arguments)
+    if not args:
+        raise ZX81TokenizeError(
+            f'Input line {source_line}: remx expects <line>,<count>[,<byte>]'
+        )
+    number, count, fill = int(args.group(1)), int(args.group(2)), args.group(3)
+    if number > 9999:
+        raise ZX81TokenizeError(
+            f'Input line {source_line}: remx line number must be 0..9999'
+        )
+    if not 1 <= count <= REMX_MAX:
+        raise ZX81TokenizeError(
+            f'Input line {source_line}: remx count must be 1..{REMX_MAX}'
+        )
+    if fill is None:
+        code = _character_code('0', source_line)
+    elif fill[0] in '"\'':
+        code = _character_code(fill[1], source_line)
+    else:
+        code = int(fill)
+        if code > 255:
+            raise ZX81TokenizeError(
+                f'Input line {source_line}: remx byte must be 0..255'
+            )
+    return number, count, code
 
 
 def _character_code(char, line_number):
@@ -154,15 +191,17 @@ def _number_bytes(text, line_number):
         exponent = 0
         mantissa = 0
     else:
-        binary_exponent = math.floor(math.log(magnitude) / math.log(2))
-        if binary_exponent < -129 or binary_exponent > 126:
+        fraction, binary_exponent = math.frexp(magnitude)
+        exponent = binary_exponent + 128
+        mantissa = round((fraction * 2 - 1) * 0x80000000)
+        if mantissa == 0x80000000:
+            mantissa = 0
+            exponent += 1
+        # Exponent byte 0 means the number zero on the ZX-81.
+        if not 1 <= exponent <= 255:
             raise ZX81TokenizeError(
                 f'Line {line_number}: number exponent out of range: {text}'
             )
-        exponent = binary_exponent + 129
-        mantissa = math.floor(
-            (magnitude / (2 ** binary_exponent) - 1) * 0x80000000 + 0.5
-        ) & 0x7FFFFFFF
 
     encoded = bytearray(_character_code(char, line_number) for char in text)
     encoded.append(0x7E)
@@ -200,6 +239,16 @@ def _tokenize_line(text, line_number):
 
     while index < len(text):
         char = text[index]
+
+        if text.startswith('\\{', index):
+            escape = HEX_ESCAPE_MATCH.match(text, index)
+            if not escape:
+                raise ZX81TokenizeError(
+                    f'Line {line_number}: invalid hexadecimal escape; expected \\{{XX}}'
+                )
+            output.append(int(escape.group(1), 16))
+            index = escape.end()
+            continue
 
         if in_quotes and not in_rem and char == '"' \
                 and index + 1 < len(text) and text[index + 1] == '"':
@@ -262,7 +311,11 @@ def _tokenize_line(text, line_number):
                         number_text = char + number.group()
                     else:
                         number_text = number.group()
-                    output.extend(_number_bytes(number_text, line_number))
+                    if text[end:end + 5].lower() == r'\{7e}':
+                        output.extend(_character_code(digit, line_number)
+                                      for digit in number_text)
+                    else:
+                        output.extend(_number_bytes(number_text, line_number))
                     index = end
                     continue
 
@@ -288,13 +341,19 @@ def tokenize_lines(lines):
         if not text.strip() or text.lstrip().startswith('#'):
             continue
 
-        match = LINE_MATCH.match(text)
-        if not match:
-            raise ZX81TokenizeError(
-                f'Input line {source_line}: expected a numbered BASIC line'
-            )
+        remx = REMX_MATCH.match(text)
+        if remx:
+            line_number, count, code = parse_remx(remx.group(1), source_line)
+            encoded_line = bytes((TOKEN_CODES['rem'],)) + bytes((code,)) * count + b'\x76'
+        else:
+            match = LINE_MATCH.match(text)
+            if not match:
+                raise ZX81TokenizeError(
+                    f'Input line {source_line}: expected a numbered BASIC line'
+                )
+            line_number = int(match.group(1))
+            encoded_line = None
 
-        line_number = int(match.group(1))
         if line_number > 9999:
             raise ZX81TokenizeError(
                 f'Input line {source_line}: line number must be 0..9999'
@@ -304,9 +363,13 @@ def tokenize_lines(lines):
                 f'Input line {source_line}: line numbers must increase'
             )
 
-        encoded_line = _tokenize_line(match.group(2), line_number)
-        if len(program) + 4 + len(encoded_line) >= 32768:
-            raise ZX81TokenizeError('Program is too large for a ZX-81 .P file')
+        if encoded_line is None:
+            encoded_line = _tokenize_line(match.group(2), line_number)
+        if len(program) + 4 + len(encoded_line) > PROGRAM_MAX:
+            raise ZX81TokenizeError(
+                f'Program is too large for a ZX-81 .P file: the program area '
+                f'cannot exceed {PROGRAM_MAX} bytes'
+            )
         program.extend(((line_number >> 8) & 0xFF, line_number & 0xFF))
         program.extend((len(encoded_line) & 0xFF, (len(encoded_line) >> 8) & 0xFF))
         program.extend(encoded_line)
@@ -316,7 +379,7 @@ def tokenize_lines(lines):
 
 
 def _program_file(program, first_line):
-    data_file = 0x407D + len(program)
+    data_file = PROGRAM_START + len(program)
     vars_address = data_file + 793
     system_vars = bytearray(116)
     system_vars[1:3] = _word(first_line)
