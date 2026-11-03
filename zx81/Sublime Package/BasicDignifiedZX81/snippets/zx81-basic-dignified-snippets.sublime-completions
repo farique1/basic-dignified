@@ -30,6 +30,13 @@
             "kind": "snippet"
         },
         {
+            "trigger": "remx",
+            "details": "REM line reserving bytes for machine code",
+            "contents": "remx ${1:1},${2:100}\n$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
             "trigger": "remtags",
             "details": "Basic Dignified remtags",
             "contents": "##BB:export_file=${1:}\n##BB:arguments=${2:}\n##BB:help=${3:}\n$0",

@@ -3,6 +3,7 @@
   "name": "ZX-81 BASIC",
   "scopeName": "source.zx81-basic-classic",
   "patterns": [
+    {"include": "#hex-escapes"},
     {"include": "#comments"},
     {"include": "#strings"},
     {"include": "#line-numbers"},
@@ -13,9 +14,18 @@
     {"include": "#variables"}
   ],
   "repository": {
+    "hex-escapes": {
+      "match": "\\\\\\{[0-9A-Fa-f]{2}\\}",
+      "name": "constant.character.escape.hex.zx81-basic-classic"
+    },
     "comments": {
       "patterns": [
-        {"match": "(?i)\\bREM\\b.*$", "name": "comment.line.rem.zx81-basic-classic"}
+        {
+          "name": "comment.line.rem.zx81-basic-classic",
+          "begin": "(?i)\\bREM\\b",
+          "end": "$",
+          "patterns": [{"include": "#hex-escapes"}]
+        }
       ]
     },
     "strings": {
@@ -23,6 +33,7 @@
       "begin": "\"",
       "end": "\"(?!\")|$",
       "patterns": [
+        {"include": "#hex-escapes"},
         {"match": "\"\"", "name": "constant.character.escape.zx81-basic-classic"},
         {"match": "\\\\\\\"", "name": "constant.character.escape.zx81-basic-classic"},
         {"match": "%[A-Za-z0-9]", "name": "constant.character.zx81-basic-classic"},
@@ -38,7 +49,7 @@
       "name": "support.function.zx81-basic-classic"
     },
     "keywords": {
-      "match": "(?i)(?<![A-Z0-9_])(?:COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)(?![A-Z0-9_])",
+      "match": "(?i)(?<![A-Z0-9_])(?:REMX|COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)(?![A-Z0-9_])",
       "name": "keyword.control.zx81-basic-classic"
     },
     "operators": {

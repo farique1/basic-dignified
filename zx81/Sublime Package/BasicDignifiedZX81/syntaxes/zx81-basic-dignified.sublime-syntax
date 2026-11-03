@@ -8,14 +8,16 @@ contexts:
   main:
     - match: '^\s*##BB:[A-Za-z0-9_]+=.*$'
       scope: comment.line.remtag.zx81-basic-dignified
+    - include: hex-escapes
     - include: strings
     - match: '^\s*##.*$'
       scope: comment.line.exclusive.zx81-basic-dignified
     - match: "'.*$"
       scope: comment.line.apostrophe.zx81-basic-dignified
-    - match: '(?i)\bREM\b.*$'
+    - match: '(?i)\bREM\b'
       scope: comment.line.rem.zx81-basic-dignified
-    - match: '(?i)^\s*(?:define|declare|include|keep|endif|func|ret|exit)\b'
+      push: rem
+    - match: '(?i)^\s*(?:define|declare|include|keep|endif|func|ret|exit|remx)\b'
       scope: keyword.control.zx81-basic-dignified
     - match: '\[[A-Za-z][A-Za-z0-9_]*\]'
       scope: entity.name.class.define.zx81-basic-dignified
@@ -37,12 +39,21 @@ contexts:
       scope: constant.numeric.zx81-basic-dignified
     - match: '(?i)\b[A-Za-z][A-Za-z0-9_]*\$?\b'
       scope: variable.other.zx81-basic-dignified
+  rem:
+    - meta_scope: comment.line.rem.zx81-basic-dignified
+    - include: hex-escapes
+    - match: '$'
+      pop: true
+  hex-escapes:
+    - match: '\\\{[0-9A-Fa-f]{2}\}'
+      scope: constant.character.escape.hex.zx81-basic-dignified
   strings:
     - match: '"'
       scope: punctuation.definition.string.begin.zx81-basic-dignified
       push: string
   string:
     - meta_scope: string.quoted.double.zx81-basic-dignified
+    - include: hex-escapes
     - match: '\\"'
       scope: constant.character.escape.zx81-basic-dignified
     - match: '""'

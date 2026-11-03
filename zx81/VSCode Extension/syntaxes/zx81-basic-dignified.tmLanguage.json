@@ -4,6 +4,7 @@
   "scopeName": "source.zx81-basic-dignified",
   "patterns": [
     {"include": "#remtags"},
+    {"include": "#hex-escapes"},
     {"include": "#strings"},
     {"include": "#comments"},
     {"include": "#defines"},
@@ -15,6 +16,10 @@
     {"include": "#variables"}
   ],
   "repository": {
+    "hex-escapes": {
+      "match": "\\\\\\{[0-9A-Fa-f]{2}\\}",
+      "name": "constant.character.escape.hex.zx81-basic-dignified"
+    },
     "remtags": {
       "match": "(?i)^\\s*##BB:([A-Z0-9_]+)(=)(.*)$",
       "captures": {
@@ -29,6 +34,7 @@
       "begin": "\"",
       "end": "\"(?!\")|$",
       "patterns": [
+        {"include": "#hex-escapes"},
         {"match": "\\\\\\\"", "name": "constant.character.escape.zx81-basic-dignified"},
         {"match": "\"\"", "name": "constant.character.escape.zx81-basic-dignified"}
       ]
@@ -37,7 +43,12 @@
       "patterns": [
         {"match": "^\\s*##.*$", "name": "comment.line.exclusive.zx81-basic-dignified"},
         {"match": "'.*$", "name": "comment.line.apostrophe.zx81-basic-dignified"},
-        {"match": "(?i)\\bREM\\b.*$", "name": "comment.line.rem.zx81-basic-dignified"}
+        {
+          "name": "comment.line.rem.zx81-basic-dignified",
+          "begin": "(?i)\\bREM\\b",
+          "end": "$",
+          "patterns": [{"include": "#hex-escapes"}]
+        }
       ]
     },
     "defines": {
@@ -59,7 +70,7 @@
       ]
     },
     "keywords": {
-      "match": "(?i)\\b(?:DEFINE|DECLARE|INCLUDE|KEEP|ENDIF|FUNC|RET|EXIT|TRUE|FALSE|COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)\\b",
+      "match": "(?i)\\b(?:DEFINE|DECLARE|INCLUDE|KEEP|ENDIF|FUNC|RET|EXIT|TRUE|FALSE|REMX|COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)\\b",
       "name": "keyword.control.zx81-basic-dignified"
     },
     "operators": {

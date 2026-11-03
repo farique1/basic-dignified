@@ -28,6 +28,11 @@
     "description": "Conditional branch to a label",
     "body": ["if ${1:condition} then goto {${2:label}}"]
   },
+  "remx": {
+    "prefix": "remx",
+    "description": "REM line reserving bytes for machine code",
+    "body": ["remx ${1:1},${2:100}", "$0"]
+  },
   "remtags": {
     "prefix": "remtags",
     "description": "Basic Dignified remtags",
