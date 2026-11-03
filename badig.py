@@ -386,6 +386,9 @@ class Lexer:
            part: First part of the literal string
            l_pos: Start position of the string'''
 
+        if tok == 'C_LITQUO' and hasattr(self.clc, 'quoted_string'):
+            return self.clc.quoted_string(tok, end, part, l_pos)
+
         nl = self.des.newline
         nls = self.des.newline_str
 
@@ -1914,7 +1917,10 @@ class Main:
 
         # Relationship between line numbers to use on the monitoring error report
         self.line_list = {}
+        ignore = getattr(self.stg, 'numbered_ignore', None)
         for line in d_code[1:-1]:
+            if ignore and re.match(ignore, line.text, re.I):
+                continue
             line_number = re.match(r'^\d+', line.text)
             if not line_number:
                 err_pos = Position(d_code, lin=line.nmbr, col=-1)
@@ -1941,6 +1947,9 @@ class Main:
         Info.log(4, f'Loading file: {self.stg.file_load}')
         d_code = IO.load_file(None, self.stg.file_load,
                               self.stg.load_format, self.stg.tab_lenght)
+
+        if hasattr(Classic, 'preprocess'):
+            d_code = Classic.preprocess(d_code, self.stg)
 
         # Lex it --------------------------------------------------------------
         Info.log(5, 'Lexing.')
@@ -1987,6 +1996,9 @@ class Main:
         t0 = time.time()
 
         c_code, var_r, line_r = par.generate()
+
+        if hasattr(Classic, 'postprocess'):
+            c_code = Classic.postprocess(c_code, self.stg)
 
         tg = time.time() - t0
         Info.log(5, f'{len(c_code)} lines created in {tg:.4f}s.')

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ZX-81 Basic Dignified",
+  "scopeName": "source.zx81-basic-dignified",
+  "patterns": [
+    {"include": "#remtags"},
+    {"include": "#hex-escapes"},
+    {"include": "#strings"},
+    {"include": "#comments"},
+    {"include": "#defines"},
+    {"include": "#labels"},
+    {"include": "#functions"},
+    {"include": "#keywords"},
+    {"include": "#operators"},
+    {"include": "#numbers"},
+    {"include": "#variables"}
+  ],
+  "repository": {
+    "hex-escapes": {
+      "match": "\\\\\\{[0-9A-Fa-f]{2}\\}",
+      "name": "constant.character.escape.hex.zx81-basic-dignified"
+    },
+    "remtags": {
+      "match": "(?i)^\\s*##BB:([A-Z0-9_]+)(=)(.*)$",
+      "captures": {
+        "0": {"name": "comment.line.remtag.zx81-basic-dignified"},
+        "1": {"name": "entity.name.tag.zx81-basic-dignified"},
+        "2": {"name": "keyword.operator.zx81-basic-dignified"},
+        "3": {"name": "string.unquoted.zx81-basic-dignified"}
+      }
+    },
+    "strings": {
+      "name": "string.quoted.double.zx81-basic-dignified",
+      "begin": "\"",
+      "end": "\"(?!\")|$",
+      "patterns": [
+        {"include": "#hex-escapes"},
+        {"match": "\\\\\\\"", "name": "constant.character.escape.zx81-basic-dignified"},
+        {"match": "\"\"", "name": "constant.character.escape.zx81-basic-dignified"}
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {"match": "^\\s*##.*$", "name": "comment.line.exclusive.zx81-basic-dignified"},
+        {"match": "'.*$", "name": "comment.line.apostrophe.zx81-basic-dignified"},
+        {
+          "name": "comment.line.rem.zx81-basic-dignified",
+          "begin": "(?i)\\bREM\\b",
+          "end": "$",
+          "patterns": [{"include": "#hex-escapes"}]
+        }
+      ]
+    },
+    "defines": {
+      "patterns": [
+        {"match": "(?i)^\\s*define\\b", "name": "keyword.control.define.zx81-basic-dignified"},
+        {"match": "\\[[A-Za-z][A-Za-z0-9_]*\\]", "name": "entity.name.class.define.zx81-basic-dignified"}
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {"match": "\\{(?:[A-Za-z_][A-Za-z0-9_]*|@)\\}", "name": "entity.name.label.zx81-basic-dignified"},
+        {"match": "(?i)^\\s*[A-Za-z_][A-Za-z0-9_]*(?=\\{)", "name": "entity.name.label.loop.zx81-basic-dignified"}
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {"match": "(?i)^\\s*(?:func|ret)\\b", "name": "keyword.control.function.zx81-basic-dignified"},
+        {"match": "\\.[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()", "name": "entity.name.function.zx81-basic-dignified"}
+      ]
+    },
+    "keywords": {
+      "match": "(?i)\\b(?:DEFINE|DECLARE|INCLUDE|KEEP|ENDIF|FUNC|RET|EXIT|TRUE|FALSE|REMX|COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)\\b",
+      "name": "keyword.control.zx81-basic-dignified"
+    },
+    "operators": {
+      "match": "<>|>=|<=|\\*\\*|\\+=|-=|\\*=|/=|\\^=|[=<>+*/(),;:^~]",
+      "name": "keyword.operator.zx81-basic-dignified"
+    },
+    "numbers": {
+      "match": "(?<![A-Za-z0-9_])[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[Ee][-+]?\\d+)?",
+      "name": "constant.numeric.zx81-basic-dignified"
+    },
+    "variables": {
+      "match": "(?i)\\b[A-Za-z][A-Za-z0-9_]*\\$?\\b",
+      "name": "variable.other.zx81-basic-dignified"
+    }
+  }
+}

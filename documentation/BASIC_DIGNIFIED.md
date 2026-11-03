@@ -8,9 +8,17 @@ The included modules use:
 |  MSX  | CoCo | Generic |Type|
 |  :-:  | :-:  |   :-:   | :- |
 |`.dmx` |`.dcc`| `.bad`  | **Dignified** code.|
-|`.amx` |`.acc`| `.asc`  | **classic** Basic in **ASCII**.|  
-|`.bmx` |`.bcc`| `.bas`  | **classic** Basic in **binary**.|  
-|`.lmx` |      | `.lst`  | **list** format exported by the **tokenizer**.|  
+|`.amx` |`.acc`| `.asc`  | **classic** Basic in **ASCII**.|
+|`.bmx` |`.bcc`| `.bas`  | **classic** Basic in **binary**.|
+|`.lmx` |      | `.lst`  | **list** format exported by the **tokenizer**.|
+
+The additional ZX-81 module uses these extensions:
+
+| ZX-81 | Type |
+| :-: | :- |
+| `.DZX` | Dignified source. |
+| `.AZX` | Numbered classic BASIC in ASCII. |
+| `.p` | Tokenized binary program. |
   
 > The  system specific extensions will **avoid conflict** when more modules are available.  
 > Generic and system specific extensions will be mentioned **interchangeably** across the documentation. i.e.: `.dmx` is the same as `.bad`.  
@@ -30,12 +38,35 @@ To run **Basic Dignified**, open a terminal window in its folder and type:
 
 > `python` may be omitted or be called `python3` depending on your installation.  
 
-> Basic Dignified default system is the **MSX**. If using a **CoCo**, add `coco` to the `id` in the `.ini` file or add `-id coco` to the command line.  
+> Basic Dignified default system is the **MSX**. If using a **CoCo**, add `coco` to the `id` in the `.ini` file or add `-id coco` to the command line.
+
+> For the additional ZX-81 module, use `-id zx81`.
+
+### ZX-81 Sources
+
+```console
+python badig.py program.DZX -id zx81
+python badig.py program.AZX -id zx81 -asc --tk_tokenize
+```
+
+Use the first form for Dignified source without line numbers; it generates numbered `.AZX` and tokenized `.p` by default. Use the second for an existing numbered classic listing. With `-id zx81`, a non-`.AZX` file whose first nonblank line starts with a line number is treated as a plain ZX-81 listing: its numeric `GOTO`, `GOSUB`, `RUN`, `LIST` and `LLIST` targets become labels, then the normal Dignified conversion generates a renumbered `.AZX` (honoring `-ls`, `-lp`, `-rh`, `-ca` and the other options) and renames long variable names from `Z` down. A target without its own line uses the next existing line, as on the ZX-81; computed targets such as `GOTO 10*X` stop the conversion, so use `-asc` to keep the original numbering. The source is not modified. `--tk_ascii_only` skips tokenization of a Dignified source, while `--em_run` launches EightyOne with the tokenized output.
+
+ZX-81 sources support literal bytes as `\{XX}` in code, strings, and `REM`, where `XX` is exactly two hexadecimal digits. These are byte escapes, not Dignified labels. For example, `print "\{F5}"` stores a literal `F5` byte inside the string. A number immediately followed by `\{7E}` uses explicitly escaped hidden numeric bytes instead of a calculated value.
+
+See [ZX-81 usage and byte escapes](MODULE_TOOLS.md#zx-81-usage-and-byte-escapes) for the full rules, Go81 listing examples, conversion helpers, and limitations.
+
+For machine code, `remx <line>,<count>[,<byte>]` creates a `REM` line of `<count>` bytes, filled with the character `0` by default, at a fixed line number. See [machine code REM lines](MODULE_TOOLS.md#machine-code-rem-lines-remx). To turn a numbered program into Dignified code, use the [ZX81 Basic DignifieR](DIGNIFIER.md#zx81-basic-dignifier).
+
+Two complete programs, with their Dignified source and generated classic listing, are shown in [ZX-81 examples](#zx-81-examples) at the end of this document.
+
+### General Usage
 
 >From now on, when showing code, usually the first excerpt is **Dignified** code, followed by the **program call** with the relevant **arguments** and the **classic** Basic output.  
 >For the sake of clarity only arguments relevant to the current topic will be shown on the program call.  
 
 > Differences between the included **MSX** and **CoCo** modules will be stated as needed.
+
+> Additional ZX-81 differences are described in explicitly labeled sections.
 
 > For an **explanation** on how to run Basic Dignified from **Visual Studio Code** or **Sublime Text** see [the page for the editor integration](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md).  
   
@@ -117,7 +148,7 @@ A define `name` can only have **letters**, **numbers** and **underscore** and th
 A **define variable** can be created using `[]` inside a `content` definition. It will be substituted by an `argument` that must be placed between **parenthesis** `()` after the `[name]` is used on the code. If there is content inside the brackets of the **define variable** it will be used as **default** if no argument is given.  
 For instance, using `define [pk][poke 100,[10]]`, a subsequent `[pk](30)` will be replaced by `poke 100,30`; `[pk]` alone will be replaced by `poke 100,10`.  
 
-  The included modules have a `[?](x,y)` **built in** define that becomes:  
+  The included modules have a `[?](x,y)` **built in** define that becomes:
 
   **MSX:** `LOCATEx,y:PRINT`.  
       - If no `(x,y)` is given, a `0,0` will be used.  
@@ -131,6 +162,43 @@ Depending on the content of `(x,y)`, `c` can be:
       - - `x` and `y` are only one number each: the result of *32 * y + x*  
       - - One of the terms is not a number (or is more than one): return the literal formula `32*(y)+(x)`  
       - - `:` or `line break` after the `PRINT`: do not add a `,` at the end  
+
+	**ZX-81:** use the native `PRINT AT row,column;` syntax or the built-in `[?](row,column)` define, which expands to `PRINT AT row,column;`. Coordinates start at `0,0` in the upper-left corner (rows `0`–`21`, columns `0`–`31`). With no arguments the define uses `0,0`; with one argument it uses that row and column `0`.
+
+	```BASIC
+	message$ = "ZX-81"
+	print at 10,5; message$
+	```
+
+	`badig.py print_at.dzx -id zx81`
+
+	```BASIC
+	10 REM Converted with Basic Dignified
+	20 REM https://github.com/farique1/basic-dignified
+	30 a$="ZX-81"
+	40 print at 10,5;a$
+	```
+
+	A label can be used to repeat a positioned print:
+
+	```BASIC
+	{again}
+	print at 10,5; "ZX-81"
+	goto {again}
+	```
+
+	```BASIC
+	30 print at 10,5;"ZX-81"
+	40 goto 30
+	```
+
+	The native `FOR` loop can iterate over screen rows:
+
+	```BASIC
+	for row = 0 to 21
+			print at row,0; row
+	next row
+	```
 
   > Defines can be used as variables for other defines.  
   > Duplicated **defines** will give an error and stop the conversion.  
@@ -156,20 +224,22 @@ Depending on the content of `(x,y)`, `c` can be:
   
 - **Long named variables**  
 can be used on the Dignified code.  
-They can only have **letters**, **numbers** and **underscore**, they cannot be only numbers, begin with a number or have less than 3 characters. Long named variable are **case insensitive**.  
-When converted they are replaced by an associated standard two letter variables. They are assigned on a **descending** order from `ZZ` to `AA` and **single letters** and **letter+number** are never used. Each long name is assigned to a short name independent of **type**, so if `variable1`  becomes `XX` so will `variable1$` become `XX$`.  
-An **explicit** assignment between a long and a short name can be **forced** using the `declare` instruction: `declare variable:va` will assign `VA` to `variable`. Several declares can be given on the same line, separated by commas: `declare variable1:v1,variable2:v2,variable3:v3`.  
-A `declare` can also be used to **reserve** short named variables: `declare zz,xv,cd` will **prevent** those letters from being assigned to long named variables. You cannot reserve **one letter** variables (buy you also don't need to).  
+They can only have **letters**, **numbers** and **underscore**, they cannot be only numbers, begin with a number or have less than 3 characters. Long named variable are **case insensitive**.
+When converted they are replaced by an associated standard two letter variables. They are assigned on a **descending** order from `ZZ` to `AA` and **single letters** and **letter+number** are never used. Each long name is assigned to a short name independent of **type**, so if `variable1`  becomes `XX` so will `variable1$` become `XX$`.
+An **explicit** assignment between a long and a short name can be **forced** using the `declare` instruction: `declare variable:va` will assign `VA` to `variable`. Several declares can be given on the same line, separated by commas: `declare variable1:v1,variable2:v2,variable3:v3`.
+A `declare` can also be used to **reserve** short named variables: `declare zz,xv,cd` will **prevent** those letters from being assigned to long named variables. You cannot reserve **one letter** variables (buy you also don't need to).
 As variables are assigned independent of type, explicit type character (`$%!#`) cannot be used on a `declare` line.  
 **Reserved** Basic commands should not be declared as variables as they might be assigned and converted.  
-**One** and **two** letters variables used directly will **not** be **converted**. Warnings and/or errors will be given in case of conflicts.  
-A `~` **before** the variable name will keep its **long** name. Some Basics accepts long names, **discarding** all characters after the **second** one. `~` cannot be used on a short named variable. A `declare` can be used to reserve a long named variable the same way a short one is reserved.  
-Hardcoded short named variables and the first two characters of reserved long variables are not used by long named substitutions to short names.  
+**One** and **two** letters variables used directly will **not** be **converted**. Warnings and/or errors will be given in case of conflicts.
+A `~` **before** the variable name will keep its **long** name. Some Basics accepts long names, **discarding** all characters after the **second** one. `~` cannot be used on a short named variable. A `declare` can be used to reserve a long named variable the same way a short one is reserved.
+Hardcoded short named variables and the first two characters of reserved long variables are not used by long named substitutions to short names.
 A **summary** of the long and short name **associations** can be generated by using the `-var` argument.  It will be saved to a file but can be logged to the console using the `-prr` (print report) argument.  
 	>The conversion (and the **syntax highlight**) will catch illegal variables when declaring. Repeated declarations will cause an error. A warning will be given if **hardcoded** short named variables are **already** assigned and if a short name hard coded was already used by **substitution**. Warnings will also nag you if the first two letters between reserved long named and/or short named variables clashes.     
 
 	> This type of variable handling is specific of the modules for the **MSX** and the **CoCo**.  
       Other classic modules can handle the variables in different ways.
+
+	**ZX-81:** Dignified variable names longer than one letter are mapped to 26 one-letter names, allocated in descending order from `Z` to `A`, retaining `$` for strings. For example, `temperature$` becomes `z$`, then `counter` becomes `y`. Use `declare message:c` to choose a letter explicitly; declared and already-used letters are skipped by the automatic allocator. Only 26 long names can be mapped, and `~` cannot keep a long name on the ZX-81.
 
 
 	```BASIC  
@@ -299,7 +369,9 @@ Toggles are used at the **start** of a line (`#p print "Hello"`) or they can be 
   
 - **Classic Basic ASCII characters**  
 are not supported by the default encoding of the `.bad` and `.asc` programs (`Western (Windows 1252)`). Their **representation** can be seen and used by opening an **ASCII** file **exported** from the computer/emulator and **copying/pasting** their symbols, but this is far from practical, a bit ugly and prone to problem.  
-By using `UTF-8` encoding on the `.bad` file, **unicode** characters similar to the classic ones can be used on the Dignified code and be **translated** to their **analogue** counterparts when converting. This allows for a much cleaner and accurate presentation.  
+By using `UTF-8` encoding on the `.bad` file, **unicode** characters similar to the classic ones can be used on the Dignified code and be **translated** to their **analogue** counterparts when converting. This allows for a much cleaner and accurate presentation.
+
+**ZX-81 note:** the Unicode mapping described here applies to MSX and CoCo; ZX-81 uses the ASCII and byte-escape forms described separately below.
 The supported **unicode** characters for the **MSX ASCII** set are:  
   
 	```  
@@ -312,8 +384,63 @@ The supported **unicode** characters for the **MSX ASCII** set are:
 	█ ▛ ▜ ▀ ▙ ▌ ▚ ▘ ▟ ▞ ▐ ▝ ▄ ▖ ▗
 	```
 
+	**ZX-81 character set**
+	The `.AZX` file uses readable ASCII spellings; tokenization converts them to ZX-81 character and token codes in `.p`. The ZX-81 module currently has no Unicode translation table for `-tr`. Basic letters and digits map as follows:
 
-    They were chosen for their **similarities** with the classic ones but the **actual shape** will depend on the **font used**.  
+	| ASCII input | ZX-81 character code |
+	| :-: | :-: |
+	| `A`–`Z` | 38–63 |
+	| `0`–`9` | 28–37 |
+	| Space | 0 |
+
+	Common punctuation has these character codes:
+
+	| ASCII input | Code | ASCII input | Code |
+	| :-: | :-: | :-: | :-: |
+	| `"` | 11 | `#` (ZX-81 pound sign) | 12 |
+	| `$` | 13 | `:` | 14 |
+	| `?` | 15 | `(` | 16 |
+	| `)` | 17 | `>` | 18 |
+	| `<` | 19 | `=` | 20 |
+	| `+` | 21 | `-` | 22 |
+	| `*` | 23 | `/` | 24 |
+	| `;` | 25 | `,` | 26 |
+	| `.` | 27 |  |  |
+
+	Prefix a character with `%` to display it in inverse video. The backslash `\` introduces an escaped quote or a two-character block-graphics pattern. `SP` in the table means one literal space in the source, not the letters `SP`.
+
+	For drawings beside the source patterns and byte values, see the [side-by-side ZX-81 graphic reference](#zx-81-graphics-escape-and-drawing). The existing table and original graphic chart are retained below.
+
+	| Two characters after `\` | ZX-81 code | Two characters after `\` | ZX-81 code |
+	| :-: | :-: | :-: | :-: |
+	| `SP SP` | 0 | `::` | 128 |
+	| `' SP` | 1 | `.:` | 129 |
+	| `SP '` | 2 | `:.` | 130 |
+	| `''` | 3 | `..` | 131 |
+	| `. SP` | 4 | `':` | 132 |
+	| `: SP` | 5 | `SP :` | 133 |
+	| `.'` | 6 | `'.` | 134 |
+	| `:'` | 7 | `SP .` | 135 |
+	| `##` | 8 | `@@` | 136 |
+	| `,,` | 9 | `;;` | 137 |
+	| `~~` | 10 | `!!` | 138 |
+
+	The patterns below show how each two-character escape draws a 2x2 ZX-81 graphic. The escape labels correspond to the code table above.
+
+	![ZX-81 2x2 block graphics and their escape patterns](../zx81/zx81-graphics.gif)
+
+	Double a quote inside a string to print the ZX-81 quote character (token code `192`):
+
+	```BASIC
+	print "TESTE ""123"" OK"
+	```
+
+	Both doubled quotes and backslash-double-quote are accepted inside `.DZX` and numbered `.AZX` strings. Doubled quotes are the recommended form for ZX-81 listings. `%`, apostrophe, and `@` are used by the graphics/inverse escape syntax and are not ordinary literal characters in this tokenizer.
+
+	The `-tr` Unicode translation table is currently not implemented for ZX-81.
+
+
+    They were chosen for their **similarities** with the classic ones but the **actual shape** will depend on the **font used**.
     
     ```BASIC  
     print "┌──────┐"  
@@ -611,6 +738,53 @@ All the remtags available, including the ones exposed by the classic modules, ca
 	`cmdl:` `-rtg`  
 	`rmtg:` `##BB:help=[True|False]`  
 
+### ZX-81 Graphics: Escape and Drawing
+
+The visual table below places each source pattern beside its actual block or checkerboard drawing, decimal code and literal `\{XX}` spelling. It is drawn independently from the tokenizer's code table, following the character-chart presentation used by [ZXText2P](https://github.com/tomwhite/zxtext2p). White cells are blank; black areas are set pixels. The right-hand column shows inverse characters. These drawings are a visual reference, not Unicode characters accepted as source input.
+
+![ZX-81 character drawings beside their graphics patterns and hexadecimal byte escapes](../zx81/zx81-graphics-reference.svg)
+
+Use the backslash followed by the two characters shown, for example `\::` for a solid block or `\##` for the checkerboard. Patterns containing `SP` require an actual space. Alternatively, `\{80}` and `\{08}` emit those same bytes literally. Unlike graphic escapes, literal byte escapes also work in `REM`.
+
+```basic
+print "\:: \## \{80} \{08}"
+```
+
+For inverse letters and punctuation, prefix the readable character with `%`, such as `%A` or `%$`. The pound-sign glyph **£** is written as `#` (or `\{0C}`), inverse `A` as `%A` (or `\{A6}`), and an embedded quote as `""` or `\"` (code `C0`). A literal `\{0B}` stores the quote-delimiter byte without changing the tokenizer's string state; it is not the displayed quote glyph. See [literal bytes and explicit numeric values](MODULE_TOOLS.md#literal-hexadecimal-bytes) for the complete escape rules, or [open the graphic table at full size](../zx81/zx81-graphics-reference.svg).
+
+### ZX-81 module options
+
+The ZX-81 module uses `.DZX` for Dignified source, `.AZX` for numbered ASCII BASIC, and `.p` for the tokenized program. Tokenization is enabled by default, so a normal conversion writes both `.AZX` and `.p`.
+
+| Purpose | Command line | Remtag | Default |
+| :- | :- | :- | :- |
+| Generate the tokenized program | `--tk_tokenize` | `##BB:tk_tokenize=True` | On |
+| Keep only numbered ASCII | `--tk_ascii_only` | `##BB:arguments=--tk_ascii_only` | Off |
+| Delete `.AZX` after tokenizing | `--tk_del_ascii` | `##BB:tk_del_ascii=True` | Off |
+| Launch EightyOne with `.p` | `--em_run` | `##BB:em_run=True` | Off |
+
+`--tk_ascii_only` skips tokenization. `--tk_del_ascii` deletes the intermediate `.AZX` after tokenization. To process an existing numbered `.AZX` file, pass `-asc`; the ZX-81 tools then tokenize it by default.
+
+Tokenizer settings are stored in `zx81/tokenizer_interface.ini`:
+
+```ini
+[CONFIGS]
+tokenize = true
+del_ascii = false
+```
+
+Emulator settings are stored in `zx81/emulator_interface.ini`:
+
+```ini
+[CONFIGS]
+run = false
+
+[WINDOWS]
+emulator_path = C:\zeddy\EightyOne.exe
+```
+
+The emulator interface passes the generated `.p` path as the program argument. `--em_run` requires tokenization; it cannot launch `.AZX` directly. The general line-number options also apply: `-ls` sets the first generated line and `-lp` sets the increment (both default to 10).
+
 
 ### The settings environments  
 Basic Dignified **permanent** or **temporary** settings and **behaviours** can be defined in several places, each with its own **priority**.  
@@ -733,3 +907,153 @@ They are commonly used at the start of the Dignified code:
   > Command line arguments and remtags can be **expanded** by **exposing** new ones on **language** and **tools** modules.  
 	See the [modules section](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for an explanation of their **exposed** configs.  
   
+## ZX-81 Examples
+
+Both programs are in [`examples/zx81`](../examples/zx81), together with their tokenized `.p` files, ready to load in EightyOne. Each starts with the remtag `##BB:arguments=-ca`, so keywords and variables are capitalized in the classic listing.
+
+### ZX-81 Intro
+
+A splash screen drawn with `PRINT AT` and block graphics. `declare` gives the long names `column` and `row` the letters `C` and `R`, and the label `{wait_key}` becomes a line number.
+
+**Dignified source:** `zx81-intro.DZX`
+
+```BASIC
+##BB:arguments=-ca
+## ZX-81 intro sample for Basic Dignified.
+## Graphics use the ZX-81 two-by-two escape patterns.
+
+declare column:c, row:r
+
+cls
+
+for column = 2 to 29
+    print at 1,column; "\::"
+    print at 20,column; "\::"
+next column
+
+for row = 2 to 19
+    print at row,1; "\::"
+    print at row,30; "\::"
+next row
+
+print at 1,1; "\##"
+print at 1,30; "\##"
+print at 20,1; "\##"
+print at 20,30; "\##"
+
+print at 3,10; "\~~ ZX-81 \~~"
+print at 5,6; "BASIC DIGNIFIED SUITE"
+print at 9,8; "AUTHOR: FARIQUE"
+print at 12,6; "ZX-81 MODULE: BARNEY"
+print at 16,3; "COPYLEFT: Cybernostra, Inc."
+print at 18,12; "2026"
+print at 19,9; "PRESS ANY KEY"
+
+{wait_key}
+if inkey$ = "" then goto {wait_key}
+stop
+```
+
+`python badig.py examples/zx81/zx81-intro.DZX -id zx81`
+
+**Classic listing:** `zx81-intro.AZX`
+
+```BASIC
+10 REM CONVERTED WITH BASIC DIGNIFIED
+20 REM HTTPS://GITHUB.COM/FARIQUE1/BASIC-DIGNIFIED
+30 CLS
+40 FOR C=2 TO 29
+50 PRINT AT 1,C;"\::"
+60 PRINT AT 20,C;"\::"
+70 NEXT C
+80 FOR R=2 TO 19
+90 PRINT AT R,1;"\::"
+100 PRINT AT R,30;"\::"
+110 NEXT R
+120 PRINT AT 1,1;"\##"
+130 PRINT AT 1,30;"\##"
+140 PRINT AT 20,1;"\##"
+150 PRINT AT 20,30;"\##"
+160 PRINT AT 3,10;"\~~ ZX-81 \~~"
+170 PRINT AT 5,6;"BASIC DIGNIFIED SUITE"
+180 PRINT AT 9,8;"AUTHOR: FARIQUE"
+190 PRINT AT 12,6;"ZX-81 MODULE: BARNEY"
+200 PRINT AT 16,3;"COPYLEFT: Cybernostra, Inc."
+210 PRINT AT 18,12;"2026"
+220 PRINT AT 19,9;"PRESS ANY KEY"
+230 IF INKEY$="" THEN GOTO 230
+240 STOP
+```
+
+### Machine Code OK
+
+A program that runs a short Z80 routine. `remx 0,256,"0"` reserves line `0` as a `REM` with 256 `0` characters. As the first line of the program, its first byte after the `REM` token is at address `16514`. The BASIC loader converts the hex text in `routine$` to bytes and `POKE`s them into that `REM`, then `RAND USR 16514` calls the routine, which prints `OK` with the ROM routine at `RST 10H`.
+
+On the ZX-81, `CODE` of `"0"`..`"9"` is `28`..`37` and of `"A"`..`"F"` is `38`..`43`, so `CODE digit - 28` turns a hex digit into `0`..`15`. Note that the Dignified assignments become `LET` statements, as the ZX-81 requires.
+
+**Dignified source:** `mcode-ok.DZX`
+
+```BASIC
+##BB:arguments=-ca
+## Machine code demo for the Basic Dignified ZX-81 module.
+##
+## remx reserves line 0 as a REM with 256 "0" characters.
+## Line 0 is the first line of the program, so the first
+## byte after its REM token is at address 16514.
+##
+## The routine is stored as hex text and POKEd into the REM:
+##   3E 34   LD A,52    character "O"
+##   D7      RST 10H    ROM routine: print the character in A
+##   3E 30   LD A,48    character "K"
+##   D7      RST 10H
+##   C9      RET        back to BASIC
+##
+## CODE of "0".."9" is 28..37 and of "A".."F" is 38..43,
+## so CODE digit - 28 turns a hex digit into 0..15.
+
+remx 0,256,"0"
+
+declare routine:h, address:a
+
+cls
+print "LOADING MACHINE CODE..."
+routine$ = "3E34D73E30D7C9"
+address = 16514
+for i = 1 to len routine$ step 2
+    poke address, 16 * (code routine$(i) - 28) + code routine$(i + 1) - 28
+    address = address + 1
+next i
+
+print
+print "CALLING USR 16514: ";
+rand usr 16514
+```
+
+`python badig.py examples/zx81/mcode-ok.DZX -id zx81`
+
+**Classic listing:** `mcode-ok.AZX` (line `0` holds the 256 `0` characters)
+
+```BASIC
+0 REM 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+10 REM CONVERTED WITH BASIC DIGNIFIED
+20 REM HTTPS://GITHUB.COM/FARIQUE1/BASIC-DIGNIFIED
+30 CLS
+40 PRINT "LOADING MACHINE CODE..."
+50 LET H$="3E34D73E30D7C9"
+60 LET A=16514
+70 FOR I=1 TO LEN H$ STEP 2
+80 POKE A,16*(CODE H$(I)-28)+CODE H$(I+1)-28
+90 LET A=A+1
+100 NEXT I
+110 PRINT
+120 PRINT "CALLING USR 16514: ";
+130 RAND USR 16514
+```
+
+Expected output on the screen:
+
+```text
+LOADING MACHINE CODE...
+
+CALLING USR 16514: OK
+```

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="590" viewBox="0 0 960 590" role="img" aria-labelledby="title description">
+  <title id="title">ZX-81 graphic characters and source escapes</title>
+  <desc id="description">Eleven normal and eleven inverse graphics, with their two-character escapes, literal hexadecimal byte escapes and decimal codes. SP denotes a literal space.</desc>
+  <defs>
+    <pattern id="checker" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0h4v4H0zM4 4h4v4H4z" fill="#111"/></pattern>
+    <pattern id="inverse-checker" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0h4v4H0zM4 4h4v4H4z" fill="#fff"/></pattern>
+    <symbol id="g00" viewBox="0 0 32 32"/>
+    <symbol id="g01" viewBox="0 0 32 32"><path d="M16 0h16v16H16z" fill="currentColor"/></symbol>
+    <symbol id="g02" viewBox="0 0 32 32"><path d="M0 0h16v16H0z" fill="currentColor"/></symbol>
+    <symbol id="g03" viewBox="0 0 32 32"><path d="M0 0h32v16H0z" fill="currentColor"/></symbol>
+    <symbol id="g04" viewBox="0 0 32 32"><path d="M16 16h16v16H16z" fill="currentColor"/></symbol>
+    <symbol id="g05" viewBox="0 0 32 32"><path d="M16 0h16v32H16z" fill="currentColor"/></symbol>
+    <symbol id="g06" viewBox="0 0 32 32"><path d="M0 0h16v16H0zM16 16h16v16H16z" fill="currentColor"/></symbol>
+    <symbol id="g07" viewBox="0 0 32 32"><path d="M0 0h32v32H16V16H0z" fill="currentColor"/></symbol>
+    <symbol id="g08" viewBox="0 0 32 32"><path d="M0 0h32v32H0z" fill="url(#checker)"/></symbol>
+    <symbol id="g09" viewBox="0 0 32 32"><path d="M0 16h32v16H0z" fill="url(#checker)"/></symbol>
+    <symbol id="g10" viewBox="0 0 32 32"><path d="M0 0h32v16H0z" fill="url(#checker)"/></symbol>
+    <symbol id="i08" viewBox="0 0 32 32"><path d="M0 0h32v32H0z" fill="url(#inverse-checker)"/></symbol>
+    <symbol id="i09" viewBox="0 0 32 32"><path d="M0 16h32v16H0z" fill="url(#inverse-checker)"/></symbol>
+    <symbol id="i10" viewBox="0 0 32 32"><path d="M0 0h32v16H0z" fill="url(#inverse-checker)"/></symbol>
+    <g id="cell"><rect x="174" y="-24" width="34" height="34" fill="#fff" stroke="#555"/></g>
+    <g id="inverse-cell"><rect x="174" y="-24" width="34" height="34" fill="#111" stroke="#555"/></g>
+    <g id="rule"><path d="M14 18H464" stroke="#ddd"/></g>
+  </defs>
+  <rect width="960" height="590" fill="#fff"/>
+  <g font-family="monospace" font-size="17" fill="#111" color="#111">
+    <text x="20" y="30" font-size="22">ZX-81 graphics: escape, drawing and byte</text>
+    <text x="20" y="56" font-size="14">SP = one literal space. Drawings show the ROM glyph, not Unicode source input.</text>
+    <g font-size="14" fill="#444">
+      <text x="20" y="84">After \</text><text x="176" y="84">Glyph</text><text x="250" y="84">Literal byte</text><text x="398" y="84">Dec</text>
+      <text x="500" y="84">After \</text><text x="656" y="84">Glyph</text><text x="730" y="84">Literal byte</text><text x="878" y="84">Dec</text>
+    </g>
+    <g transform="translate(0 120)"><use href="#cell"/><use href="#g00" x="175" y="-23" width="32" height="32"/><text x="20">SP SP</text><text x="250">\{00}</text><text x="398">0</text><use href="#rule"/></g>
+    <g transform="translate(0 161)"><use href="#cell"/><use href="#g01" x="175" y="-23" width="32" height="32"/><text x="20">' SP</text><text x="250">\{01}</text><text x="398">1</text><use href="#rule"/></g>
+    <g transform="translate(0 202)"><use href="#cell"/><use href="#g02" x="175" y="-23" width="32" height="32"/><text x="20">SP '</text><text x="250">\{02}</text><text x="398">2</text><use href="#rule"/></g>
+    <g transform="translate(0 243)"><use href="#cell"/><use href="#g03" x="175" y="-23" width="32" height="32"/><text x="20">''</text><text x="250">\{03}</text><text x="398">3</text><use href="#rule"/></g>
+    <g transform="translate(0 284)"><use href="#cell"/><use href="#g04" x="175" y="-23" width="32" height="32"/><text x="20">. SP</text><text x="250">\{04}</text><text x="398">4</text><use href="#rule"/></g>
+    <g transform="translate(0 325)"><use href="#cell"/><use href="#g05" x="175" y="-23" width="32" height="32"/><text x="20">: SP</text><text x="250">\{05}</text><text x="398">5</text><use href="#rule"/></g>
+    <g transform="translate(0 366)"><use href="#cell"/><use href="#g06" x="175" y="-23" width="32" height="32"/><text x="20">.'</text><text x="250">\{06}</text><text x="398">6</text><use href="#rule"/></g>
+    <g transform="translate(0 407)"><use href="#cell"/><use href="#g07" x="175" y="-23" width="32" height="32"/><text x="20">:'</text><text x="250">\{07}</text><text x="398">7</text><use href="#rule"/></g>
+    <g transform="translate(0 448)"><use href="#cell"/><use href="#g08" x="175" y="-23" width="32" height="32"/><text x="20">##</text><text x="250">\{08}</text><text x="398">8</text><use href="#rule"/></g>
+    <g transform="translate(0 489)"><use href="#cell"/><use href="#g09" x="175" y="-23" width="32" height="32"/><text x="20">,,</text><text x="250">\{09}</text><text x="398">9</text><use href="#rule"/></g>
+    <g transform="translate(0 530)"><use href="#cell"/><use href="#g10" x="175" y="-23" width="32" height="32"/><text x="20">~~</text><text x="250">\{0A}</text><text x="398">10</text><use href="#rule"/></g>
+    <g transform="translate(480 120)"><use href="#inverse-cell"/><use href="#g00" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">::</text><text x="250">\{80}</text><text x="398">128</text><use href="#rule"/></g>
+    <g transform="translate(480 161)"><use href="#inverse-cell"/><use href="#g01" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">.:</text><text x="250">\{81}</text><text x="398">129</text><use href="#rule"/></g>
+    <g transform="translate(480 202)"><use href="#inverse-cell"/><use href="#g02" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">:.</text><text x="250">\{82}</text><text x="398">130</text><use href="#rule"/></g>
+    <g transform="translate(480 243)"><use href="#inverse-cell"/><use href="#g03" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">..</text><text x="250">\{83}</text><text x="398">131</text><use href="#rule"/></g>
+    <g transform="translate(480 284)"><use href="#inverse-cell"/><use href="#g04" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">':</text><text x="250">\{84}</text><text x="398">132</text><use href="#rule"/></g>
+    <g transform="translate(480 325)"><use href="#inverse-cell"/><use href="#g05" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">SP :</text><text x="250">\{85}</text><text x="398">133</text><use href="#rule"/></g>
+    <g transform="translate(480 366)"><use href="#inverse-cell"/><use href="#g06" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">'.</text><text x="250">\{86}</text><text x="398">134</text><use href="#rule"/></g>
+    <g transform="translate(480 407)"><use href="#inverse-cell"/><use href="#g07" x="175" y="-23" width="32" height="32" color="#fff"/><text x="20">SP .</text><text x="250">\{87}</text><text x="398">135</text><use href="#rule"/></g>
+    <g transform="translate(480 448)"><use href="#inverse-cell"/><use href="#i08" x="175" y="-23" width="32" height="32"/><text x="20">@@</text><text x="250">\{88}</text><text x="398">136</text><use href="#rule"/></g>
+    <g transform="translate(480 489)"><use href="#inverse-cell"/><use href="#i09" x="175" y="-23" width="32" height="32"/><text x="20">;;</text><text x="250">\{89}</text><text x="398">137</text><use href="#rule"/></g>
+    <g transform="translate(480 530)"><use href="#inverse-cell"/><use href="#i10" x="175" y="-23" width="32" height="32"/><text x="20">!!</text><text x="250">\{8A}</text><text x="398">138</text><use href="#rule"/></g>
+    <text x="20" y="575" font-size="14">Prefix the two-character pattern with \ in source, e.g. \:: or \##.</text>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+name: ZX-81 Badig Build Output
+scope: source.zx81-basic-dignified.build
+contexts:
+  main:
+    - match: '^\*\*\*.*$'
+      scope: invalid.zx81-basic-dignified
+    - match: '^  \*.*$'
+      scope: invalid.deprecated.zx81-basic-dignified
+    - match: '^   .*$'
+      scope: comment.zx81-basic-dignified

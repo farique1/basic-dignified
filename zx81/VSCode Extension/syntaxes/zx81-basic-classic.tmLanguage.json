@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ZX-81 BASIC",
+  "scopeName": "source.zx81-basic-classic",
+  "patterns": [
+    {"include": "#hex-escapes"},
+    {"include": "#comments"},
+    {"include": "#strings"},
+    {"include": "#line-numbers"},
+    {"include": "#functions"},
+    {"include": "#keywords"},
+    {"include": "#operators"},
+    {"include": "#numbers"},
+    {"include": "#variables"}
+  ],
+  "repository": {
+    "hex-escapes": {
+      "match": "\\\\\\{[0-9A-Fa-f]{2}\\}",
+      "name": "constant.character.escape.hex.zx81-basic-classic"
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.rem.zx81-basic-classic",
+          "begin": "(?i)\\bREM\\b",
+          "end": "$",
+          "patterns": [{"include": "#hex-escapes"}]
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.zx81-basic-classic",
+      "begin": "\"",
+      "end": "\"(?!\")|$",
+      "patterns": [
+        {"include": "#hex-escapes"},
+        {"match": "\"\"", "name": "constant.character.escape.zx81-basic-classic"},
+        {"match": "\\\\\\\"", "name": "constant.character.escape.zx81-basic-classic"},
+        {"match": "%[A-Za-z0-9]", "name": "constant.character.zx81-basic-classic"},
+        {"match": "\\\\(?:  |' | '\\.|''|\\. |: |\\.'|:'|##|,,|~~|::|\\.:|:\\.|\\.\\.|':| :|'\\.| \\.|@@|;;|!!) ", "name": "constant.character.zx81-basic-classic"}
+      ]
+    },
+    "line-numbers": {
+      "match": "^\\s*\\d+",
+      "name": "constant.numeric.line-number.zx81-basic-classic"
+    },
+    "functions": {
+      "match": "(?i)\\b(?:CHR\\$|STR\\$|INKEY\\$|USR|PEEK|ABS|SGN|SQR|INT|EXP|LN|ATN|ACS|ASN|TAN|COS|SIN|LEN|VAL|CODE|TAB|AT|PI|RND)\\b",
+      "name": "support.function.zx81-basic-classic"
+    },
+    "keywords": {
+      "match": "(?i)(?<![A-Z0-9_])(?:REMX|COPY|RETURN|CLEAR|UNPLOT|CLS|IF|RANDOMIZE|RAND|SAVE|RUN|PLOT|PRINT|POKE|NEXT|PAUSE|LET|LIST|LOAD|INPUT|GO\\s*SUB|GOSUB|GO\\s*TO|GOTO|FOR|DIM|CONTINUE|CONT|SCROLL|NEW|FAST|SLOW|STOP|LLIST|LPRINT|STEP|TO|THEN|AND|OR|NOT)(?![A-Z0-9_])",
+      "name": "keyword.control.zx81-basic-classic"
+    },
+    "operators": {
+      "match": "<>|>=|<=|\\*\\*|[=<>+*/(),;:-]",
+      "name": "keyword.operator.zx81-basic-classic"
+    },
+    "numbers": {
+      "match": "(?<![A-Za-z0-9_])[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[Ee][-+]?\\d+)?",
+      "name": "constant.numeric.zx81-basic-classic"
+    },
+    "variables": {
+      "match": "(?i)\\b[A-Z](?:\\$)?\\b",
+      "name": "variable.other.zx81-basic-classic"
+    }
+  }
+}

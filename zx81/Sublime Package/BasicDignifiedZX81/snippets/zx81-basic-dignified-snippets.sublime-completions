@@ -1,0 +1,47 @@
+{
+    "scope": "source.zx81-basic-dignified",
+    "completions": [
+        {
+            "trigger": "for-next",
+            "details": "ZX-81 FOR NEXT loop",
+            "contents": "for ${1:index} = ${2:0} to ${3:10}\n\t${4:}\nnext ${1:index}\n$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
+            "trigger": "print-at",
+            "details": "Print at ZX-81 row and column",
+            "contents": "print at ${1:0},${2:0}; ${3:}$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
+            "trigger": "loop-label",
+            "details": "Loop using a label and GOTO",
+            "contents": "{${1:loop}}\n${2:}\ngoto {${1:loop}}$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
+            "trigger": "if-goto",
+            "details": "Conditional branch to a label",
+            "contents": "if ${1:condition} then goto {${2:label}}$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
+            "trigger": "remx",
+            "details": "REM line reserving bytes for machine code",
+            "contents": "remx ${1:1},${2:100}\n$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        },
+        {
+            "trigger": "remtags",
+            "details": "Basic Dignified remtags",
+            "contents": "##BB:export_file=${1:}\n##BB:arguments=${2:}\n##BB:help=${3:}\n$0",
+            "annotation": "Basic Dignified",
+            "kind": "snippet"
+        }
+    ]
+}

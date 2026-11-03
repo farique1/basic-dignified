@@ -1,0 +1,30 @@
+{
+    "file_regex": "(?:^\\*\\*\\*\\s)(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+    "selector": "source.zx81-basic-dignified",
+    "working_dir": "$project_path",
+    "file_patterns": ["*.DZX", "*.dzx"],
+    "syntax": "ZX81 Badig Build.sublime-syntax",
+    "windows": {
+        "cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "--em_run", "-id", "zx81"]
+    },
+    "osx": {
+        "cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--em_run", "-id", "zx81"]
+    },
+    "linux": {
+        "cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--em_run", "-id", "zx81"]
+    },
+    "variants": [
+        {
+            "name": "Convert and tokenize",
+            "windows": {"cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_tokenize", "-id", "zx81"]},
+            "osx": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_tokenize", "-id", "zx81"]},
+            "linux": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_tokenize", "-id", "zx81"]}
+        },
+        {
+            "name": "Convert to ASCII only",
+            "windows": {"cmd": ["python", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_ascii_only", "-id", "zx81"]},
+            "osx": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_ascii_only", "-id", "zx81"]},
+            "linux": {"cmd": ["python3", "PATH_TO/BasicDignified/badig.py", "$file", "--tk_ascii_only", "-id", "zx81"]}
+        }
+    ]
+}

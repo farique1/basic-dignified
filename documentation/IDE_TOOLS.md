@@ -6,6 +6,8 @@ Although Basic Dignified can be **comfortably** used on a **notepad** and **comm
 
 **Included** on this version is a **full set** of tools for **integration** with **both** editors, including **support** for the **Dignified** and **classic** Basic versions of both included **systems**.  
 
+In addition to the original MSX and CoCo tools described here, ZX-81 syntax, snippets, and build integration are available for both editors.
+
 The tools are:  
 - A **[Build System](#Build-System)** for the **Dignified** and **classic** versions of Basic.  
 - **[Syntax Highlight](#Syntax-Highlight)** for the Dignified and classic versions of Basic.  
@@ -13,6 +15,7 @@ The tools are:
 - A **Theme** simulating the blue **MSX 1 screen** and accompanying **MSX Screen 0 font**.  
 - **[Snippets](#Auto-Completion-And-Snippets)** for the Dignified version of Basic.  
 - A **[Comment Preference](#Comment-Preference)** for the Dignified version. 
+- ZX-81 builds generate `.AZX`, tokenize to `.p`, and can launch EightyOne.
   
 > See the [installation](https://github.com/farique1/basic-dignified/blob/main/documentation/INSTALLATION.md) page on how to **install** these tools.  
   
@@ -30,6 +33,22 @@ You can further **refine** the build **behavior** by passing **arguments** with 
   
 > See the end of the [Basic Dignified usage secton](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md) for an explanation of the **remtags**.  
   
+### ZX-81 Tasks
+
+With `zx81/VSCode Extension/.vscode/tasks.json` installed in your workspace, choose the task matching the active file:
+
+| Task | Input | Result |
+| --- | --- | --- |
+| Dignified: ZX-81 Convert to ASCII | `.DZX`, without line numbers | `.AZX` only |
+| Dignified: ZX-81 Convert and Tokenize | `.DZX`, without line numbers | `.AZX` and `.p`; default build |
+| Dignified: ZX-81 Convert, Tokenize and Run | `.DZX`, without line numbers | Conversion and EightyOne launch |
+| Classic: ZX-81 Tokenize Only | Numbered `.AZX` | `.p`, preserving line numbers |
+| Classic: ZX-81 Tokenize and Run | Numbered `.AZX` | Tokenization and EightyOne launch |
+
+Set `zx81-basic-dignified.badigPath` and, if needed, `zx81-basic-dignified.pythonInterpreter`. Configure EightyOne in `zx81/emulator_interface.ini`. The Dignified tasks also accept a numbered listing in a `.DZX` file, such as Go81 `p2txt` output: it is renumbered into a new `.AZX` with the usual options applied, then tokenized.
+
+Both source formats support `\{XX}` literal byte escapes, including inside strings and `REM`. VS Code and Sublime Text highlight valid two-digit hexadecimal escapes with dedicated `constant.character.escape.hex` scopes in all three contexts, before Dignified label matching. See [the ZX-81 module guide](MODULE_TOOLS.md#zx-81-usage-and-byte-escapes) for the rules and examples.
+
 ### Sublime Text  
   
 Once everything is **installed** and a program is being coded, the **builds** will be **available** from the `Tools > Build System` menu and are called:  
@@ -39,6 +58,8 @@ Once everything is **installed** and a program is being coded, the **builds** wi
 or  
 `CoCo Basic`  
 `CoCo Basic Dignified`  
+
+Additional ZX-81 builds are `ZX81 Basic classic` and `ZX81 Basic Dignified`.
 
 The best approach is to leave the **build type** on `automatic`, this will use the **syntax scopes** and the extensions to figure out the **correct** build.    
   
@@ -53,12 +74,16 @@ You can further **refine** the build **behavior** by passing **arguments** with 
 ## Syntax Highlight  
   
 **Two** pretty decent **syntax highlights**, one for the **Dignified** and one for the **classic** version are available on **both** systems.   
+
+ZX-81 adds corresponding syntax highlighting for `.DZX` and `.AZX`.
   
 > The **list** exported by the MSX **tokenizer** uses the **classic** version.  
 
 ## Themes and color schemes  
   
 Several **themes** and **color schemes** are included with some based on **Monokai**, **Boxy Ocean** and **Mariana**. They **improve** the syntax highlight (classic and Dignified) with **scopes** specific for the Dignified code: `define`, `declare`, labels, errors and warnings.  
+
+The ZX-81 editor packages provide syntax highlighting without adding system-specific themes.
 
 There are also a **light** and a **dark** color scheme using the **MSX** colors and
 for the truly **adventurous** there are themes **mimicking** the blue **MSX 1 screen** and the **green**/**orange** CoCo screen. Also there are accompanying **fonts** representing the ones found on the **original** systems.  
@@ -72,6 +97,7 @@ Snippets for auto completion for:
  `PMODE-SCREEN-PCLS` **(CoCo only)**  
  `SCREEN-WIDTH-KEY OFF-COLOR` **(MSX only)**  
  `LOCATE-PRINT` **(MSX only)**  
+ZX-81 snippets (VS Code and Sublime Text): `for-next`, `print-at`, `loop-label`, `if-goto`, `remtags` and `remx` (machine code `REM` line). The ZX-81 has no `ELSE` and no Dignified function snippet.
   
 A snippet for the creation of the standard **remtags**.  
   

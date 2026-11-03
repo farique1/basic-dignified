@@ -147,6 +147,20 @@ class Settings:
         c_stg = self.Classic.Settings()
         self.c_stg = c_stg.properties(self)
 
+    def is_numbered_listing(self, file_load):
+        '''Check if the first non-blank line starts with a line number'''
+        ignore = getattr(self, 'numbered_ignore', None)
+        try:
+            with open(file_load, 'r', encoding='latin1') as f:
+                for line in f:
+                    if ignore and re.match(ignore, line, re.I):
+                        continue
+                    if line.strip() and not line.lstrip().startswith('#'):
+                        return bool(re.match(r'^\d+\s', line))
+        except OSError:
+            pass
+        return False
+
     def new_save_file(self, old_save_file):
         '''Build a save file path and name based on the contents os the output file
         old_save_file: output file path to process'''
@@ -473,6 +487,8 @@ class Settings:
 
         # Type of code
         self.code_is_ascii = args.asc
+        self.code_is_numbered = (not args.asc and getattr(self, 'dignify_numbered', False)
+                                 and self.is_numbered_listing(args.input))
 
         # Process properties
         # Files
@@ -483,6 +499,12 @@ class Settings:
             self.file_save = self.file_load
         else:
             self.file_save = self.new_save_file(self.file_save)
+
+        # A numbered listing must never be converted onto itself.
+        if self.code_is_numbered and os.path.normcase(os.path.abspath(self.file_save)) \
+                == os.path.normcase(os.path.abspath(self.file_load)):
+            self.code_is_numbered = False
+            self.code_is_ascii = True
 
         self.load_path = os.path.dirname(self.file_load)
 

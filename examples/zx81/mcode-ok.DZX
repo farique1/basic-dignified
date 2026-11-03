@@ -1,0 +1,33 @@
+##BB:arguments=-ca
+## Machine code demo for the Basic Dignified ZX-81 module.
+##
+## remx reserves line 0 as a REM with 256 "0" characters.
+## Line 0 is the first line of the program, so the first
+## byte after its REM token is at address 16514.
+##
+## The routine is stored as hex text and POKEd into the REM:
+##   3E 34   LD A,52    character "O"
+##   D7      RST 10H    ROM routine: print the character in A
+##   3E 30   LD A,48    character "K"
+##   D7      RST 10H
+##   C9      RET        back to BASIC
+##
+## CODE of "0".."9" is 28..37 and of "A".."F" is 38..43,
+## so CODE digit - 28 turns a hex digit into 0..15.
+
+remx 0,256,"0"
+
+declare routine:h, address:a
+
+cls
+print "LOADING MACHINE CODE..."
+routine$ = "3E34D73E30D7C9"
+address = 16514
+for i = 1 to len routine$ step 2
+    poke address, 16 * (code routine$(i) - 28) + code routine$(i + 1) - 28
+    address = address + 1
+next i
+
+print
+print "CALLING USR 16514: ";
+rand usr 16514

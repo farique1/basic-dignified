@@ -42,3 +42,25 @@ The classic ASCII code converted from the Dignified version.
   **Binary version**  
   [`EXAMPLE.BCC`](https://github.com/farique1/basic-dignified/blob/main/examples/coco/EXAMPLE.BCC)  
 The classic binary code converted with the tokenizer.  
+
+## ZX-81
+
+### ZX-81 Intro
+A splash screen drawn with `PRINT AT` and ZX-81 block graphics.
+
+**Dignified version**  
+  [`zx81-intro.DZX`](zx81/zx81-intro.DZX)  
+**Classic version**  
+  [`zx81-intro.AZX`](zx81/zx81-intro.AZX)  
+**Binary version**  
+  [`zx81-intro.p`](zx81/zx81-intro.p), ready for EightyOne.
+
+### Machine Code OK
+A `remx 0,256,"0"` line reserves 256 bytes for machine code at address `16514`. A BASIC loader `POKE`s a short Z80 routine, stored as hex text, into that `REM`, and `RAND USR 16514` calls it to print `OK` with the ROM routine at `RST 10H`.
+
+**Dignified version**  
+  [`mcode-ok.DZX`](zx81/mcode-ok.DZX)  
+**Classic version**  
+  [`mcode-ok.AZX`](zx81/mcode-ok.AZX)  
+**Binary version**  
+  [`mcode-ok.p`](zx81/mcode-ok.p), ready for EightyOne.

@@ -1,0 +1,34 @@
+##BB:arguments=-ca
+## ZX-81 intro sample for Basic Dignified.
+## Graphics use the ZX-81 two-by-two escape patterns.
+
+declare column:c, row:r
+
+cls
+
+for column = 2 to 29
+    print at 1,column; "\::"
+    print at 20,column; "\::"
+next column
+
+for row = 2 to 19
+    print at row,1; "\::"
+    print at row,30; "\::"
+next row
+
+print at 1,1; "\##"
+print at 1,30; "\##"
+print at 20,1; "\##"
+print at 20,30; "\##"
+
+print at 3,10; "\~~ ZX-81 \~~"
+print at 5,6; "BASIC DIGNIFIED SUITE"
+print at 9,8; "AUTHOR: FARIQUE"
+print at 12,6; "ZX-81 MODULE: BARNEY"
+print at 16,3; "COPYLEFT: Cybernostra, Inc."
+print at 18,12; "2026"
+print at 19,9; "PRESS ANY KEY"
+
+{wait_key}
+if inkey$ = "" then goto {wait_key}
+stop

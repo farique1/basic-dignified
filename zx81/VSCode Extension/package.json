@@ -1,0 +1,151 @@
+{
+  "name": "basic-dignified-zx81",
+  "version": "2.0.0",
+  "publisher": "fredrique",
+  "author": "Fred Rique",
+  "displayName": "Basic Dignified: ZX-81",
+  "description": "ZX-81 BASIC language support and build tasks for Basic Dignified",
+  "homepage": "https://github.com/farique1/basic-dignified",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farique1/basic-dignified.git"
+  },
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "basic",
+    "dignified",
+    "zx81",
+    "zx-81",
+    "syntax",
+    "build"
+  ],
+  "files": [
+    ".vscode/tasks.json",
+    "README.md",
+    "config/**",
+    "snippets/**",
+    "syntaxes/**"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "zx81-basic-classic",
+        "aliases": ["ZX-81 BASIC", "ZX81 BASIC"],
+        "extensions": [".AZX", ".azx"],
+        "configuration": "./config/zx81-basic-classic.configuration.json"
+      },
+      {
+        "id": "zx81-basic-dignified",
+        "aliases": ["ZX-81 Basic Dignified", "ZX81 Basic Dignified"],
+        "extensions": [".DZX", ".dzx"],
+        "configuration": "./config/zx81-basic-dignified.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "zx81-basic-classic",
+        "scopeName": "source.zx81-basic-classic",
+        "path": "./syntaxes/zx81-basic-classic.tmLanguage.json"
+      },
+      {
+        "language": "zx81-basic-dignified",
+        "scopeName": "source.zx81-basic-dignified",
+        "path": "./syntaxes/zx81-basic-dignified.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "zx81-basic-dignified",
+        "path": "./snippets/zx81-basic-dignified-snippets.json"
+      }
+    ],
+    "commands": [
+      {
+        "category": "Dignified: ZX-81",
+        "command": "workbench.action.tasks.build",
+        "title": "Build or run Dignified: ZX-81"
+      },
+      {
+        "category": "Classic: ZX-81",
+        "command": "workbench.action.tasks.test",
+        "title": "Run classic: ZX-81"
+      },
+      {
+        "category": "ZX-81",
+        "command": "workbench.action.tasks.runTask",
+        "title": "Run ZX-81 task"
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "basicDignifiedProblem",
+        "owner": "basic-dignified",
+        "fileLocation": ["relative", "${fileDirname}"],
+        "pattern": {
+          "regexp": "^\\*\\*\\*\\s(.*):\\s\\((\\d+),(\\d+)\\):\\s(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4
+        }
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "workbench.action.tasks.runTask",
+          "when": "resourceLangId == zx81-basic-dignified || resourceLangId == zx81-basic-classic"
+        }
+      ],
+      "editor/title/run": [
+        {
+          "command": "workbench.action.tasks.build",
+          "group": "navigation@0",
+          "when": "resourceLangId == zx81-basic-dignified"
+        },
+        {
+          "command": "workbench.action.tasks.test",
+          "group": "navigation@0",
+          "when": "resourceLangId == zx81-basic-classic"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "workbench.action.tasks.build",
+        "key": "ctrl+shift+b",
+        "when": "editorTextFocus && resourceLangId == zx81-basic-dignified"
+      },
+      {
+        "command": "workbench.action.tasks.test",
+        "key": "ctrl+shift+alt+b",
+        "when": "editorTextFocus && resourceLangId == zx81-basic-classic"
+      }
+    ],
+    "configuration": {
+      "title": "Basic Dignified: ZX-81",
+      "properties": {
+        "zx81-basic-dignified.badigPath": {
+          "type": "string",
+          "order": 0,
+          "default": "PATH_TO\\badig.py",
+          "scope": "machine",
+          "markdownDescription": "Path to the Basic Dignified `badig.py` file."
+        },
+        "zx81-basic-dignified.pythonInterpreter": {
+          "type": "string",
+          "order": 1,
+          "default": "python",
+          "scope": "machine",
+          "markdownDescription": "Python 3 executable, such as `python` or `python3`."
+        }
+      }
+    }
+  }
+}
