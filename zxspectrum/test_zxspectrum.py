@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap
+from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
 from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, tokenize
 
 
@@ -51,7 +51,7 @@ class TokenizerTests(unittest.TestCase):
         sources = (
             '', 'PRINT "HI"', '0 STOP', '10 STOP\n10 STOP', '20 STOP\n10 STOP',
             '10000 STOP', '10 PRINT "oops', '10 PRINT 1e+', '10 LET n=1e1000',
-            '10 PRINT 1e-1000', '10 PRINT "\u00e9"', '10 BORDER 1',
+            '10 PRINT 1e-1000', '10 PRINT "\u00e9"', '10 CAT',
             '10 LET a$="X"', '10 LET total_score=1', '10 LET a(1)=2',
             '10 a=1', '10 IF a=1 THEN 20', '10 PRINT 1:',
             '10 PRINT INKEY$', '10 DEF FN f(x)=x',
@@ -64,6 +64,16 @@ class TokenizerTests(unittest.TestCase):
 
 
 class TapeTests(unittest.TestCase):
+    def test_tzx_standard_blocks_match_tap(self):
+        program = tokenize('10 STOP')
+        tap = make_tap(program, 'HI')
+        tzx = make_tzx(program, 'HI')
+        self.assertEqual(tzx[:10], b'ZXTape!\x1a\x01\x14')
+        self.assertEqual(tzx[10:13], b'\x10\xe8\x03')
+        self.assertEqual(tzx[13:34], tap[:21])
+        self.assertEqual(tzx[34:37], b'\x10\xe8\x03')
+        self.assertEqual(tzx[37:], tap[21:])
+
     def test_known_tap_header_and_checksum(self):
         program = tokenize('10 STOP')
         tape = make_tap(program, 'HI')
@@ -99,6 +109,31 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_colours_loops_and_subroutine_labels(self):
+        source = (ROOT / 'examples' / 'zxspectrum' / 'colours.DSP').read_text(encoding='ascii')
+        result, listing, tape = self.convert(source, '-rh', '--tk_format', 'both')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('GO SUB 80', listing)
+        self.assertIn('FOR i=1 TO 3', listing)
+        self.assertIn(b'\xeb', tape)
+        self.assertIn(b'\xf3', tape)
+
+    def test_tzx_remtag_overrides_cli_and_preserves_input(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'demo.DSP'
+            path.write_text('##BB:tk_format=tzx\nSTOP\n', encoding='ascii')
+            result = subprocess.run(
+                [sys.executable, '-B', str(ROOT / 'badig.py'), str(path),
+                 '-id', 'zxspectrum', '--tk_tokenize', '--tk_format', 'both', '-rh'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertFalse(path.with_suffix('.tap').exists())
+            self.assertEqual(path.with_suffix('.tzx').read_bytes(),
+                             make_tzx(tokenize('10 STOP'), 'demo'))
+            result, _, _ = self.convert('##BB:tk_format=wav\nSTOP\n')
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('TK_FORMAT must be', result.stdout)
+
     def convert(self, source, *arguments, classic=False, includes=None, tokenized=True):
         with tempfile.TemporaryDirectory(prefix='Spectrum test ') as folder:
             path = Path(folder) / ('demo.ASP' if classic else 'demo.DSP')
@@ -169,7 +204,7 @@ class ConversionTests(unittest.TestCase):
         self.assertTrue(tape, result.stdout + result.stderr)
 
     def test_listing_only_still_rejects_unsupported_commands(self):
-        result, listing, tape = self.convert('BORDER 1\n', tokenized=False)
+        result, listing, tape = self.convert('CAT\n', tokenized=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(listing)
         self.assertFalse(tape)
@@ -187,7 +222,7 @@ class ConversionTests(unittest.TestCase):
     def test_failed_tokenization_preserves_an_existing_tape(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'bad.ASP'
-            path.write_text('10 BORDER 1\n', encoding='ascii')
+            path.write_text('10 CAT\n', encoding='ascii')
             tape = path.with_suffix('.tap')
             tape.write_bytes(b'old tape')
             result = subprocess.run(
@@ -199,7 +234,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_error_has_no_tape(self):
         for source, arguments in (
-            ('BORDER 1\n', ()),
+            ('CAT\n', ()),
             ('LET a$="X"\n', ()),
             ('PRINT "oops\n', ()),
             ('STOP\n', ('-lp', '0')),

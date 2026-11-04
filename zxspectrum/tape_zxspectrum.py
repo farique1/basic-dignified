@@ -30,3 +30,16 @@ def make_tap(program, name):
     header = b'\x00\x00' + name.encode('ascii').ljust(10, b' ')
     header += size + b'\x00\x80' + size
     return tap_block(header) + tap_block(b'\xff' + program)
+
+
+def make_tzx(program, name):
+    """TZX 1.20 with standard-speed blocks and one-second pauses."""
+    tape = make_tap(program, name)
+    result = bytearray(b'ZXTape!\x1a\x01\x14')
+    offset = 0
+    while offset < len(tape):
+        size = int.from_bytes(tape[offset:offset + 2], 'little')
+        result.extend(b'\x10\xe8\x03')
+        result.extend(tape[offset:offset + size + 2])
+        offset += size + 2
+    return bytes(result)

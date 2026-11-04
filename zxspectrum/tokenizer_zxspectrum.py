@@ -4,6 +4,7 @@ import re
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 
+from . import VERSION
 
 KEYWORDS = (
     'RND', 'INKEY$', 'PI', 'FN', 'POINT', 'SCREEN$', 'ATTR', 'AT', 'TAB',
@@ -22,8 +23,12 @@ TOKEN_CODES = {word: code for code, word in enumerate(KEYWORDS, 0xA5)}
 SUPPORTED = frozenset((
     'PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
     'THEN', 'AND', 'OR', 'NOT', '<=', '>=', '<>',
+    'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
+    'GO SUB', 'RETURN', 'FOR', 'NEXT', 'TO', 'STEP',
 ))
-STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP'))
+STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
+                        'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
+                        'GO SUB', 'RETURN', 'FOR', 'NEXT'))
 NUMBER = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', re.ASCII)
 WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
@@ -105,7 +110,7 @@ def tokenize_line(text):
             if keyword in TOKEN_CODES:
                 if keyword not in SUPPORTED:
                     raise SpectrumTokenizeError(
-                        f'{keyword} is not supported in Spectrum v1.1.0')
+                        f'{keyword} is not supported in Spectrum v{VERSION}')
                 if at_statement and keyword not in STATEMENTS:
                     raise SpectrumTokenizeError(f'Expected a statement, got {keyword}')
                 result.append(TOKEN_CODES[keyword])

@@ -33,8 +33,10 @@ class Description(MSXDescription):
 
     def __init__(self):
         super().__init__()
-        instructions = ['PRINT', 'LET', 'IF', 'CLS', 'STOP']
-        jumps = ['GOTO', 'GO TO', 'THEN']
+        instructions = ['PRINT', 'LET', 'IF', 'CLS', 'STOP', 'BORDER', 'INK',
+                        'PAPER', 'PAUSE', 'BEEP', 'INPUT', 'RETURN', 'FOR', 'NEXT',
+                        'TO', 'STEP']
+        jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
                    '-', ',', '(', ')', ';', "'", '#']
@@ -57,11 +59,11 @@ class Description(MSXDescription):
         groups = [
             ('c_operat', self.join_commands(operators)),
             ('c_symbol', self.join_commands([re.escape(s) for s in symbols])),
-            ('c_jumpin', self.join_commands(['GOTO', 'GO +TO', 'THEN'])),
+            ('c_jumpin', self.join_commands(['GOTO', 'GO +TO', 'GOSUB', 'GO +SUB', 'THEN'])),
             ('c_instrc', self.join_commands(instructions)),
             ('c_number', f'^{number}$'),
             ('c_linrem', '^REM$'),
-            ('c_partls', r'^(?:GO(?: +T?)?|\d+(?:\.\d*)?E[+-]?|\.)$'),
+            ('c_partls', r'^(?:GO(?: +(?:T|S|SU)?)?|\d+(?:\.\d*)?E[+-]?|\.)$'),
             ('c_instsp', '^:$'),
             ('c_quotes', '^"$'),
         ]
@@ -125,7 +127,7 @@ class Parser(MSXParser):
             if tk.val_w_file in self.des.d_declares:
                 tk.val = self.des.d_declares[tk.val_w_file] + tk.var_type
             if tk.var_type or not re.fullmatch(r'[a-zA-Z][a-zA-Z0-9]*', tk.val):
-                fail('v1.1.0 supports alphanumeric numeric scalars only; '
+                fail('This version supports alphanumeric numeric scalars only; '
                      'use DECLARE name:letter for snake_case names', tk)
             if tk.uval in TOKEN_CODES:
                 fail(f'{tk.val} is reserved by Sinclair BASIC', tk)
@@ -138,6 +140,8 @@ class Parser(MSXParser):
             tk.val = '1' if tk.uval == 'TRUE' else '0'
         elif tk.tok == 'C_JUMPIN' and re.fullmatch(r'GO\s*TO', tk.uval):
             tk.val = 'GO TO'
+        elif tk.tok == 'C_JUMPIN' and re.fullmatch(r'GO\s*SUB', tk.uval):
+            tk.val = 'GO SUB'
         elif tk.uval in self.des.c_reserved_kw:
             tk.val = tk.uval
         return False

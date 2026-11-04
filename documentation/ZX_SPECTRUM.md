@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.1.0 preview
+# ZX Spectrum module - v1.2.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -7,6 +7,25 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 `wilsonpilon/basic-dignified`.
 
 ## Status and scope
+
+### Milestone 1.2.0
+
+The user manually confirmed that v1.1.0 `hello.tap` loads in EightyOne,
+LIST is correct and RUN prints the expected counter and DONE. This is
+user-reported emulator validation, not an automated execution test.
+
+Version 1.2.0 adds standard-speed TZX 1.20 output (block 0x10,
+1000 ms pauses), alongside unchanged default TAP output. Use
+`--tk_format tap`, `--tk_format tzx` or `--tk_format both`.
+INI `format` and remtag `TK_FORMAT` accept the same values.
+Each tape file is replaced atomically; writing both files is not a
+transaction across the pair.
+
+New commands: BORDER, INK, PAPER, PAUSE, BEEP, INPUT, GO SUB/GOSUB,
+RETURN, FOR/NEXT, TO and STEP. Use a single-letter FOR control variable.
+See [colours.DSP](../examples/zxspectrum/colours.DSP).
+The following sections describe the original 1.1.0 baseline; this
+milestone extends that subset and supersedes its TZX/loop limitations.
 
 Version **1.1.0** is the first functional milestone, not complete Sinclair
 BASIC support. It targets the **ZX Spectrum 48K with the English ROM**.
@@ -242,7 +261,10 @@ so its unmodified conversion was not counted as a passing regression.
 An isolated EightyOne 1.41 session selected the 48K model and recognized
 the TAP in its tape manager, but did not provide verified ROM loading or
 program execution in this environment. **Manual LOAD/LIST/RUN validation
-is still pending.** Do not treat this preview as emulator-certified.
+was pending in 1.1.0.** The user subsequently confirmed successful
+LOAD/LIST/RUN for hello.tap before implementation of 1.2.0.
+New examples and TZX have automated format/conversion checks; no new
+manual emulator validation is claimed for them.
 
 Planned subsequent module previews, subject to adjustment:
 
@@ -255,7 +277,7 @@ Planned subsequent module previews, subject to adjustment:
 | 1.5.0 | Verified emulator integration and distribution/editor polish |
 
 These are module versions, not replacements for the upstream suite's
-version. Only v1.1.0 is implemented in this delivery.
+version. Versions 1.1.0 and 1.2.0 are implemented.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).
