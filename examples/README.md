@@ -54,6 +54,12 @@ The original MSX/CoCo examples above are preserved.
 - [data.DSP](zxspectrum/data.DSP): strings, arrays, DATA/READ and native functions.
 - [functions.DSP](zxspectrum/functions.DSP): implicit LET, compounds, PRINT AT,
   Dignified FUNC/RET. Its expected SCORE is 10, followed by answer 20.
+- [native.DSP](zxspectrum/native.DSP): 1.6.0 binary literals, chained
+  statements, OUT and LIST/RUN with a label. Expected: BIN 7, CHAIN OK,
+  A:B, then PRESS A KEY TO LIST. The border becomes blue. Press a key to
+  list the final PRINT/STOP lines; PRESS A KEY TO RUN introduces a second
+  pause. Another key runs the finish label, clearing variables/display and
+  printing DONE.
 - [hello.ASP](zxspectrum/hello.ASP): numbered listing generated with `-rh -ca`.
 - [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
 
@@ -68,4 +74,6 @@ to regenerate both tape containers. On 2026-11-04 the user confirmed all
 16 manual Spectrum 48K cases passed: four examples in TAP/TZX, with and
 without BASIC autorun. This is user-reported manual validation, separate
 from the automated conversion/format tests.
+The new native example also has ASP/TAP/TZX companions, but its manual
+emulator validation is still pending; it is not part of those 16 passes.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

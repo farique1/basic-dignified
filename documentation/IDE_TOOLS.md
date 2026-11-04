@@ -83,7 +83,7 @@ There is **no block comment** but **all lines** selected will be **commented**.
   
 There is no **classic Basic** comment preference as I couldn't find a way to **insert** the `REM` or `'` **AFTER** the line number.  
 
-## Addition: ZX Spectrum editors, v1.5.0 preview
+## Addition: ZX Spectrum editors, v1.6.0 preview
 
 The original MSX/CoCo integration above is unchanged.
 Spectrum provides a separate offline VSIX with DSP/ASP highlighting,

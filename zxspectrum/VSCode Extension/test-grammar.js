@@ -29,9 +29,18 @@ async function main() {
         assert(at(line.indexOf('LEN')).includes('support.function.basic.spectrum'));
         assert(at(line.lastIndexOf('REM')).includes('comment.line.basic.spectrum'));
         assert(!at(line.indexOf('123')).includes('constant.numeric.basic.spectrum'));
+        const native = 'RUN:LIST:NEW:CONTINUE:OUT 254,BIN 1010';
+        const nativeTokens = grammar.tokenizeLine(native).tokens;
+        const nativeAt = index => nativeTokens.find(
+            token => token.startIndex <= index && token.endIndex > index).scopes;
+        for (const command of ['RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT']) {
+            assert(nativeAt(native.indexOf(command)).includes('keyword.control.basic.spectrum'));
+        }
+        assert(nativeAt(native.indexOf('BIN')).includes('keyword.operator.basic.spectrum'));
+        assert(nativeAt(native.indexOf('1010')).includes('constant.numeric.basic.spectrum'));
     }
     registry.dispose();
-    console.log('Both grammars: doubled quotes, REM isolation, strings and native functions verified.');
+    console.log('Both grammars: strings, REM, functions, chained native commands and BIN verified.');
 }
 
 main().catch(error => {

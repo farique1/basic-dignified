@@ -1,7 +1,8 @@
 # Basic Dignified ZX Spectrum
 
-Spectrum module 1.5.0 editor companion. Adds DSP/ASP highlighting and
+Spectrum module 1.6.0 editor companion. Adds DSP/ASP highlighting and
 Dignified snippets. It does not include Python, the converter, ROMs or EightyOne.
+Includes RUN/LIST/NEW/CONTINUE/OUT and BIN highlighting.
 
 Install the VSIX using VS Code's **Extensions: Install from VSIX** command.
 ASP also names web files: select **Sinclair BASIC** manually when appropriate;

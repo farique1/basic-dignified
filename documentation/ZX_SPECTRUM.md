@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.5.1 preview
+# ZX Spectrum module - v1.6.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -11,6 +11,15 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 Version 1.5.0 completes the five agreed milestones for the **48K English ROM**
 target. This is still a preview of a documented subset, not a claim of full
 Sinclair BASIC coverage. MSX/CoCo defaults and suite version 2.2.1 are unchanged.
+
+### Native commands and BIN 1.6.0
+
+Adds RUN, LIST, NEW, CONTINUE, OUT and binary literals with their actual
+Sinclair numeric records. RUN/LIST accept Dignified labels. Permanent
+regressions cover chained statements, IF/THEN, strings, REM and colon errors.
+VS Code/Sublime highlighting and the VSIX companion are updated to 1.6.0.
+See the reference below and [native.DSP](../examples/zxspectrum/native.DSP).
+DEF FN/FN remains separate work.
 
 ### Stabilization 1.5.1
 
@@ -109,6 +118,7 @@ Implemented:
 - `BORDER`, `INK`, `PAPER`, `PAUSE`, `BEEP`, `INPUT`, `GO SUB`/`GOSUB`,
   `RETURN`, `FOR`/`NEXT`, `TO`, `STEP`, `DIM`, `DATA`, `READ`, `RESTORE`,
   `RANDOMIZE`, `PLOT`, `DRAW`, `CIRCLE`, `POKE`, `CLEAR`.
+- `RUN`, `LIST`, `NEW`, `CONTINUE`, `OUT`, and `BIN` literals.
 - `AT`, `TAB`, `FLASH`, `BRIGHT`, `INVERSE`, `OVER`, including PRINT modifiers.
 - Functions: `RND`, `INKEY$`, `PI`, `POINT`, `SCREEN$`, `ATTR`, `VAL$`,
   `CODE`, `VAL`, `LEN`, `SIN`, `COS`, `TAN`, `ASN`, `ACS`, `ATN`, `LN`,
@@ -124,14 +134,14 @@ Implemented:
 - Quoted text, doubled quotes within a string, and the PRINT apostrophe
   separator (newline). An apostrophe is **not** a Spectrum REM.
 - TRUE = 1 and FALSE = 0.
-- Decimal and scientific literals, five-byte Sinclair numbers, numbered
+- Decimal, scientific and binary literals, five-byte Sinclair numbers, numbered
   BASIC records, TAP header/data blocks and XOR checksums.
 - Existing common options such as line start/step and reports.
 
 Not implemented in this preview:
 
-- Native DEF FN/FN, BIN, tape/file-management commands inside the BASIC
-  source (LOAD/SAVE/VERIFY/MERGE), LIST/RUN/NEW/CONTINUE, streams and
+- Native DEF FN/FN, tape/file-management commands inside the BASIC
+  source (LOAD/SAVE/VERIFY/MERGE), streams and
   Microdrive/disk/128K extensions. Host-side tape generation is implemented.
 - Automatic contextual short-name allocation; explicit aliases are required.
 - Array/slice compound assignments and recursive local function frames.
@@ -141,6 +151,76 @@ Not implemented in this preview:
 Unsupported native words are rejected rather than advertised as working.
 The tokenizer is not a complete Sinclair syntax checker: errors in supported
 expressions can still be reported by the ROM when the program runs.
+
+## Chained statements, native control commands and BIN
+
+`:` separates statements without adding a BASIC line number:
+
+```basic
+counter=1:counter+=2:PRINT counter:STOP
+```
+
+becomes `10 LET counter=1:LET counter=counter+(2):PRINT counter:STOP`.
+For `IF condition THEN ...`, the entire remaining line stays conditional,
+as on the Spectrum; the converter does not split it into unconditional lines.
+Colons inside strings are literal text. REM consumes the rest of the line,
+including any colons or words that would otherwise be commands.
+The existing Dignified core normalizes `::` to `:`; direct classic ASP input
+rejects an empty statement. A trailing `:` is rejected in both paths.
+
+| Form | Sinclair behavior |
+| --- | --- |
+| `RUN` / `RUN expression` | Clears variables/display and starts execution at the beginning or the requested line |
+| `LIST` / `LIST expression` | Lists from the beginning or the requested line |
+| `NEW` | Deletes the in-memory program and variables; use with care |
+| `CONTINUE` | Resumes according to the ROM's saved stop/error state |
+| `OUT port,value` | Writes a byte to an I/O port, not to RAM |
+
+RUN/LIST accept one optional numeric expression; in DSP, `RUN {label}` and
+`LIST {label}` resolve to the numbered destination. They are not GO TO
+aliases: in particular, RUN resets variables and clears the display.
+NEW and CONTINUE take no
+arguments. OUT requires two expressions separated by a top-level comma;
+commas inside function calls or strings are not argument separators.
+These new commands must start a statement (line start, after `:` or THEN).
+Argument counts and balanced parentheses are checked. Complete expression
+syntax/types and runtime limits remain the ROM's responsibility, just as
+for the existing supported commands. For OUT the ROM accepts ports 0..65535
+and byte values -255..255 after its numeric conversion.
+These commands execute inside the emulated Spectrum; they are not host
+converter/emulator controls. `LIST #stream` remains unsupported.
+
+`BIN` introduces a literal, not a conversion function:
+
+```basic
+mask=BIN 00000101:mask+=BIN 10:PRINT mask
+```
+
+This prints 7. The source must contain at least one binary digit. The
+tokenizer emits token C4, the original digits and marker 0E followed by the
+five-byte representation of the binary value: `BIN 1010` caches decimal 10,
+not 1010. Values must fit 0..65535; extra leading zeroes are allowed.
+Spaces between bits are accepted; tabs are normalized to spaces in classic
+input, consistently with other source whitespace.
+Invalid digits, fractional/exponent forms, missing digits and overflow
+are rejected. Write `-BIN 10` for a negative expression, not `BIN -10`.
+Strings and REM text containing BIN are left literal.
+
+Generate the new demonstration with:
+
+```powershell
+python -B badig.py examples\zxspectrum\native.DSP -id zxspectrum --tk_tokenize --tk_format both -rh
+```
+
+Its expected execution prints `BIN 7`, `CHAIN OK`, `A:B` and
+`PRESS A KEY TO LIST`, then pauses for inspection. Press a key to list the
+final PRINT/STOP lines; `PRESS A KEY TO RUN` introduces a second pause.
+Press another key to RUN the `finish` label: the display is cleared and
+`DONE` is printed. The pauses allow inspection before LIST and RUN.
+OUT 254,1 selects a blue border without enabling the beeper.
+Its TAP/TZX conversion is tested; **manual execution of this new 1.6.0
+example remains pending**. The previously reported 16 passes apply only
+to the four older demos.
 
 ## Installation
 
@@ -396,7 +476,10 @@ strings/REM, aliases/macros, reports, CLI/remtags, TAP fields/checksums and
 negative cases. The original manuals are also compared with the base to
 ensure their original lines remain in order.
 
-For 1.5.1, 35 Python automated tests passed, including shared failures,
+For 1.6.0, 41 Python automated tests passed. New coverage checks fixed BIN
+bytes/values, malformed and overflowing binary literals, native command
+arity/context, macros, label destinations and chained statements in
+Dignified and classic input. The existing regressions include shared failures,
 quiet mode, INI dialect selection, resetting the policy between selections,
 successful help/INI writing, and legacy MSX/CoCo error exits.
 Focused MSX/CoCo conversions
@@ -423,6 +506,7 @@ containers, and loading with/without BASIC autorun.
 This is user-reported manual validation of loading, listing and expected
 output; it is not automated ROM execution coverage or certification of
 every supported command.
+The new native/BIN example is not included in that historical manual matrix.
 
 The 1.5.0 launcher was
 also tested with the installed EightyOne 1.41: a responsive main window
@@ -440,12 +524,13 @@ Delivered module milestones:
 | 1.4.0 | Dignified conveniences and broader compatibility |
 | 1.5.0 | Autorun, isolated-profile launcher, editor packages and distribution |
 | 1.5.1 | Consistent Spectrum fatal exits, preserving legacy defaults |
+| 1.6.0 | Chaining regressions, RUN/LIST/NEW/CONTINUE/OUT, BIN and editor updates |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.5.1 are implemented.
-The manual example/TAP/TZX validation and Spectrum error-exit correction
-are complete. Follow-up priorities are remaining native keywords,
-native FN/BIN support, and graphics/UDG escapes.
+version. Versions 1.1.0 through 1.6.0 are implemented.
+The original four-demo manual validation and Spectrum error-exit correction
+are complete. Follow-up priorities are manual validation of the new demo,
+native DEF FN/FN, remaining native keywords and graphics/UDG escapes.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).
@@ -455,5 +540,9 @@ Technical references:
 - [Sinclair manual: program structure](https://worldofspectrum.org/ZXBasicManual/zxmanchap2.html)
 - [Sinclair manual: expressions and names](https://worldofspectrum.org/ZXBasicManual/zxmanchap7.html)
 - [Sinclair manual: memory and numbers](https://worldofspectrum.org/ZXBasicManual/zxmanchap24.html)
+- [Sinclair manual: command reference](https://worldofspectrum.org/ZXBasicManual/zxmanappc.html)
+- [ROM: BIN conversion and overflow](https://skoolkid.github.io/rom/asm/2C9B.html)
+- [ROM: hidden numeric records](https://skoolkid.github.io/rom/asm/268D.html)
+- [ROM: RUN](https://skoolkid.github.io/rom/asm/1EA1.html)
 - [Spectrum tape formats](https://worldofspectrum.org/faq/reference/formats.htm)
 - [EightyOne project](https://sourceforge.net/projects/eightyone-sinclair-emulator/)

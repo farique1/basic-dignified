@@ -213,7 +213,7 @@ Helps **automate** the conversion of large **programs** or **libraries**.
 **[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
 Another tool made **for** Basic Dignified that **can** be used **independently**.  
 Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
-## Addition: ZX Spectrum tools, v1.5.1 preview
+## Addition: ZX Spectrum tools, v1.6.0 preview
 
 This section supplements, and does not replace, the original MSX/CoCo
 tool descriptions above.

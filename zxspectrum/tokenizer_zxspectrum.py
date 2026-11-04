@@ -32,16 +32,18 @@ SUPPORTED = frozenset((
     'GO SUB', 'RETURN', 'FOR', 'NEXT', 'TO', 'STEP',
     'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
     'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
-    'CIRCLE', 'POKE', 'CLEAR',
+    'CIRCLE', 'POKE', 'CLEAR', 'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'BIN',
 ) + FUNCTIONS)
 STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
                         'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
                         'GO SUB', 'RETURN', 'FOR', 'NEXT',
                         'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
                         'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
-                        'CIRCLE', 'POKE', 'CLEAR'))
+                        'CIRCLE', 'POKE', 'CLEAR', 'RUN', 'LIST', 'NEW',
+                        'CONTINUE', 'OUT'))
 NUMBER = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', re.ASCII)
 WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
+BINARY_NUMBER = re.compile(r'[ \t]*([01](?:[ \t]*[01])*)')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
 COMPOUND = re.compile(r'(GO\s+(?:TO|SUB)|DEF\s+FN|OPEN\s*#|CLOSE\s*#)\b', re.I)
 
@@ -116,6 +118,38 @@ def validate_identifier(name, array=False, for_control=False):
             f'{category} require a single letter: {name}; use an explicit DECLARE alias')
 
 
+def _validate_command_arguments(command, text):
+    arguments = []
+    start = 0
+    depth = 0
+    end = len(text)
+    for match in re.finditer(r'"(?:[^"]|"")*"|[(),:]', text):
+        symbol = match.group()
+        if symbol == ':':
+            end = match.start()
+            break
+        if symbol == '(':
+            depth += 1
+        elif symbol == ')':
+            depth -= 1
+            if depth < 0:
+                raise SpectrumTokenizeError(f'{command}: unbalanced parentheses')
+        elif symbol == ',' and depth == 0:
+            arguments.append(text[start:match.start()].strip())
+            start = match.end()
+    if depth:
+        raise SpectrumTokenizeError(f'{command}: unbalanced parentheses')
+    arguments.append(text[start:end].strip())
+    if arguments == ['']:
+        arguments = []
+    if command in ('NEW', 'CONTINUE') and arguments:
+        raise SpectrumTokenizeError(f'{command} takes no arguments')
+    if command in ('RUN', 'LIST') and len(arguments) > 1:
+        raise SpectrumTokenizeError(f'{command} takes at most one expression')
+    if command == 'OUT' and (len(arguments) != 2 or not all(arguments)):
+        raise SpectrumTokenizeError('OUT requires two expressions separated by a comma')
+
+
 def tokenize_line(text):
     result = bytearray()
     index = 0
@@ -140,7 +174,30 @@ def tokenize_line(text):
                         f'{keyword} is not supported in Spectrum v{VERSION}')
                 if at_statement and keyword not in STATEMENTS:
                     raise SpectrumTokenizeError(f'Expected a statement, got {keyword}')
+                if keyword in ('RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT'):
+                    if not at_statement:
+                        raise SpectrumTokenizeError(f'{keyword} must start a statement')
+                    _validate_command_arguments(keyword, text[match.end():])
                 result.append(TOKEN_CODES[keyword])
+                if keyword == 'BIN':
+                    binary = BINARY_NUMBER.match(text, match.end())
+                    if not binary:
+                        raise SpectrumTokenizeError('BIN requires binary digits 0 or 1')
+                    suffix = text[binary.end():]
+                    following = suffix.lstrip(' \t')
+                    if (suffix and (suffix[0].isalnum() or suffix[0] in '._$')) \
+                            or (following and following[0] in '0123456789.'):
+                        raise SpectrumTokenizeError('Invalid BIN literal: use only binary digits')
+                    digits = binary.group(1).replace(' ', '').replace('\t', '').lstrip('0')
+                    if len(digits) > 16:
+                        raise SpectrumTokenizeError('BIN value exceeds 65535')
+                    result.extend(encode_text(binary.group().replace('\t', ' ')))
+                    result.append(0x0E)
+                    result.extend(encode_number(str(int(digits or '0', 2))))
+                    index = binary.end()
+                    at_statement = False
+                    previous_keyword = None
+                    continue
                 if keyword == 'REM':
                     result.extend(encode_text(text[match.end():]))
                     return bytes(result) + b'\x0d'

@@ -42,9 +42,10 @@ class Description(MSXDescription):
                         'PAPER', 'PAUSE', 'BEEP', 'INPUT', 'RETURN', 'FOR', 'NEXT',
                         'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
                         'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER',
-                        'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR', '?']
+                        'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR',
+                        'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', '?']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
-        operators = ['AND', 'OR', 'NOT']
+        operators = ['AND', 'OR', 'NOT', 'BIN']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
                    '-', ',', '(', ')', ';', "'", '#']
         self.c_reserved_kw = instructions + jumps + operators + list(FUNCTIONS) + ['REM']

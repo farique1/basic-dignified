@@ -99,7 +99,7 @@ If there is a **folder** called `User`, **open** it, if not, **create** one and 
 Sublime Text **should** correctly **interpret** the **Dignified** and **classic** Basic files based on their **extension** but you might have to **manually** chose them the first time you **create** or **open** one. With a **Dignified** or **classic** Basic file **opened**, click on the **bottom left** of Sublime Text (it should be reading `Plain Text`) and go to `Open all with the current extension as...` at the **top** of the **list**, then go to `User` and **select** the **appropriated** syntax description (`MSX Basic classic` or `MSX Basic Dignified`).  
 
 See [the code editor integration section](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md) on how to **use** the Sublime Package.  
-## Addition: ZX Spectrum module v1.5.1 preview
+## Addition: ZX Spectrum module v1.6.0 preview
 
 The original installation instructions above are unchanged.
 The Spectrum fork preview uses Python 3.8+ and no additional packages.

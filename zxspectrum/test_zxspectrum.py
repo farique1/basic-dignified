@@ -17,6 +17,53 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class TokenizerTests(unittest.TestCase):
+    def test_binary_literals_use_binary_values_in_rom_number_records(self):
+        self.assertEqual(
+            tokenize('10 PRINT BIN 1010'),
+            bytes.fromhex('000a0f00f520c420313031300e00000a00000d'))
+        for digits, number in (
+                ('0', '0000000000'), ('1', '0000010000'),
+                ('1111111111111111', '0000ffff00'),
+                ('00000000000000001', '0000010000'),
+                ('0' * 64, '0000000000'), ('1 0\t1 0', '00000a0000')):
+            with self.subTest(digits=digits):
+                expected = b'\xf5 \xc4 ' + digits.replace('\t', ' ').encode('ascii') + b'\x0e'
+                self.assertEqual(tokenize('10 PRINT BIN ' + digits)[4:],
+                                 expected + bytes.fromhex(number) + b'\x0d')
+        self.assertEqual(
+            tokenize('10 PRINT "BIN 102:":REM BIN 2')[4:],
+            b'\xf5 "BIN 102:":\xea BIN 2\x0d')
+
+    def test_binary_literals_reject_missing_invalid_and_overflowing_digits(self):
+        for expression in ('BIN', 'BIN 2', 'BIN 102', 'BIN 1 2', 'BIN 10.1',
+                           'BIN 10E2', 'BIN 10x', 'BIN -1', 'BIN "10"',
+                           'BIN (10)', 'BIN 10000000000000000'):
+            with self.subTest(expression=expression):
+                with self.assertRaises(SpectrumTokenizeError):
+                    tokenize('10 PRINT ' + expression)
+
+    def test_native_control_and_port_commands(self):
+        for command, expected in (
+                ('RUN', b'\xf7'), ('LIST', b'\xf0'), ('NEW', b'\xe6'),
+                ('CONTINUE', b'\xe8')):
+            with self.subTest(command=command):
+                self.assertEqual(tokenize('10 ' + command)[4:], expected + b'\x0d')
+        self.assertEqual(
+            tokenize('10 OUT 254,1')[4:],
+            b'\xdf 254\x0e\x00\x00\xfe\x00\x00,1\x0e\x00\x00\x01\x00\x00\x0d')
+        for statement in ('RUN start+10', 'LIST ABS (-10)', 'OUT ATTR (0,0),BIN 1',
+                          'LIST VAL "10"', 'OUT CODE ",",1'):
+            with self.subTest(statement=statement):
+                self.assertTrue(tokenize('10 ' + statement))
+
+    def test_native_commands_check_argument_structure_and_statement_context(self):
+        for statement in ('NEW 1', 'CONTINUE 1', 'RUN 1,2', 'LIST 1,2',
+                          'OUT', 'OUT 254', 'OUT ,1', 'OUT 254,', 'OUT 1,2,3',
+                          'OUT (1,2', 'OUT 1),2', 'PRINT RUN', 'LET x=LIST'):
+            with self.subTest(statement=statement):
+                with self.assertRaises(SpectrumTokenizeError):
+                    tokenize('10 ' + statement)
+
     def test_known_rom_tokens_and_line_layout(self):
         self.assertEqual(
             tokenize('10 PRINT "HI"\n20 STOP'),
@@ -136,6 +183,54 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_chained_statements_preserve_if_strings_rem_and_normalization(self):
+        for source, expected in (
+                ('counter=1:counter+=2:PRINT counter:STOP\n',
+                 '10 LET counter=1:LET counter=counter+(2):PRINT counter:STOP'),
+                ('IF 1 THEN PRINT "YES":counter=2:PRINT counter\n',
+                 '10 IF 1 THEN PRINT "YES":LET counter=2:PRINT counter'),
+                ('PRINT "A:B":REM BIN 2:CAT\n',
+                 '10 PRINT "A:B":REM  BIN 2:CAT'),
+                ('PRINT 1::PRINT 2\n', '10 PRINT 1:PRINT 2')):
+            with self.subTest(source=source):
+                result, listing, tape = self.convert(source, '-rh')
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(listing.strip(), expected)
+                self.assertEqual(tape[24:-1], tokenize(expected))
+        for source in ('PRINT 1:CAT\n', 'PRINT 1:counter+=\n', 'PRINT 1:\n'):
+            with self.subTest(source=source):
+                result, _, tape = self.convert(source, '-rh')
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertFalse(tape)
+        for source in ('10 PRINT 1::PRINT 2\n', '10 PRINT 1:\n'):
+            result, _, tape = self.convert(source, classic=True)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertFalse(tape)
+
+    def test_native_commands_binary_macros_labels_and_compound_rhs(self):
+        result, listing, tape = self.convert(
+            'DEFINE [mask] [BIN 1010]\n'
+            'value=[mask]:value+=BIN 10:PRINT value\n'
+            'LIST {done}:RUN {done}\n'
+            '{done}\nOUT 254,BIN 001\nNEW:CONTINUE\n', '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('LET value=BIN 1010:LET value=value+(BIN 10)', listing)
+        self.assertIn('20 LIST 30:RUN 30', listing)
+        self.assertIn('30 OUT 254,BIN 001', listing)
+        self.assertIn('40 NEW:CONTINUE', listing)
+        self.assertEqual(tape[24:-1], tokenize(listing))
+        for source in ('OUT 254\n', 'NEW 1\n', 'PRINT BIN 102\n', 'PRINT 1:BIN 1\n'):
+            for tokenized in (True, False):
+                with self.subTest(source=source, tokenized=tokenized):
+                    result, listing, tape = self.convert(source, '-rh', tokenized=tokenized)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertFalse(listing)
+                    self.assertFalse(tape)
+        source = '10 PRINT BIN 1010:OUT 254,1\n20 LIST:RUN 10\n30 NEW:CONTINUE\n'
+        result, _, tape = self.convert(source, classic=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(tape[24:-1], tokenize(source))
+
     def test_shared_errors_exit_nonzero(self):
         cases = (
             ('GO TO {missing}\n', 'Label does not exist'),

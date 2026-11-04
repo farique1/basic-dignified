@@ -69,7 +69,7 @@ Thanks.
 ## ZX Spectrum addition (fork preview)
 
 The original documentation above is preserved. This fork adds an
-independently versioned **ZX Spectrum module v1.5.1 preview** for the
+independently versioned **ZX Spectrum module v1.6.0 preview** for the
 48K English-ROM machine: Dignified -> numbered BASIC -> **TAP/TZX**,
 with strings/arrays, loops, DATA, native functions and Dignified conveniences.
 

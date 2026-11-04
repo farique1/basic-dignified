@@ -1,7 +1,7 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data: 2026-11-04.
-Estado: marcos implementados ate modulo Spectrum v1.5.1 preview.
+Estado: marcos implementados ate modulo Spectrum v1.6.0 preview.
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -29,12 +29,20 @@ configuracao passam a retornar 1 no Spectrum, inclusive com -vb 0.
 Ajuda/versao/escrita de INI mantem sucesso 0; MSX/CoCo mantem a politica
 original. Sem novos comandos, alteracoes nas fitas ou nos pacotes de editor.
 
+Atualizacao 1.6.0: testes permanentes de encadeamento com :, IF/THEN,
+strings/REM e erros apos separadores. RUN/LIST/NEW/CONTINUE/OUT e BIN
+implementados, com validacao estrutural de argumentos e cache numerico
+Sinclair correto para binarios 0..65535. RUN/LIST aceitam labels.
+41 testes Python aprovados; VS Code/VSIX e Sublime atualizados.
+Nova demo native em DSP/ASP/TAP/TZX; execucao manual ainda pendente.
+DEF FN/FN fica para uma entrega propria.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.5.1; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.6.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -48,7 +56,9 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] Pacotes de editor e distribuicao independente.
 - [x] Validacao manual das quatro demos em TAP/TZX, com/sem autorun: 16 OK.
 - [x] Retorno de erro consistente no fluxo Spectrum, com 35 testes aprovados.
-- [ ] Demais keywords, DEF FN/BIN, streams e escapes graficos/UDG.
+- [x] Encadeamento com :, novos comandos e BIN, com 41 testes aprovados.
+- [ ] Validacao manual da nova demo native (TAP/TZX, com/sem autorun).
+- [ ] DEF FN/FN, demais keywords, streams e escapes graficos/UDG.
 
 O detalhamento do comportamento implementado esta em
 [documentation/ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md).

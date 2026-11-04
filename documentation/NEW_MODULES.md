@@ -133,7 +133,7 @@ The structure of the lexer and parser on the main Basic Dignified and MSX module
 Note:
 Standardize `em_run` and `tk_tokenize` arguments when available so the build systems are compatible. -->
 
-## Addition: Spectrum module example, v1.5.1 preview
+## Addition: Spectrum module example, v1.6.0 preview
 
 The original overview above remains unchanged. The new `zxspectrum`
 package provides a small working example of the dynamic module contract:
