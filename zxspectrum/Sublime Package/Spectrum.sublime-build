@@ -1,0 +1,5 @@
+{
+  "cmd": ["python", "-B", "badig.py", "$file", "-id", "zxspectrum", "--tk_tokenize", "--tk_format", "both"],
+  "working_dir": "$project_path",
+  "selector": "source.basic.spectrum"
+}

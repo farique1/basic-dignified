@@ -4,7 +4,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
+from . import emulator_interface, tokenizer_interface
 from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
 from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, tokenize
 
@@ -72,6 +75,21 @@ class TokenizerTests(unittest.TestCase):
 
 
 class TapeTests(unittest.TestCase):
+    def test_autorun_header_and_validation(self):
+        program = tokenize('10 STOP')
+        for line in (0, 10, 9999):
+            with self.subTest(line=line):
+                tap = make_tap(program, 'RUN', line)
+                self.assertEqual(struct.unpack_from('<H', tap, 16)[0], line)
+                checksum = 0
+                for byte in tap[2:21]:
+                    checksum ^= byte
+                self.assertEqual(checksum, 0)
+                self.assertEqual(make_tzx(program, 'RUN', line)[13:34], tap[:21])
+        for line in (-1, 10000, '10', True):
+            with self.assertRaises(SpectrumTokenizeError):
+                make_tap(program, 'RUN', line)
+
     def test_tzx_standard_blocks_match_tap(self):
         program = tokenize('10 STOP')
         tap = make_tap(program, 'HI')
@@ -117,6 +135,24 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_autorun_cli_and_remtag_precedence(self):
+        result, _, tape = self.convert('##BB:tk_autorun=20\nSTOP\n', '--tk_autorun', '10')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(struct.unpack_from('<H', tape, 16)[0], 20)
+        for value in ('-2', '10000', 'oops'):
+            result, _, tape = self.convert(f'##BB:tk_autorun={value}\nSTOP\n')
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(tape)
+
+    def test_emulator_remtag_can_disable_launch(self):
+        result, _, tape = self.convert(
+            '##BB:em_run=False\nSTOP\n', '--em_run', '--em_path', 'missing.exe')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(tape)
+        result, _, tape = self.convert('##BB:em_run=maybe\nSTOP\n')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(tape)
+
     def test_implicit_let_compounds_and_dignified_function(self):
         source = (ROOT / 'examples' / 'zxspectrum' / 'functions.DSP').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh')
@@ -310,6 +346,85 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('LET n$="OK"', listing)
         self.assertTrue(tape)
+
+
+class EmulatorTests(unittest.TestCase):
+    def test_launch_uses_private_profile_and_argv_with_spaces(self):
+        with tempfile.TemporaryDirectory(prefix='Spectrum emulator ') as folder:
+            root = Path(folder)
+            original = root / 'original.ini'
+            original.write_text('[HARDWARE]\nMachineName=48K Spectrum\n'
+                                '[TZXMAN]\nAutoLoad=0\n', encoding='ascii')
+            before = original.read_bytes()
+            settings = SimpleNamespace(path=root / 'Eighty One.exe', setting=original)
+            tape = root / 'my tape.tap'
+            tape.write_bytes(make_tap(tokenize('10 STOP'), 'TEST', 0))
+            copied = []
+
+            def launch(arguments, **options):
+                self.assertEqual(arguments[0], str(settings.path))
+                self.assertEqual(arguments[2], str(tape.resolve()))
+                self.assertEqual(options, {'cwd': root})
+                private = Path(arguments[1])
+                self.assertNotEqual(private, original)
+                self.assertIn('autoload = 1', private.read_text(encoding='ascii'))
+                copied.append(private)
+                process = MagicMock()
+                process.__enter__.return_value.wait.return_value = 0
+                return process
+
+            with patch.object(emulator_interface.subprocess, 'Popen', side_effect=launch):
+                emulator_interface.run(SimpleNamespace(verbose_level=0), settings, tape)
+            self.assertEqual(original.read_bytes(), before)
+            self.assertFalse(copied[0].exists())
+
+    def test_launch_errors_are_not_success(self):
+        settings = SimpleNamespace(
+            path=Path('missing.exe'),
+            setting=ROOT / 'zxspectrum' / 'eightyone48.ini')
+        with patch.object(emulator_interface.subprocess, 'Popen', side_effect=OSError('missing')):
+            with self.assertRaises(SystemExit) as failure:
+                emulator_interface.run(SimpleNamespace(verbose_level=0), settings, Path('demo.tap'))
+            self.assertEqual(failure.exception.code, 1)
+        with patch.object(emulator_interface.subprocess, 'Popen') as launch:
+            process = launch.return_value.__enter__.return_value
+            process.wait.return_value = 7
+            with self.assertRaises(SystemExit) as failure:
+                emulator_interface.run(SimpleNamespace(verbose_level=0), settings, Path('demo.tap'))
+            self.assertEqual(failure.exception.code, 1)
+        with patch.object(emulator_interface.subprocess, 'Popen') as launch:
+            process = launch.return_value.__enter__.return_value
+            process.wait.side_effect = [KeyboardInterrupt, 0]
+            with self.assertRaises(SystemExit) as failure:
+                emulator_interface.run(SimpleNamespace(verbose_level=0), settings, Path('demo.tap'))
+            self.assertEqual(failure.exception.code, 1)
+            process.terminate.assert_called_once_with()
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'zx81.ini'
+            profile.write_text('[HARDWARE]\nMachineName=ZX81\n', encoding='ascii')
+            settings.setting = profile
+            with patch.object(emulator_interface.subprocess, 'Popen') as launch:
+                with self.assertRaises(SystemExit):
+                    emulator_interface.run(SimpleNamespace(verbose_level=0), settings, Path('demo.tap'))
+                launch.assert_not_called()
+
+    def test_em_run_forces_tape_and_defaults_to_autorun(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'demo.ASP'
+            source.write_text('10 STOP\n', encoding='ascii')
+            stg = SimpleNamespace(
+                file_save=str(source), verbose_level=0, code_remtags={},
+                args=SimpleNamespace(tk_name=None, tk_tokenize=None,
+                                     tk_format='both', tk_autorun=None))
+            tapes = tokenizer_interface.Run(stg).run(force=True)
+            self.assertEqual([path.suffix for path in tapes], ['.tap', '.tzx'])
+            self.assertEqual(struct.unpack_from('<H', tapes[0].read_bytes(), 16)[0], 0)
+            stg.code_remtags['TK_AUTORUN'] = '-1'
+            tokenizer_interface.Run(stg).run(force=True)
+            self.assertEqual(struct.unpack_from('<H', tapes[0].read_bytes(), 16)[0], 32768)
+            stg.code_remtags['TK_TOKENIZE'] = 'False'
+            with self.assertRaises(SystemExit):
+                tokenizer_interface.Run(stg).run(force=True)
 
 
 if __name__ == '__main__':

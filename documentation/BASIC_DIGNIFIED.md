@@ -732,13 +732,14 @@ They are commonly used at the start of the Dignified code:
   
   > Command line arguments and remtags can be **expanded** by **exposing** new ones on **language** and **tools** modules.  
 	See the [modules section](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for an explanation of their **exposed** configs.  
-## Addition: ZX Spectrum dialect, v1.1.0 preview
+## Addition: ZX Spectrum dialect, v1.5.0 preview
 
 The original MSX/CoCo manual above is preserved. The new Spectrum module
-implements only the first 48K milestone, not every feature described above.
+implements the documented 48K subset, not every MSX/CoCo feature above.
 
-Use `-id zxspectrum`, `.DSP` source and explicit LET. Supported native
-statements are PRINT, LET, IF, GO TO (GOTO alias), REM, CLS and STOP.
+Use `-id zxspectrum` and `.DSP` source. LET is optional in Dignified source.
+Supported statements include PRINT, IF, GO TO/GO SUB, FOR/NEXT, DIM,
+DATA/READ/RESTORE, graphics and sound commands.
 Labels are resolved by the existing Dignified passes. Numeric scalars can
 have native long alphanumeric names; snake_case names need explicit DECLARE
 aliases. TRUE is 1, FALSE is 0, and apostrophe is a PRINT separator, not REM.
@@ -752,8 +753,10 @@ IF counter<=3 THEN GO TO {again}
 STOP
 ```
 
-String variables, arrays, native functions, DATA, implicit LET, FUNC/RET
-and full command coverage remain pending.
+String variables, arrays, native functions, DATA, implicit LET, scalar
+compounds and FUNC/RET are supported. Strings/arrays/FOR controls require
+single-letter native names or explicit DECLARE aliases. `[?](row,column)`
+uses Sinclair PRINT AT ordering. Full command coverage remains pending.
 Read the [Spectrum manual](ZX_SPECTRUM.md) before applying MSX-specific
 shortcuts or assumptions to this preview.
   

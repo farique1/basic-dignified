@@ -1,0 +1,22 @@
+{
+  "Spectrum loop": {
+    "prefix": "for",
+    "body": ["FOR ${1:i}=1 TO ${2:10}", "    $0", "NEXT ${1:i}"],
+    "description": "FOR/NEXT with a single-letter control"
+  },
+  "Spectrum label jump": {
+    "prefix": "goto",
+    "body": ["GO TO {${1:label}}"],
+    "description": "Dignified label jump"
+  },
+  "Spectrum positioned print": {
+    "prefix": "printat",
+    "body": ["[?](${1:row},${2:column}) \"${3:text}\"$0"],
+    "description": "PRINT AT row,column"
+  },
+  "Spectrum string alias": {
+    "prefix": "declarestr",
+    "body": ["DECLARE ${1:title}:${2:n}", "LET ${1:title}\\$=\"${3:text}\"$0"],
+    "description": "Explicit single-letter alias for a long string name"
+  }
+}

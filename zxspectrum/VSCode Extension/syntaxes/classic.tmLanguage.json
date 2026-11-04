@@ -1,0 +1,4 @@
+{
+  "scopeName": "source.basic.spectrum.classic",
+  "patterns": [{"include": "source.basic.spectrum"}]
+}

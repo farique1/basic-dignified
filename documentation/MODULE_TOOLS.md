@@ -213,7 +213,7 @@ Helps **automate** the conversion of large **programs** or **libraries**.
 **[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
 Another tool made **for** Basic Dignified that **can** be used **independently**.  
 Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
-## Addition: ZX Spectrum tools, v1.1.0 preview
+## Addition: ZX Spectrum tools, v1.5.0 preview
 
 This section supplements, and does not replace, the original MSX/CoCo
 tool descriptions above.
@@ -223,11 +223,16 @@ from the generated `.ASP` listing or from numbered classic input (`-asc`).
 `--tk_name` sets its 1..10-character ASCII tape name.
 Defaults live in `zxspectrum\tokenizer_interface.ini`; remtags are
 `##BB:tk_tokenize=True|False` and `##BB:tk_name=MY TAPE`.
+`--tk_format tap|tzx|both` selects containers; `--tk_autorun -1|0..9999`
+selects optional BASIC autorun. Equivalent remtags: TK_FORMAT and TK_AUTORUN.
 
 The initial tape contains a BASIC program header and data block with
-Sinclair numeric representations and XOR checksums. BASIC autorun is disabled.
-TZX, `--em_run` and emulator monitoring are not implemented in this preview.
-Use manual loading on EightyOne configured for Spectrum 48K.
+Sinclair numeric representations and XOR checksums. BASIC autorun is disabled by default.
+TZX 1.20 uses standard-speed blocks. `--em_run --em_path PATH` opens
+EightyOne on Windows with a private copy of a Spectrum 48K profile.
+EM_RUN, EM_PATH and EM_SETTING remtags override CLI and INI.
+The launcher waits for the emulator to close; ROM runtime-error monitoring
+is not implemented. Manual loading remains available.
 
 See the [Spectrum manual](ZX_SPECTRUM.md) for examples and limitations.
   

@@ -82,4 +82,16 @@ Set `##` as the **default comment** of the Dignified Basic.
 There is **no block comment** but **all lines** selected will be **commented**.  
   
 There is no **classic Basic** comment preference as I couldn't find a way to **insert** the `REM` or `'` **AFTER** the line number.  
+
+## Addition: ZX Spectrum editors, v1.5.0 preview
+
+The original MSX/CoCo integration above is unchanged.
+Spectrum provides a separate offline VSIX with DSP/ASP highlighting,
+single-letter FOR snippets, label jumps, string aliases and PRINT AT.
+Install from VSIX and merge the supplied tasks rather than replacing your
+workspace configuration. Set Python, badig.py and EightyOne paths explicitly.
+
+The Spectrum Sublime syntax/build templates are independent of the original
+packages. Open the converter repository root as the project folder for its
+build template. See the [Spectrum manual](ZX_SPECTRUM.md#editor-integration-and-distribution).
   

@@ -133,12 +133,12 @@ The structure of the lexer and parser on the main Basic Dignified and MSX module
 Note:
 Standardize `em_run` and `tk_tokenize` arguments when available so the build systems are compatible. -->
 
-## Addition: Spectrum module example, v1.1.0 preview
+## Addition: Spectrum module example, v1.5.0 preview
 
 The original overview above remains unchanged. The new `zxspectrum`
 package provides a small working example of the dynamic module contract:
 `badig_zxspectrum.py`, `tools_zxspectrum.py`, `tokenizer_interface.py`,
-`tokenizer_zxspectrum.py` and `tape_zxspectrum.py`.
+`tokenizer_zxspectrum.py`, `tape_zxspectrum.py` and `emulator_interface.py`.
 
 Two optional core hooks are used without changing MSX/CoCo defaults:
 
@@ -150,5 +150,7 @@ Two optional core hooks are used without changing MSX/CoCo defaults:
 These hooks are compatible with the corresponding ZX81 branch hooks;
 the ZX81 implementation itself is not merged into this branch.
 Spectrum inherits existing class scaffolding but supplies its own lexical
-groups, scalar-name policy, number encoding and TAP structure.
+groups, category-aware name validation, number encoding and TAP/TZX structure.
+The emulator adapter copies profiles into a temporary directory, passes
+arguments without a shell, waits for exit and reports failures explicitly.
 See the [Spectrum manual](ZX_SPECTRUM.md) and [implementation plan](../OUTLINE.md).

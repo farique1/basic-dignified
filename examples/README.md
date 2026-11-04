@@ -50,6 +50,10 @@ The original MSX/CoCo examples above are preserved.
 
 - [hello.DSP](zxspectrum/hello.DSP): first Dignified example, using explicit
   LET, a long numeric scalar name and IF/GO TO with a label.
+- [colours.DSP](zxspectrum/colours.DSP): colours, FOR/NEXT, sound, GO SUB/RETURN.
+- [data.DSP](zxspectrum/data.DSP): strings, arrays, DATA/READ and native functions.
+- [functions.DSP](zxspectrum/functions.DSP): implicit LET, compounds, PRINT AT,
+  Dignified FUNC/RET. Its expected SCORE is 10, followed by answer 20.
 - [hello.ASP](zxspectrum/hello.ASP): numbered listing generated with `-rh -ca`.
 - [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
 
@@ -59,4 +63,8 @@ python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize -r
 
 Expected output: SPECTRUM 1, SPECTRUM 2, SPECTRUM 3, then DONE.
 Load manually in EightyOne configured for Spectrum 48K and enter RUN.
+Each example has generated ASP/TAP/TZX companions; use `--tk_format both`
+to regenerate both tape containers. The initial hello TAP was manually
+validated by the user. Other examples have conversion/format checks, not
+an independent claim of execution in the emulator.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

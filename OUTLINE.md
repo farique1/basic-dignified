@@ -1,7 +1,7 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data: 2026-11-04.
-Estado: primeiro marco implementado como modulo Spectrum v1.1.0 preview.
+Estado: marcos implementados ate modulo Spectrum v1.5.0 preview.
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -13,25 +13,34 @@ Nomes restritos por categoria: usar DECLARE explicito para nomes longos
 de strings, arrays e controles FOR/NEXT.
 
 Atualizacao 1.4.0: LET implicito, compostos escalares com precedencia
-preservada, ? / [?](linha,coluna), FUNC/RET e comandos graficos basicos.
+preservada, `?` / `[?](linha,coluna)`, FUNC/RET e comandos graficos basicos.
 Compostos em arrays/slices sao rejeitados para nao reavaliar indices.
+
+Atualizacao 1.5.0: autorun opcional TAP/TZX; --em_run com perfil 48K
+temporario; extensao VS Code/VSIX e templates Sublime. Launcher real
+testado: janela responsiva, hello.TAP reconhecido e fechamento normal.
+Teste manual do usuario comprovou LOAD/LIST/RUN do hello inicial;
+execucao das novas demos/TZX e monitoramento automatico nao certificados.
 
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.1.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.5.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
 - [x] Tokenizador Sinclair e TAP, com vetores fixos e testes de integracao.
 - [x] Exemplo hello em DSP/ASP/TAP e manual aditivo, sem substituir o original.
-- [ ] TZX e todos os demais comandos: proximas entregas.
-- [ ] Strings/arrays/FOR, DATA, funcoes nativas e Dignified FUNC/RET.
-- [ ] LET implicito, operadores compostos, PRINT AT, graficos/UDG.
-- [ ] Autorun e interface automatica com EightyOne.
-- [ ] Validacao pratica de carga/execucao no EightyOne.
+- [x] TZX padrao e ampliacao documentada de comandos nativos.
+- [x] Strings/arrays/FOR, DATA, funcoes nativas e Dignified FUNC/RET.
+- [x] LET implicito, compostos escalares, PRINT AT e graficos basicos.
+- [x] Autorun e launcher EightyOne com perfil isolado.
+- [x] LOAD/LIST/RUN do hello inicial confirmado manualmente pelo usuario.
+- [x] Pacotes de editor e distribuicao independente.
+- [ ] Validacao manual das novas demos e TZX no emulador.
+- [ ] Demais keywords, DEF FN/BIN, streams e escapes graficos/UDG.
 
 O detalhamento do comportamento implementado esta em
 [documentation/ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md).

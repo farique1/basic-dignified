@@ -1,4 +1,4 @@
-"""First functional Sinclair BASIC 48K dialect."""
+"""Sinclair BASIC 48K dialect and Dignified transformations."""
 
 import argparse
 import re

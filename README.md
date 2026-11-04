@@ -69,12 +69,12 @@ Thanks.
 ## ZX Spectrum addition (fork preview)
 
 The original documentation above is preserved. This fork adds an
-independently versioned **ZX Spectrum module v1.1.0 preview** for the
-48K English-ROM machine: a first Dignified -> numbered BASIC -> **TAP**
-workflow with PRINT, explicit LET, IF/GO TO, REM, CLS and STOP.
+independently versioned **ZX Spectrum module v1.5.0 preview** for the
+48K English-ROM machine: Dignified -> numbered BASIC -> **TAP/TZX**,
+with strings/arrays, loops, DATA, native functions and Dignified conveniences.
 
 See the [Spectrum manual](documentation/ZX_SPECTRUM.md) for installation,
-supported syntax, commands, limitations and manual EightyOne loading.
-TZX and full Sinclair BASIC coverage are planned, not implemented in 1.1.0.
+supported syntax, commands, limitations, editor packages and isolated-profile
+EightyOne launch integration. Full Sinclair BASIC coverage is not claimed.
 The original suite remains v2.2.1; the MSX/CoCo defaults are unchanged.
   

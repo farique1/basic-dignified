@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.4.0 preview
+# ZX Spectrum module - v1.5.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -7,6 +7,25 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 `wilsonpilon/basic-dignified`.
 
 ## Status and scope
+
+Version 1.5.0 completes the five agreed milestones for the **48K English ROM**
+target. This is still a preview of a documented subset, not a claim of full
+Sinclair BASIC coverage. MSX/CoCo defaults and suite version 2.2.1 are unchanged.
+
+### Milestone 1.5.0
+
+- Optional BASIC autorun in TAP/TZX headers: `--tk_autorun 0` starts at the
+  first available line, `1..9999` selects a starting line, `-1` disables it.
+  Normal tape generation still defaults to disabled autorun.
+- Windows EightyOne integration with `--em_run --em_path "C:\zeddy\EightyOne.exe"`.
+  This enables tape generation and, unless explicitly overridden, autorun 0.
+  The converter waits for the emulator to close.
+- A private temporary copy of a 48K INI is used; original profiles are not
+  overwritten. FlashLoad/AutoStart/AutoLoad are enabled only in that copy.
+- VS Code extension source/VSIX, snippets and task templates; Sublime syntax
+  and build templates. Editor assets do not replace MSX/CoCo packages.
+
+## Release history
 
 ### Milestone 1.4.0
 
@@ -65,25 +84,34 @@ transaction across the pair.
 New commands: BORDER, INK, PAPER, PAUSE, BEEP, INPUT, GO SUB/GOSUB,
 RETURN, FOR/NEXT, TO and STEP. Use a single-letter FOR control variable.
 See [colours.DSP](../examples/zxspectrum/colours.DSP).
-The following sections describe the original 1.1.0 baseline; this
-milestone extends that subset and supersedes its TZX/loop limitations.
+The following reference describes the cumulative implementation, including
+these extensions to the original 1.1.0 baseline.
 
-Version **1.1.0** is the first functional milestone, not complete Sinclair
-BASIC support. It targets the **ZX Spectrum 48K with the English ROM**.
-It converts Dignified source to a numbered listing and optionally creates
-a standard ROM-loadable **TAP**. The first example prints a counter three
+## Supported language
+
+The module converts Dignified source to a numbered listing and optionally
+creates standard ROM-loadable **TAP and TZX**. The first example prints a counter three
 times using a jump label.
 
 Implemented:
 
 - `PRINT`, explicit `LET`, `IF ... THEN GO TO`, `GO TO`/`GOTO`, `REM`,
   `CLS`, `STOP`.
+- `BORDER`, `INK`, `PAPER`, `PAUSE`, `BEEP`, `INPUT`, `GO SUB`/`GOSUB`,
+  `RETURN`, `FOR`/`NEXT`, `TO`, `STEP`, `DIM`, `DATA`, `READ`, `RESTORE`,
+  `RANDOMIZE`, `PLOT`, `DRAW`, `CIRCLE`, `POKE`, `CLEAR`.
+- `AT`, `TAB`, `FLASH`, `BRIGHT`, `INVERSE`, `OVER`, including PRINT modifiers.
+- Functions: `RND`, `INKEY$`, `PI`, `POINT`, `SCREEN$`, `ATTR`, `VAL$`,
+  `CODE`, `VAL`, `LEN`, `SIN`, `COS`, `TAN`, `ASN`, `ACS`, `ATN`, `LN`,
+  `EXP`, `INT`, `SQR`, `SGN`, `ABS`, `PEEK`, `IN`, `USR`, `STR$`, `CHR$`.
 - Numeric expressions using `+ - * / ^`, comparisons, `AND`, `OR`, `NOT`
   and parentheses. Sinclair semantics apply, not MSX bitwise semantics.
 - Long **alphanumeric numeric scalar names**, without the MSX two-character
   aliasing limit. Names are case-insensitive in the Spectrum ROM.
 - Labels, DEFINE macros, explicit DECLARE aliases and INCLUDE through
   the shared Dignified pipeline.
+- String scalars, numeric/string arrays and slices; implicit LET, scalar
+  compound assignments, PRINT shortcuts and Dignified FUNC/RET.
 - Quoted text, doubled quotes within a string, and the PRINT apostrophe
   separator (newline). An apostrophe is **not** a Spectrum REM.
 - TRUE = 1 and FALSE = 0.
@@ -93,11 +121,13 @@ Implemented:
 
 Not implemented in this preview:
 
-- TZX, autorun, `--em_run` or automatic emulator control.
-- String variables, arrays, FOR/NEXT, DATA/READ, DEF FN, Dignified FUNC/RET.
-- The remaining native commands/functions, including graphics and sound.
-- Implicit LET, compound assignment, the `[?](row,column)` shortcut.
-- UDG/graphics escapes, snapshots, a Spectrum DignifieR or editor packages.
+- Native DEF FN/FN, BIN, tape/file-management commands inside the BASIC
+  source (LOAD/SAVE/VERIFY/MERGE), LIST/RUN/NEW/CONTINUE, streams and
+  Microdrive/disk/128K extensions. Host-side tape generation is implemented.
+- Automatic contextual short-name allocation; explicit aliases are required.
+- Array/slice compound assignments and recursive local function frames.
+- UDG/graphics escapes, snapshots, a Spectrum DignifieR.
+- Automatic ROM runtime-error monitoring or assertions of emulated output.
 
 Unsupported native words are rejected rather than advertised as working.
 The tokenizer is not a complete Sinclair syntax checker: errors in supported
@@ -118,19 +148,21 @@ From the repository root:
 ```powershell
 python -B badig.py -id zxspectrum --spectrum-version
 python -B badig.py -id zxspectrum -h
-python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize -rh -ca
+python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize --tk_format both -rh -ca
 ```
 
 Outputs:
 
 - `hello.ASP`: numbered classic Sinclair BASIC listing.
 - `hello.tap`: tokenized program in a standard tape container.
+- `hello.tzx`: the same program in TZX 1.20 standard-speed blocks,
+  with one-second pauses.
 
 `.DSP` is the proposed Spectrum Dignified extension adopted by this module;
 `.ASP` is its classic text extension. They are distinct from the ZX81
 module's extensions.
 
-Without `--tk_tokenize`, only the listing is saved. The Dignified listing
+Without `--tk_tokenize` or `--em_run`, only the listing is saved. The Dignified listing
 is still checked for the supported subset before being written.
 `-rh` disables the original suite's generated REM header; omit it to keep
 the header. MSX remains the default system unless `-id zxspectrum` is given.
@@ -141,8 +173,8 @@ To select an output folder/name, pass the second positional argument:
 python -B badig.py examples\zxspectrum\hello.DSP "C:\Spectrum Programs\demo.ASP" -id zxspectrum --tk_tokenize
 ```
 
-The output folder must already exist. TAP uses the listing's stem and folder.
-Do not name the intermediate text output `.tap`, because text and tape must
+The output folder must already exist. Tapes use the listing's stem and folder.
+Do not name the intermediate text output `.tap` or `.tzx`, because text and tape must
 be different files.
 
 ## First program
@@ -172,7 +204,8 @@ The Spectrum also displays its normal STOP report after the program.
 
 ### Names, macros and strings
 
-Use explicit LET for assignments, including after THEN and colons:
+LET may be omitted in Dignified source, including after THEN and colons.
+Classic `-asc` input must use explicit LET. Explicit LET remains supported:
 
 ```basic
 DEFINE [limit] [3]
@@ -205,8 +238,13 @@ Use `REM` to retain a comment in the Spectrum program.
 | --- | --- | --- |
 | `-id zxspectrum` | Select the module before argument/remtag processing | MSX otherwise |
 | `--spectrum-version` | Display the independent module version | No conversion |
-| `--tk_tokenize` | Create TAP after creating/validating the listing | False |
+| `--tk_tokenize` | Create tapes after creating/validating the listing | False |
 | `--tk_name "MY TAPE"` | Name inside the tape header | First 10 characters of output stem |
+| `--tk_format tap\|tzx\|both` | Select containers | tap |
+| `--tk_autorun N` | BASIC starting line; -1 disables | -1; 0 with --em_run |
+| `--em_run` | Generate tape, open EightyOne and wait for it to close | False |
+| `--em_path PATH` | EightyOne executable on Windows | Must be configured to run |
+| `--em_setting PATH` | 48K INI to copy for the session | Bundled 48K template |
 | `-asc` | Tokenize an already numbered classic text file | False |
 | `-ls N`, `-lp N` | Initial line and positive line step | 10, 10 |
 | `-rh` | Suppress the common REM header | Header enabled |
@@ -223,6 +261,8 @@ The tokenizer defaults are in `zxspectrum\tokenizer_interface.ini`:
 [CONFIGS]
 tokenize = False
 name =
+format = tap
+autorun = -1
 ```
 
 Options are applied in the suite's usual order: INI, CLI, then remtags.
@@ -231,6 +271,8 @@ Examples:
 ```basic
 ##BB:tk_tokenize=True
 ##BB:tk_name=MY TAPE
+##BB:tk_format=both
+##BB:tk_autorun=0
 ```
 
 `##BB:arguments=...` can pass ordinary conversion options, but `-id`
@@ -242,10 +284,22 @@ Classic input is preserved rather than renumbered:
 python -B badig.py examples\zxspectrum\hello.ASP -id zxspectrum -asc --tk_tokenize
 ```
 
-## EightyOne loading
+The emulator defaults are in `zxspectrum\emulator_interface.ini`:
 
-The first supported workflow is **manual**, so it does not change the
-emulator's machine/profile behind the user's back.
+```ini
+[CONFIGS]
+run = False
+emulator_path =
+setting =
+```
+
+Equivalent remtags: `EM_RUN=True|False`, `EM_PATH` and `EM_SETTING`.
+INI < CLI < remtags applies to both tools. Invalid boolean/numeric/format
+values are explicit errors. `TK_TOKENIZE=False` conflicts with enabled EM_RUN.
+
+## EightyOne loading and launch integration
+
+Manual loading remains available:
 
 1. Start EightyOne and select a **Spectrum 48K**, English ROM.
 2. Open `hello.tap` in the emulator's tape manager and rewind it.
@@ -253,13 +307,50 @@ emulator's machine/profile behind the user's back.
    Spectrum and start tape playback. Flash loading is an emulator option.
 4. After loading, use `LIST` to inspect the program, then enter `RUN`.
 
-The TAP header deliberately disables BASIC autorun in v1.1.0.
+The default tape header disables BASIC autorun unless requested.
 Tape autoload in EightyOne and BASIC autorun are different settings.
-This module does not expose `--em_run` yet.
+
+To generate, launch and autoload:
+
+```powershell
+python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --em_run --em_path "C:\zeddy\EightyOne.exe" -rh -ca
+```
+
+`--em_run` enables tokenization and defaults to autorun line 0.
+Use `--tk_autorun -1` to load without BASIC autorun, or `--tk_format tzx`
+to launch the TZX instead. If both containers are generated, TAP is opened.
+
+The bundled `eightyone48.ini` template selects Spectrum 48K and the installed
+`spectrum48.rom`. `--em_setting` accepts an existing profile only if its
+HARDWARE/MachineName is exactly `48K Spectrum`. The profile is parsed as
+Latin-1, copied to a temporary directory, and autoload/flash-load are enabled
+in that copy. The converter waits for EightyOne, checks its exit status,
+then removes the copy. Ctrl+C terminates the child and reports interruption.
+The emulator itself may write its own support files; the converter does not
+overwrite the original INI. ROMs must already exist in the emulator installation.
+
+Launch validation does not imply BASIC runtime-error monitoring. An emulator
+can close successfully after a ROM error; inspect the Spectrum screen.
 
 Do not assume that opening a TAP argument also changes a ZX81 profile into
 a Spectrum profile. The executable is not bundled, and no ROMs are included
 in this release.
+
+## Editor integration and distribution
+
+The release includes source archives, example DSP/ASP/TAP/TZX files, an
+offline VSIX, and Sublime templates. No marketplace publication is required.
+
+- [VS Code companion](../zxspectrum/VSCode%20Extension/README.md):
+  install the VSIX, configure converter/Python/emulator paths, and merge
+  the supplied task template into existing workspace tasks.
+- [Sublime templates](../zxspectrum/Sublime%20Package/README.md):
+  open the repository root as the project folder and use the provided build.
+
+DSP and ASP conflict with other products' file extensions. Select the language
+mode or set workspace-specific file associations when needed.
+Building the VSIX needs Node/npm (`npm ci`, `npm test`, `npm run package`
+in its source directory); using the Python converter needs no new packages.
 
 ## Limits and failure handling
 
@@ -277,7 +368,7 @@ in this release.
 - The new module's validation/configuration/file errors use a nonzero exit
   code. Some errors in the pre-existing shared parser/logger still exit
   with status zero; inspect diagnostics as well as output files.
-- The TAP is generated in memory and replaced only after a successful
+- Each tape is generated in memory and replaced only after a successful
   temporary-file write. A failed conversion does not refresh an existing
   tape; do not mistake an older output for a newly generated one.
 
@@ -294,7 +385,7 @@ strings/REM, aliases/macros, reports, CLI/remtags, TAP fields/checksums and
 negative cases. The original manuals are also compared with the base to
 ensure their original lines remain in order.
 
-For this delivery, 16 automated tests passed. Focused MSX/CoCo conversions
+For 1.5.0, 30 Python automated tests passed. Focused MSX/CoCo conversions
 and the complete CoCo example matched the original implementation byte for
 byte. The supplied MSX example has obsolete remtags in the base branch,
 so its unmodified conversion was not counted as a passing regression.
@@ -305,9 +396,13 @@ program execution in this environment. **Manual LOAD/LIST/RUN validation
 was pending in 1.1.0.** The user subsequently confirmed successful
 LOAD/LIST/RUN for hello.tap before implementation of 1.2.0.
 New examples and TZX have automated format/conversion checks; no new
-manual emulator validation is claimed for them.
+manual emulator validation is claimed for them. The 1.5.0 launcher was
+also tested with the installed EightyOne 1.41: a responsive main window
+and `hello.TAP - Tape` were observed; normal close completed, the profile
+template remained unchanged, and the private INI was removed.
+This launch smoke test does not assert ROM execution or rendered output.
 
-Planned subsequent module previews, subject to adjustment:
+Delivered module milestones:
 
 | Version | Functional focus |
 | --- | --- |
@@ -315,10 +410,12 @@ Planned subsequent module previews, subject to adjustment:
 | 1.2.0 | TZX and expansion of native command coverage |
 | 1.3.0 | Restricted variable categories, arrays, DATA and native functions |
 | 1.4.0 | Dignified conveniences and broader compatibility |
-| 1.5.0 | Verified emulator integration and distribution/editor polish |
+| 1.5.0 | Autorun, isolated-profile launcher, editor packages and distribution |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.4.0 are implemented.
+version. Versions 1.1.0 through 1.5.0 are implemented.
+Follow-up priorities are manual execution of all new examples/TZX, remaining
+native keywords, native FN/BIN support, and graphics/UDG escapes.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).
