@@ -1,3 +1,4 @@
+import configparser
 import struct
 import subprocess
 import sys
@@ -135,6 +136,119 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_shared_errors_exit_nonzero(self):
+        cases = (
+            ('GO TO {missing}\n', 'Label does not exist'),
+            ('PRINT [missing]\n', 'define not defined'),
+            ('PRINT `\n', 'Character not recognized'),
+            ('INCLUDE "absent.DSP"\n', 'File not found'),
+            ('##BB:help=maybe\nSTOP\n', 'Remtag must be true or false'),
+        )
+        for source, diagnostic in cases:
+            for verbosity in ('3', '0'):
+                with self.subTest(source=source, verbosity=verbosity):
+                    result, listing, tape = self.convert(
+                        source, '-rh', '--tk_format', 'both', '-vb', verbosity)
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertFalse(listing)
+                    self.assertFalse(tape)
+                    if verbosity == '3':
+                        self.assertIn(diagnostic, result.stdout)
+                    elif diagnostic == 'Label does not exist':
+                        self.assertEqual(result.stdout, '')
+
+    def test_shared_io_errors_exit_nonzero(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'demo.DSP'
+            command = [sys.executable, '-B', str(ROOT / 'badig.py'), str(path),
+                       '-id', 'zxspectrum', '--tk_tokenize']
+            result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('File not found', result.stdout)
+            path.write_text('STOP\n', encoding='ascii')
+            output = Path(folder) / 'absent' / 'demo.ASP'
+            result = subprocess.run(
+                command + [str(output)], cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('Save folder not found', result.stdout)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.with_suffix('.tap').exists())
+
+    def test_shared_ini_errors_use_the_selected_dialect_status(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = configparser.ConfigParser()
+            config.read(ROOT / 'support' / 'badig.ini')
+            config['CONFIGS'].update(use_ini_file='True', system_id='zxspectrum',
+                                     line_start='invalid')
+            script = (
+                'import sys\n'
+                'from support.badig_settings import Settings\n'
+                'folder=sys.argv[1]\n'
+                'arguments=sys.argv[2:]\n'
+                'sys.argv=["badig.py", "-id", "zxspectrum"]\n'
+                'settings=Settings()\n'
+                'settings.LOCAL_PATH=folder\n'
+                'try:\n'
+                '    settings.init()\n'
+                'except SystemExit as error:\n'
+                '    assert error.code == 1\n'
+                'sys.argv=["badig.py"]+arguments\n'
+                'settings=Settings()\n'
+                'settings.LOCAL_PATH=folder\n'
+                'settings.init()\n')
+            for system, arguments, expected in (
+                    ('zxspectrum', [], 1), ('msx', ['-id', 'zxspectrum'], 1),
+                    ('zxspectrum', ['-id', 'msx'], 0), ('zxspectrum', ['-id', 'coco'], 0)):
+                with self.subTest(system=system, arguments=arguments):
+                    config['CONFIGS']['system_id'] = system
+                    with (Path(folder) / 'badig.ini').open('w', encoding='ascii') as stream:
+                        config.write(stream)
+                    result = subprocess.run(
+                        [sys.executable, '-B', '-c', script, folder] + arguments,
+                        cwd=ROOT, capture_output=True, text=True, timeout=15)
+                    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                    self.assertIn('Problem with: badig.ini', result.stdout)
+
+    def test_help_version_and_remtag_help_still_exit_zero(self):
+        for arguments in (['-h'], ['--spectrum-version'], ['-rtg']):
+            with self.subTest(arguments=arguments):
+                result = subprocess.run(
+                    [sys.executable, '-B', str(ROOT / 'badig.py'), '-id', 'zxspectrum'] + arguments,
+                    cwd=ROOT, capture_output=True, text=True, timeout=15)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertTrue(result.stdout)
+        result, _, tape = self.convert('##BB:help=True\nSTOP\n')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Available remtags', result.stdout)
+        self.assertFalse(tape)
+        with tempfile.TemporaryDirectory() as folder:
+            config = configparser.ConfigParser()
+            config.read(ROOT / 'support' / 'badig.ini')
+            with (Path(folder) / 'badig.ini').open('w', encoding='ascii') as stream:
+                config.write(stream)
+            script = (
+                'import sys; from support.badig_settings import Settings; '
+                'folder=sys.argv[1]; sys.argv=["badig.py", "-id", "zxspectrum", "-ini"]; '
+                'settings=Settings(); settings.LOCAL_PATH=folder; settings.init()')
+            result = subprocess.run(
+                [sys.executable, '-B', '-c', script, folder],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('.ini file written', result.stdout)
+
+    def test_legacy_parser_errors_keep_their_exit_status(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'demo.bad'
+            path.write_text('GOTO {missing}\n', encoding='ascii')
+            for system in ('msx', 'coco'):
+                with self.subTest(system=system):
+                    result = subprocess.run(
+                        [sys.executable, '-B', str(ROOT / 'badig.py'), str(path),
+                         '-id', system, '-rh'],
+                        cwd=ROOT, capture_output=True, text=True, timeout=15)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertIn('Label does not exist', result.stdout)
+
     def test_autorun_cli_and_remtag_precedence(self):
         result, _, tape = self.convert('##BB:tk_autorun=20\nSTOP\n', '--tk_autorun', '10')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

@@ -1,7 +1,7 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data: 2026-11-04.
-Estado: marcos implementados ate modulo Spectrum v1.5.0 preview.
+Estado: marcos implementados ate modulo Spectrum v1.5.1 preview.
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -24,12 +24,17 @@ hello/colours/data/functions em TAP e TZX, com e sem autorun.
 Isso valida as demos nesse procedimento, nao todo Sinclair BASIC.
 Monitoramento automatico de execucao/erros continua pendente.
 
+Atualizacao 1.5.1: erros fatais compartilhados de parser, lexer, arquivos e
+configuracao passam a retornar 1 no Spectrum, inclusive com -vb 0.
+Ajuda/versao/escrita de INI mantem sucesso 0; MSX/CoCo mantem a politica
+original. Sem novos comandos, alteracoes nas fitas ou nos pacotes de editor.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.5.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.5.1; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -42,7 +47,7 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] LOAD/LIST/RUN do hello inicial confirmado manualmente pelo usuario.
 - [x] Pacotes de editor e distribuicao independente.
 - [x] Validacao manual das quatro demos em TAP/TZX, com/sem autorun: 16 OK.
-- [ ] Retorno de erro consistente no fluxo Spectrum.
+- [x] Retorno de erro consistente no fluxo Spectrum, com 35 testes aprovados.
 - [ ] Demais keywords, DEF FN/BIN, streams e escapes graficos/UDG.
 
 O detalhamento do comportamento implementado esta em

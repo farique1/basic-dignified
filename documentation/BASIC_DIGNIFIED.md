@@ -732,7 +732,7 @@ They are commonly used at the start of the Dignified code:
   
   > Command line arguments and remtags can be **expanded** by **exposing** new ones on **language** and **tools** modules.  
 	See the [modules section](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for an explanation of their **exposed** configs.  
-## Addition: ZX Spectrum dialect, v1.5.0 preview
+## Addition: ZX Spectrum dialect, v1.5.1 preview
 
 The original MSX/CoCo manual above is preserved. The new Spectrum module
 implements the documented 48K subset, not every MSX/CoCo feature above.

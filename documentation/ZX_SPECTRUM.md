@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.5.0 preview
+# ZX Spectrum module - v1.5.1 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -11,6 +11,15 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 Version 1.5.0 completes the five agreed milestones for the **48K English ROM**
 target. This is still a preview of a documented subset, not a claim of full
 Sinclair BASIC coverage. MSX/CoCo defaults and suite version 2.2.1 are unchanged.
+
+### Stabilization 1.5.1
+
+Fatal shared parser, lexer, file and configuration diagnostics now exit 1
+when Spectrum is selected, including with `-vb 0`. Previously these could
+print an error but exit 0. Help, version, remtag help and successful INI
+writing still exit 0; argument syntax errors retain argparse's status 2.
+MSX/CoCo retain their original exit policy. No native commands were added,
+and tape contents and editor companion version 1.5.0 are unchanged.
 
 ### Milestone 1.5.0
 
@@ -365,9 +374,11 @@ in its source directory); using the Python converter needs no new packages.
 - ASCII printable text, the Spectrum pound sign and copyright character
   are supported. Other Unicode/graphics characters are not silently replaced.
   Use `-tr` for a UTF-8 source containing pound/copyright characters.
-- The new module's validation/configuration/file errors use a nonzero exit
-  code. Some errors in the pre-existing shared parser/logger still exit
-  with status zero; inspect diagnostics as well as output files.
+- Spectrum validation/configuration/file errors use a nonzero exit code.
+  Since 1.5.1 this also covers fatal shared parser/logger diagnostics after
+  Spectrum selection, including missing labels, macros, includes and sources.
+  Quiet mode does not turn a failure into success. Existing per-logger
+  verbosity behavior is unchanged; some early/file errors can still print.
 - Each tape is generated in memory and replaced only after a successful
   temporary-file write. A failed conversion does not refresh an existing
   tape; do not mistake an older output for a newly generated one.
@@ -385,7 +396,10 @@ strings/REM, aliases/macros, reports, CLI/remtags, TAP fields/checksums and
 negative cases. The original manuals are also compared with the base to
 ensure their original lines remain in order.
 
-For 1.5.0, 30 Python automated tests passed. Focused MSX/CoCo conversions
+For 1.5.1, 35 Python automated tests passed, including shared failures,
+quiet mode, INI dialect selection, resetting the policy between selections,
+successful help/INI writing, and legacy MSX/CoCo error exits.
+Focused MSX/CoCo conversions
 and the complete CoCo example matched the original implementation byte for
 byte. The supplied MSX example has obsolete remtags in the base branch,
 so its unmodified conversion was not counted as a passing regression.
@@ -425,11 +439,12 @@ Delivered module milestones:
 | 1.3.0 | Restricted variable categories, arrays, DATA and native functions |
 | 1.4.0 | Dignified conveniences and broader compatibility |
 | 1.5.0 | Autorun, isolated-profile launcher, editor packages and distribution |
+| 1.5.1 | Consistent Spectrum fatal exits, preserving legacy defaults |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.5.0 are implemented.
-The manual example/TAP/TZX validation is complete. Follow-up priorities are
-consistent error exit status in the Spectrum flow, remaining native keywords,
+version. Versions 1.1.0 through 1.5.1 are implemented.
+The manual example/TAP/TZX validation and Spectrum error-exit correction
+are complete. Follow-up priorities are remaining native keywords,
 native FN/BIN support, and graphics/UDG escapes.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,

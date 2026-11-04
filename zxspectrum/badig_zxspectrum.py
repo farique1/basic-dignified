@@ -13,6 +13,8 @@ from .tokenizer_zxspectrum import (
     FUNCTIONS, SpectrumTokenizeError, TOKEN_CODES, tokenize, validate_identifier,
 )
 
+ERROR_EXIT_CODE = 1
+
 
 def fail(message, token=None):
     Info.log(1, message, token, bullet='*** ')

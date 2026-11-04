@@ -133,7 +133,7 @@ The structure of the lexer and parser on the main Basic Dignified and MSX module
 Note:
 Standardize `em_run` and `tk_tokenize` arguments when available so the build systems are compatible. -->
 
-## Addition: Spectrum module example, v1.5.0 preview
+## Addition: Spectrum module example, v1.5.1 preview
 
 The original overview above remains unchanged. The new `zxspectrum`
 package provides a small working example of the dynamic module contract:
@@ -146,6 +146,15 @@ Two optional core hooks are used without changing MSX/CoCo defaults:
   literal when implemented by a dialect, allowing Sinclair doubled quotes.
 - `Classic.postprocess(code, settings)` checks the final numbered listing
   before it is saved; Spectrum uses this to reject unsupported constructs.
+
+Since Spectrum 1.5.1, a language module may also declare `ERROR_EXIT_CODE = 1`
+to opt into nonzero fatal exits from the shared `Infolog`. Modules without
+this attribute retain the legacy code 0. Settings initialization resets this
+process-wide policy before selecting a dialect, then applies the selected
+module's value to all logger instances, including those created earlier.
+Caught main-INI diagnostics are reported after selection so `-id` overrides
+and INI-selected systems use the appropriate status. Level-1 messages with
+a custom bullet remain nonfatal; help and successful INI writing still exit 0.
 
 These hooks are compatible with the corresponding ZX81 branch hooks;
 the ZX81 implementation itself is not merged into this branch.
