@@ -395,8 +395,22 @@ the TAP in its tape manager, but did not provide verified ROM loading or
 program execution in this environment. **Manual LOAD/LIST/RUN validation
 was pending in 1.1.0.** The user subsequently confirmed successful
 LOAD/LIST/RUN for hello.tap before implementation of 1.2.0.
-New examples and TZX have automated format/conversion checks; no new
-manual emulator validation is claimed for them. The 1.5.0 launcher was
+On 2026-11-04, the user reported that all 16 cases in the manual
+Spectrum 48K validation procedure passed: four examples, two tape
+containers, and loading with/without BASIC autorun.
+
+| Example | TAP manual | TZX manual | TAP autorun | TZX autorun |
+| --- | --- | --- | --- | --- |
+| hello | OK | OK | OK | OK |
+| colours | OK | OK | OK | OK |
+| data | OK | OK | OK | OK |
+| functions | OK | OK | OK | OK |
+
+This is user-reported manual validation of loading, listing and expected
+output; it is not automated ROM execution coverage or certification of
+every supported command.
+
+The 1.5.0 launcher was
 also tested with the installed EightyOne 1.41: a responsive main window
 and `hello.TAP - Tape` were observed; normal close completed, the profile
 template remained unchanged, and the private INI was removed.
@@ -414,8 +428,9 @@ Delivered module milestones:
 
 These are module versions, not replacements for the upstream suite's
 version. Versions 1.1.0 through 1.5.0 are implemented.
-Follow-up priorities are manual execution of all new examples/TZX, remaining
-native keywords, native FN/BIN support, and graphics/UDG escapes.
+The manual example/TAP/TZX validation is complete. Follow-up priorities are
+consistent error exit status in the Spectrum flow, remaining native keywords,
+native FN/BIN support, and graphics/UDG escapes.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).

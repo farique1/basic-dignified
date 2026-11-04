@@ -19,8 +19,10 @@ Compostos em arrays/slices sao rejeitados para nao reavaliar indices.
 Atualizacao 1.5.0: autorun opcional TAP/TZX; --em_run com perfil 48K
 temporario; extensao VS Code/VSIX e templates Sublime. Launcher real
 testado: janela responsiva, hello.TAP reconhecido e fechamento normal.
-Teste manual do usuario comprovou LOAD/LIST/RUN do hello inicial;
-execucao das novas demos/TZX e monitoramento automatico nao certificados.
+Em 2026-11-04, o usuario confirmou OK nos 16 testes manuais:
+hello/colours/data/functions em TAP e TZX, com e sem autorun.
+Isso valida as demos nesse procedimento, nao todo Sinclair BASIC.
+Monitoramento automatico de execucao/erros continua pendente.
 
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
@@ -39,7 +41,8 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] Autorun e launcher EightyOne com perfil isolado.
 - [x] LOAD/LIST/RUN do hello inicial confirmado manualmente pelo usuario.
 - [x] Pacotes de editor e distribuicao independente.
-- [ ] Validacao manual das novas demos e TZX no emulador.
+- [x] Validacao manual das quatro demos em TAP/TZX, com/sem autorun: 16 OK.
+- [ ] Retorno de erro consistente no fluxo Spectrum.
 - [ ] Demais keywords, DEF FN/BIN, streams e escapes graficos/UDG.
 
 O detalhamento do comportamento implementado esta em

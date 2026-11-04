@@ -64,7 +64,8 @@ python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize -r
 Expected output: SPECTRUM 1, SPECTRUM 2, SPECTRUM 3, then DONE.
 Load manually in EightyOne configured for Spectrum 48K and enter RUN.
 Each example has generated ASP/TAP/TZX companions; use `--tk_format both`
-to regenerate both tape containers. The initial hello TAP was manually
-validated by the user. Other examples have conversion/format checks, not
-an independent claim of execution in the emulator.
+to regenerate both tape containers. On 2026-11-04 the user confirmed all
+16 manual Spectrum 48K cases passed: four examples in TAP/TZX, with and
+without BASIC autorun. This is user-reported manual validation, separate
+from the automated conversion/format tests.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).
