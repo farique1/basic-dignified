@@ -66,4 +66,15 @@ Thanks.
 ---  
   
  ![#CGKcomparison.png](https://github.com/farique1/basic-dignified/blob/main/images/CGKcomparison.png)  
+## ZX Spectrum addition (fork preview)
+
+The original documentation above is preserved. This fork adds an
+independently versioned **ZX Spectrum module v1.1.0 preview** for the
+48K English-ROM machine: a first Dignified -> numbered BASIC -> **TAP**
+workflow with PRINT, explicit LET, IF/GO TO, REM, CLS and STOP.
+
+See the [Spectrum manual](documentation/ZX_SPECTRUM.md) for installation,
+supported syntax, commands, limitations and manual EightyOne loading.
+TZX and full Sinclair BASIC coverage are planned, not implemented in 1.1.0.
+The original suite remains v2.2.1; the MSX/CoCo defaults are unchanged.
   

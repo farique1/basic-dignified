@@ -17,6 +17,7 @@ The classic ASCII code converted from the Dignified version.
   **Binary version**  
   [`CGK173.bmx`](https://github.com/farique1/basic-dignified/blob/main/examples/msx/CGK173.bmx)  
 The classic binary code converted with the tokenizer.  
+
   
 **List file**  
 [`CGK173.lmx`](https://github.com/farique1/basic-dignified/blob/main/examples/msx/CGK173.lmx)  
@@ -42,3 +43,20 @@ The classic ASCII code converted from the Dignified version.
   **Binary version**  
   [`EXAMPLE.BCC`](https://github.com/farique1/basic-dignified/blob/main/examples/coco/EXAMPLE.BCC)  
 The classic binary code converted with the tokenizer.  
+
+## Addition: ZX Spectrum preview
+
+The original MSX/CoCo examples above are preserved.
+
+- [hello.DSP](zxspectrum/hello.DSP): first Dignified example, using explicit
+  LET, a long numeric scalar name and IF/GO TO with a label.
+- [hello.ASP](zxspectrum/hello.ASP): numbered listing generated with `-rh -ca`.
+- [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
+
+```powershell
+python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize -rh -ca
+```
+
+Expected output: SPECTRUM 1, SPECTRUM 2, SPECTRUM 3, then DONE.
+Load manually in EightyOne configured for Spectrum 48K and enter RUN.
+See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

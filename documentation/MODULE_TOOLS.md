@@ -213,4 +213,21 @@ Helps **automate** the conversion of large **programs** or **libraries**.
 **[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
 Another tool made **for** Basic Dignified that **can** be used **independently**.  
 Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
+## Addition: ZX Spectrum tools, v1.1.0 preview
+
+This section supplements, and does not replace, the original MSX/CoCo
+tool descriptions above.
+
+The Spectrum tokenizer is pure Python. `--tk_tokenize` creates a `.tap`
+from the generated `.ASP` listing or from numbered classic input (`-asc`).
+`--tk_name` sets its 1..10-character ASCII tape name.
+Defaults live in `zxspectrum\tokenizer_interface.ini`; remtags are
+`##BB:tk_tokenize=True|False` and `##BB:tk_name=MY TAPE`.
+
+The initial tape contains a BASIC program header and data block with
+Sinclair numeric representations and XOR checksums. BASIC autorun is disabled.
+TZX, `--em_run` and emulator monitoring are not implemented in this preview.
+Use manual loading on EightyOne configured for Spectrum 48K.
+
+See the [Spectrum manual](ZX_SPECTRUM.md) for examples and limitations.
   

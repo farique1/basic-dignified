@@ -386,6 +386,9 @@ class Lexer:
            part: First part of the literal string
            l_pos: Start position of the string'''
 
+        if tok == 'C_LITQUO' and hasattr(self.clc, 'quoted_string'):
+            return self.clc.quoted_string(tok, end, part, l_pos)
+
         nl = self.des.newline
         nls = self.des.newline_str
 
@@ -1987,6 +1990,9 @@ class Main:
         t0 = time.time()
 
         c_code, var_r, line_r = par.generate()
+
+        if hasattr(Classic, 'postprocess'):
+            c_code = Classic.postprocess(c_code, self.stg)
 
         tg = time.time() - t0
         Info.log(5, f'{len(c_code)} lines created in {tg:.4f}s.')

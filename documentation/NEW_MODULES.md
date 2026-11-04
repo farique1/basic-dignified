@@ -132,3 +132,23 @@ The structure of the lexer and parser on the main Basic Dignified and MSX module
 <!-- 
 Note:
 Standardize `em_run` and `tk_tokenize` arguments when available so the build systems are compatible. -->
+
+## Addition: Spectrum module example, v1.1.0 preview
+
+The original overview above remains unchanged. The new `zxspectrum`
+package provides a small working example of the dynamic module contract:
+`badig_zxspectrum.py`, `tools_zxspectrum.py`, `tokenizer_interface.py`,
+`tokenizer_zxspectrum.py` and `tape_zxspectrum.py`.
+
+Two optional core hooks are used without changing MSX/CoCo defaults:
+
+- `Classic.Lexer.quoted_string(tok, end, part, position)` reads a quoted
+  literal when implemented by a dialect, allowing Sinclair doubled quotes.
+- `Classic.postprocess(code, settings)` checks the final numbered listing
+  before it is saved; Spectrum uses this to reject unsupported constructs.
+
+These hooks are compatible with the corresponding ZX81 branch hooks;
+the ZX81 implementation itself is not merged into this branch.
+Spectrum inherits existing class scaffolding but supplies its own lexical
+groups, scalar-name policy, number encoding and TAP structure.
+See the [Spectrum manual](ZX_SPECTRUM.md) and [implementation plan](../OUTLINE.md).
