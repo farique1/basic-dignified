@@ -2,6 +2,7 @@
 
 import argparse
 import re
+from collections import namedtuple
 
 from msx.badig_msx import Description as MSXDescription
 from msx.badig_msx import Info
@@ -37,7 +38,9 @@ class Description(MSXDescription):
         super().__init__()
         instructions = ['PRINT', 'LET', 'IF', 'CLS', 'STOP', 'BORDER', 'INK',
                         'PAPER', 'PAUSE', 'BEEP', 'INPUT', 'RETURN', 'FOR', 'NEXT',
-                        'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE']
+                        'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
+                        'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER',
+                        'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR', '?']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
@@ -62,7 +65,8 @@ class Description(MSXDescription):
             ('c_operat', self.join_commands(operators)),
             ('c_symbol', self.join_commands([re.escape(s) for s in symbols])),
             ('c_jumpin', self.join_commands(['GOTO', 'GO +TO', 'GOSUB', 'GO +SUB', 'THEN'])),
-            ('c_instrc', self.join_commands(instructions)),
+            ('c_instrc', self.join_commands([re.escape(word) for word in instructions])),
+            ('c_e_symb', r'^(?:\+\+|--|\+=|-=|\*=|/=|\^=)$'),
             ('c_functs', self.join_commands([re.escape(word) for word in FUNCTIONS])),
             ('c_number', f'^{number}$'),
             ('c_linrem', '^REM$'),
@@ -111,7 +115,10 @@ class Lexer(MSXLexer):
 
 class Parser(MSXParser):
     def initialization(self):
-        pass
+        replacement = self.par.tok_str('PRINT AT VAR;')
+        replacement[2].tok = 'D_DEFVAR'
+        definition = namedtuple('def_grp', 'repl varv')
+        self.des.d_defines['?'] = definition(replacement, self.par.tok_str('0,0'))
 
     def pass_1(self):
         return False
@@ -140,9 +147,47 @@ class Parser(MSXParser):
 
     def pass_5(self):
         tk = self.par.tk
+        previous = self.par.last_tok()
+        if tk.tok == 'D_IDNTTP' and (
+                previous.tok in ('C_LINENB', 'C_INSTSP') or previous.uval == 'THEN'):
+            self.par.tok_list_out.extend(self.par.tok_str('LET'))
+        if tk.tok == 'C_E_SYMB':
+            operand = previous
+            if operand.tok != 'D_IDNTTP' or self.par.last_tok(-2).uval != 'LET':
+                fail('Compound assignment requires a scalar LET target', tk)
+            operation = tk.val
+            if operand.var_type and operation != '+=':
+                fail('Strings support only += compound assignment', tk)
+            rhs = []
+            while self.par.peek_ahead().tok not in ('NEWLINE', 'EOF', 'C_INSTSP'):
+                rhs.append(self.par.next_tok())
+            if operation in ('++', '--'):
+                if rhs or operand.var_type:
+                    fail('Increment/decrement requires a numeric scalar and no right operand', tk)
+                rhs = self.par.tok_str('1')
+            elif not rhs:
+                fail('Compound assignment requires a right operand', tk)
+            if any(token.tok == 'C_E_SYMB' for token in rhs):
+                fail('Nested compound assignments are not supported', tk)
+            self.par.tok_list_out.extend(self.par.tok_str('='))
+            self.par.tok_list_out.append(operand.copy())
+            self.par.tok_list_out.extend(self.par.tok_str(operation[0] + '('))
+            for token in rhs:
+                if token.tok == 'D_OPERAT':
+                    token.val = '1' if token.uval == 'TRUE' else '0'
+                    token.tok = 'C_NUMBER'
+                elif token.uval in self.des.c_reserved_kw:
+                    token.val = token.uval
+                if self.stg.capitalise_all and token.tok not in self.des.c_lit_toks:
+                    token.val = token.uval
+                self.par.tok_list_out.append(token)
+            self.par.tok_list_out.extend(self.par.tok_str(')'))
+            return None
         if tk.tok == 'D_OPERAT':
             tk.tok = 'C_NUMBER'
             tk.val = '1' if tk.uval == 'TRUE' else '0'
+        elif tk.tok == 'C_INSTRC' and tk.val == '?':
+            tk.val = 'PRINT'
         elif tk.tok == 'C_JUMPIN' and re.fullmatch(r'GO\s*TO', tk.uval):
             tk.val = 'GO TO'
         elif tk.tok == 'C_JUMPIN' and re.fullmatch(r'GO\s*SUB', tk.uval):

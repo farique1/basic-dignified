@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.3.0 preview
+# ZX Spectrum module - v1.4.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -7,6 +7,26 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 `wilsonpilon/basic-dignified`.
 
 ## Status and scope
+
+### Milestone 1.4.0
+
+Dignified assignments now insert LET at the beginning of a statement,
+after a colon or after THEN. Classic `-asc` input still requires explicit LET.
+Scalar `+=`, `-=`, `*=`, `/=`, `^=`, `++`, `--` are lowered with a parenthesized
+right operand, preserving precedence. Strings support only `+=`.
+Array/slice compound targets are rejected instead of evaluating an index twice.
+Use explicit assignments for them.
+
+`?` is PRINT. `[?](row,column)` expands to `PRINT AT row,column;`;
+the parameter order is Sinclair row/column, not MSX LOCATE x/y.
+FUNC/RET use the existing Dignified GO SUB/RETURN lowering with LET inserted
+for parameter and result transfers. Parameters/results are global variables,
+not local stack frames; this does not add recursive-local semantics.
+See [functions.DSP](../examples/zxspectrum/functions.DSP).
+
+Additional native commands/modifiers: AT, TAB, FLASH, BRIGHT, INVERSE, OVER,
+PLOT, DRAW, CIRCLE, POKE and CLEAR.
+These additions supersede the corresponding baseline limitations below.
 
 ### Milestone 1.3.0
 
@@ -298,7 +318,7 @@ Planned subsequent module previews, subject to adjustment:
 | 1.5.0 | Verified emulator integration and distribution/editor polish |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.3.0 are implemented.
+version. Versions 1.1.0 through 1.4.0 are implemented.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).

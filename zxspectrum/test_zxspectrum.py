@@ -117,6 +117,34 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_implicit_let_compounds_and_dignified_function(self):
+        source = (ROOT / 'examples' / 'zxspectrum' / 'functions.DSP').read_text(encoding='ascii')
+        result, listing, tape = self.convert(source, '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('LET score=score*(1+2)', listing)
+        self.assertIn('LET score=score+(1)', listing)
+        self.assertIn('THEN LET score=score+(3)', listing)
+        self.assertIn('PRINT AT 2,0;"SCORE ";score', listing)
+        self.assertIn('LET value=score:GO SUB ', listing)
+        self.assertIn('LET answer=result', listing)
+        self.assertIn('RETURN', listing)
+        self.assertTrue(tape)
+
+    def test_compounds_reject_unsafe_targets_and_preserve_rhs(self):
+        for source in ('a(1)++\n', 'score+=\n', 'score++2\n', 'a$++\n', 'a$*=2\n'):
+            with self.subTest(source=source):
+                result, _, tape = self.convert(source, '-rh')
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertFalse(tape)
+        result, listing, tape = self.convert(
+            'a$="A":a$+="B"\nvalue=0\nvalue+=TRUE+ABS (-1)\nvalue+=value\n'
+            '? value\nSTOP\n', '-rh', '-ss', '-ca')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('LET A$=A$+("B")', listing)
+        self.assertIn('LET VALUE=VALUE+(1+ABS(-1))', listing)
+        self.assertIn('LET VALUE=VALUE+(VALUE)', listing)
+        self.assertIn('PRINT VALUE', listing)
+        self.assertTrue(tape)
     def test_colours_loops_and_subroutine_labels(self):
         source = (ROOT / 'examples' / 'zxspectrum' / 'colours.DSP').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh', '--tk_format', 'both')

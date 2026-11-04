@@ -12,6 +12,10 @@ DIM/DATA/READ/RESTORE, RANDOMIZE e funcoes nativas implementados.
 Nomes restritos por categoria: usar DECLARE explicito para nomes longos
 de strings, arrays e controles FOR/NEXT.
 
+Atualizacao 1.4.0: LET implicito, compostos escalares com precedencia
+preservada, ? / [?](linha,coluna), FUNC/RET e comandos graficos basicos.
+Compostos em arrays/slices sao rejeitados para nao reavaliar indices.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive

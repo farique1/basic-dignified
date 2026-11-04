@@ -31,11 +31,15 @@ SUPPORTED = frozenset((
     'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
     'GO SUB', 'RETURN', 'FOR', 'NEXT', 'TO', 'STEP',
     'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
+    'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
+    'CIRCLE', 'POKE', 'CLEAR',
 ) + FUNCTIONS)
 STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
                         'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
                         'GO SUB', 'RETURN', 'FOR', 'NEXT',
-                        'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE'))
+                        'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
+                        'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
+                        'CIRCLE', 'POKE', 'CLEAR'))
 NUMBER = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', re.ASCII)
 WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
