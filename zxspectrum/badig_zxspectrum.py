@@ -8,7 +8,9 @@ from msx.badig_msx import Info
 from msx.badig_msx import Lexer as MSXLexer
 from msx.badig_msx import Parser as MSXParser
 from . import VERSION
-from .tokenizer_zxspectrum import SpectrumTokenizeError, TOKEN_CODES, tokenize
+from .tokenizer_zxspectrum import (
+    FUNCTIONS, SpectrumTokenizeError, TOKEN_CODES, tokenize, validate_identifier,
+)
 
 
 def fail(message, token=None):
@@ -35,12 +37,12 @@ class Description(MSXDescription):
         super().__init__()
         instructions = ['PRINT', 'LET', 'IF', 'CLS', 'STOP', 'BORDER', 'INK',
                         'PAPER', 'PAUSE', 'BEEP', 'INPUT', 'RETURN', 'FOR', 'NEXT',
-                        'TO', 'STEP']
+                        'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
                    '-', ',', '(', ')', ';', "'", '#']
-        self.c_reserved_kw = instructions + jumps + operators + ['REM']
+        self.c_reserved_kw = instructions + jumps + operators + list(FUNCTIONS) + ['REM']
         self.c_quotes = '"'
         self.c_altrem = 'REM'
         self.c_lab_rep_rem = ' : REM '
@@ -61,6 +63,7 @@ class Description(MSXDescription):
             ('c_symbol', self.join_commands([re.escape(s) for s in symbols])),
             ('c_jumpin', self.join_commands(['GOTO', 'GO +TO', 'GOSUB', 'GO +SUB', 'THEN'])),
             ('c_instrc', self.join_commands(instructions)),
+            ('c_functs', self.join_commands([re.escape(word) for word in FUNCTIONS])),
             ('c_number', f'^{number}$'),
             ('c_linrem', '^REM$'),
             ('c_partls', r'^(?:GO(?: +(?:T|S|SU)?)?|\d+(?:\.\d*)?E[+-]?|\.)$'),
@@ -126,9 +129,11 @@ class Parser(MSXParser):
                 self.par.tok_list_out.pop()
             if tk.val_w_file in self.des.d_declares:
                 tk.val = self.des.d_declares[tk.val_w_file] + tk.var_type
-            if tk.var_type or not re.fullmatch(r'[a-zA-Z][a-zA-Z0-9]*', tk.val):
-                fail('This version supports alphanumeric numeric scalars only; '
-                     'use DECLARE name:letter for snake_case names', tk)
+            try:
+                validate_identifier(tk.val, array=self.par.peek_ahead().val == '(',
+                                    for_control=self.par.last_tok().uval in ('FOR', 'NEXT'))
+            except SpectrumTokenizeError as error:
+                fail(str(error), tk)
             if tk.uval in TOKEN_CODES:
                 fail(f'{tk.val} is reserved by Sinclair BASIC', tk)
         return False

@@ -20,15 +20,22 @@ KEYWORDS = (
     'CLEAR', 'RETURN', 'COPY',
 )
 TOKEN_CODES = {word: code for code, word in enumerate(KEYWORDS, 0xA5)}
+FUNCTIONS = (
+    'RND', 'INKEY$', 'PI', 'POINT', 'SCREEN$', 'ATTR', 'VAL$', 'CODE',
+    'VAL', 'LEN', 'SIN', 'COS', 'TAN', 'ASN', 'ACS', 'ATN', 'LN', 'EXP',
+    'INT', 'SQR', 'SGN', 'ABS', 'PEEK', 'IN', 'USR', 'STR$', 'CHR$',
+)
 SUPPORTED = frozenset((
     'PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
     'THEN', 'AND', 'OR', 'NOT', '<=', '>=', '<>',
     'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
     'GO SUB', 'RETURN', 'FOR', 'NEXT', 'TO', 'STEP',
-))
+    'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
+) + FUNCTIONS)
 STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
                         'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
-                        'GO SUB', 'RETURN', 'FOR', 'NEXT'))
+                        'GO SUB', 'RETURN', 'FOR', 'NEXT',
+                        'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE'))
 NUMBER = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', re.ASCII)
 WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
@@ -90,10 +97,26 @@ def encode_text(text):
     return bytes(result)
 
 
+def validate_identifier(name, array=False, for_control=False):
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9]*\$?', name):
+        raise SpectrumTokenizeError(
+            f'Invalid Sinclair name: {name}; use DECLARE name:letter for snake_case')
+    if name.endswith('$'):
+        valid = len(name) == 2 and not for_control
+        category = 'String variables'
+    else:
+        valid = len(name) == 1 if array or for_control else True
+        category = 'Arrays and FOR/NEXT variables'
+    if not valid:
+        raise SpectrumTokenizeError(
+            f'{category} require a single letter: {name}; use an explicit DECLARE alias')
+
+
 def tokenize_line(text):
     result = bytearray()
     index = 0
     at_statement = True
+    previous_keyword = None
     while index < len(text):
         character = text[index]
         if character in ' \t':
@@ -118,17 +141,16 @@ def tokenize_line(text):
                     result.extend(encode_text(text[match.end():]))
                     return bytes(result) + b'\x0d'
                 at_statement = keyword == 'THEN'
+                previous_keyword = keyword
             else:
                 if at_statement:
                     raise SpectrumTokenizeError(
                         f'Expected a supported statement (use explicit LET): {raw}')
-                if not re.fullmatch(r'[A-Za-z][A-Za-z0-9]*', raw):
-                    raise SpectrumTokenizeError(
-                        f'Only alphanumeric numeric scalars are supported: {raw}')
                 after = text[match.end():].lstrip()
-                if after.startswith('('):
-                    raise SpectrumTokenizeError('Arrays and functions are not supported yet')
+                validate_identifier(raw, array=after.startswith('('),
+                                    for_control=previous_keyword in ('FOR', 'NEXT'))
                 result.extend(raw.encode('ascii'))
+                previous_keyword = None
             index = match.end()
             continue
         if at_statement:

@@ -47,14 +47,22 @@ class TokenizerTests(unittest.TestCase):
         self.assertIn(b'\xc7', tokenize('10 IF count<=3 THEN GO TO 10'))
         self.assertIn(b'\xec', tokenize('10 IF count<=3 THEN GO TO 10'))
 
+    def test_native_function_and_string_array_bytes(self):
+        self.assertEqual(tokenize('10 PRINT LEN a$'),
+                         bytes.fromhex('000a0700f520b12061240d'))
+        self.assertIn(b'\xe9 a$(2\x0e\x00\x00\x02\x00\x00,',
+                      tokenize('10 DIM a$(2,5)'))
+        self.assertIn(b'a$(1\x0e\x00\x00\x01\x00\x00 \xcc ',
+                      tokenize('10 PRINT a$(1 TO 2)'))
+
     def test_rejects_unrepresentable_or_unsupported_source(self):
         sources = (
             '', 'PRINT "HI"', '0 STOP', '10 STOP\n10 STOP', '20 STOP\n10 STOP',
             '10000 STOP', '10 PRINT "oops', '10 PRINT 1e+', '10 LET n=1e1000',
             '10 PRINT 1e-1000', '10 PRINT "\u00e9"', '10 CAT',
-            '10 LET a$="X"', '10 LET total_score=1', '10 LET a(1)=2',
+            '10 LET name$="X"', '10 LET total_score=1', '10 LET array(1)=2',
             '10 a=1', '10 IF a=1 THEN 20', '10 PRINT 1:',
-            '10 PRINT INKEY$', '10 DEF FN f(x)=x',
+            '10 FOR counter=1 TO 2', '10 NEXT count', '10 DEF FN f(x)=x',
             '10 PRINT 1e999999999999999999999999',
         )
         for source in sources:
@@ -235,7 +243,7 @@ class ConversionTests(unittest.TestCase):
     def test_error_has_no_tape(self):
         for source, arguments in (
             ('CAT\n', ()),
-            ('LET a$="X"\n', ()),
+            ('LET name$="X"\n', ()),
             ('PRINT "oops\n', ()),
             ('STOP\n', ('-lp', '0')),
             ('STOP\nSTOP\n', ('-ls', '9999')),
@@ -247,6 +255,33 @@ class ConversionTests(unittest.TestCase):
                 result, _, tape = self.convert(source, *arguments)
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertFalse(tape)
+
+    def test_strings_arrays_data_and_native_functions(self):
+        source = (ROOT / 'examples' / 'zxspectrum' / 'data.DSP').read_text(encoding='ascii')
+        result, listing, tape = self.convert(source, '-rh', '-ss', '-ca')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('DIM A(3)', listing)
+        self.assertIn('READ A(I)', listing)
+        self.assertIn('LET N$="SPECTRUM"', listing)
+        self.assertIn('LEN N$', listing)
+        self.assertIn(b'\xe4', tape)
+        self.assertIn(b'\xb1', tape)
+
+    def test_sinclair_variable_categories(self):
+        for source in ('FOR counter=1 TO 3\n', 'DIM numbers(3)\n',
+                       'LET name$="X"\n', 'LET value%=1\n'):
+            with self.subTest(source=source):
+                result, _, tape = self.convert(source, '-rh')
+                self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertFalse(tape)
+        result, listing, tape = self.convert(
+            'DECLARE loop_index:i, values:a, title:n\n'
+            'DIM values(3)\nFOR loop_index=1 TO 3\n'
+            'LET values(loop_index)=loop_index\nNEXT loop_index\n'
+            'LET title$="OK"\nPRINT title$\nSTOP\n', '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('LET n$="OK"', listing)
+        self.assertTrue(tape)
 
 
 if __name__ == '__main__':

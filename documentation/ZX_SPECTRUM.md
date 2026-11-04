@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.2.0 preview
+# ZX Spectrum module - v1.3.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -7,6 +7,27 @@ developed incrementally in the `suporte-zx-spectrum` branch of
 `wilsonpilon/basic-dignified`.
 
 ## Status and scope
+
+### Milestone 1.3.0
+
+Adds DIM, numeric/string arrays and slices, string scalar variables,
+DATA expressions, READ, RESTORE, RANDOMIZE and native numeric/string
+functions (including RND, PI, LEN, STR$, CHR$, VAL, CODE, trigonometric
+functions, PEEK and USR). Functions retain Sinclair semantics.
+DEF FN/FN and BIN are not included in this milestone.
+
+Numeric scalars retain long alphanumeric names. String variables, arrays
+and FOR/NEXT controls require a single letter (plus `$` for strings).
+Use explicit DECLARE aliases for long Dignified names in these categories,
+for example `DECLARE title:n` followed by `LET title$="SPECTRUM"`.
+Aliases are shared across uses of that declared base name, as in the
+original DECLARE mechanism; there is no silent truncation/automatic allocator.
+
+String arrays follow the ROM's fixed-length rules: the last dimension
+is the string length, not an extra freely sized string element.
+Numeric scalars and arrays of the same letter may coexist in Sinclair BASIC.
+See [data.DSP](../examples/zxspectrum/data.DSP).
+These additions supersede the corresponding baseline limitations below.
 
 ### Milestone 1.2.0
 
@@ -277,7 +298,7 @@ Planned subsequent module previews, subject to adjustment:
 | 1.5.0 | Verified emulator integration and distribution/editor polish |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 and 1.2.0 are implemented.
+version. Versions 1.1.0 through 1.3.0 are implemented.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
 and [the example sources](../examples/zxspectrum/hello.DSP).

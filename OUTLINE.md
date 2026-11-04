@@ -7,6 +7,11 @@ Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
 implementados com testes. As secoes 1.1.0 abaixo sao historicas.
 
+Atualizacao 1.3.0: strings, arrays numericos/string, slices,
+DIM/DATA/READ/RESTORE, RANDOMIZE e funcoes nativas implementados.
+Nomes restritos por categoria: usar DECLARE explicito para nomes longos
+de strings, arrays e controles FOR/NEXT.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
