@@ -18,6 +18,14 @@ does not remove line numbers or create labels. Spectrum reverse conversion
 remains separate work. See the [Spectrum reference](ZX_SPECTRUM.md) and
 [graphic/UDG table](BASIC_DIGNIFIED.md#zx-spectrum-characters).
 
+Future **AZS to DZS** support must preserve strings, REM data, graphic/UDG
+escapes and chained statements while replacing line numbers with labels.
+It cannot recover the original macros or aliases lost during conversion.
+Reading tokenized tapes or snapshots would require additional
+detokenization/extraction, not the existing **-asc** option.
+This work is not implemented or included in the current Spectrum release;
+see the [prioritized roadmap](../OUTLINE.md#pendencias-priorizadas).
+
 The following usage and formatting options apply to the **MSX tool**.
   
   

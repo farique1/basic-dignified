@@ -416,8 +416,8 @@ in this release.
 
 ## Editor integration and distribution
 
-The release includes source archives, example DZS/AZS/TAP/TZX files, a
-representative hello Z80/SNA pair, an
+The release includes source archives, example DZS/AZS/TAP/TZX files,
+representative hello and graphics Z80/SNA pairs, an
 offline VSIX, and Sublime templates. No marketplace publication is required.
 
 - [VS Code companion](../zxspectrum/VSCode%20Extension/README.md):
@@ -472,7 +472,12 @@ actual display pixels, UDG RAM rows and REM control-byte data after resuming
 Z80/SNA. This is not manual EightyOne certification. The native and graphics
 demos and snapshot loading still need manual emulator confirmation.
 Release history and pending implementation work are kept in
-[OUTLINE.md](../OUTLINE.md), separate from the usage reference.
+[OUTLINE.md](../OUTLINE.md#pendencias-priorizadas), including manual acceptance
+checks, separate from the usage reference. The published
+[1.8.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0)
+contains 32 verified assets. Its extracted source passed 54 tests with
+SkoolKit 10.1, or 54 with five explicit optional skips without the engine;
+the six supplied demos and binaries were reproduced.
 
 ## Technical references
 

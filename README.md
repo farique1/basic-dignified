@@ -36,6 +36,10 @@ arrays and FOR controls use single letters or explicit **DECLARE** aliases.
 The [Spectrum reference](documentation/ZX_SPECTRUM.md) covers the supported
 Sinclair commands and limits. The Spectrum module is independently versioned
 **1.8.0 preview**; the original suite remains **2.2.1**.
+The [published preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0)
+contains the source, editor packages and six demos. See
+[remaining work and priorities](OUTLINE.md#pendencias-priorizadas) for
+manual validation, language coverage and final packaging.
   
 The included modules contains the **Basic language description**, control for included **tokenizers**, the ability run the code on **emulators** and support for **Visual Studio Code** and **Sublime Text**  with **build system**, **syntax highlight** for the **Dignified** and **Classic** Basic versions as well as **themes**, **snippets**, **completions** and more.
 

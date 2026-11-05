@@ -36,11 +36,16 @@ are not promises that every Spectrum feature is available.
   
 ## To Do  
 **ZX Spectrum**
+- Current release: [module v1.8.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0).
+  Published packages are verified; the items below are remaining work,
+  not features added by this documentation update.
 - Native DEF FN/FN, remaining Sinclair keywords, streams and further models.
 - Manual emulator validation of the new demos and snapshots.
 - Fully integrated editor packaging with simplified converter/interpreter setup.
 - Classic-to-Dignified conversion; `-asc` is not a Spectrum DignifieR.
-- Detailed priorities and module history are in [OUTLINE.md](../OUTLINE.md).
+- Automatic ROM runtime-error monitoring with source-line reporting.
+- Detailed priorities, manual acceptance checks and module history are in
+  [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas).
 
   
 **General**  
