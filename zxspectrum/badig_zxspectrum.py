@@ -13,6 +13,8 @@ from .tokenizer_zxspectrum import (
     FUNCTIONS, SpectrumTokenizeError, TOKEN_CODES, parse_remx, tokenize, validate_identifier,
 )
 
+MODELS = ('48', '128')
+
 ERROR_EXIT_CODE = 1
 
 
@@ -22,6 +24,7 @@ def fail(message, token=None):
 
 
 def postprocess(code, stg):
+    model = stg.c_stg.sp_model
     try:
         remx_lines = getattr(stg, 'remx_lines', [])
         if remx_lines:
@@ -38,7 +41,7 @@ def postprocess(code, stg):
                          token)
                 lines[number] = f'{number} REM {payload}{ending}'
             code = [lines[number] for number in sorted(lines)]
-        tokenize(''.join(code))
+        tokenize(''.join(code), model=model)
     except SpectrumTokenizeError as error:
         fail(str(error))
     return code
@@ -46,7 +49,7 @@ def postprocess(code, stg):
 
 class Description(MSXDescription):
     def sysinfo(self):
-        self.system_name = f'ZX Spectrum 48K (module {VERSION} preview)'
+        self.system_name = f'ZX Spectrum (module {VERSION} preview)'
         self.dignified_ext = '.DZS'
         self.ascii_ext = '.AZS'
         self.binary_ext = '.tap'
@@ -60,7 +63,8 @@ class Description(MSXDescription):
                         'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR',
                         'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'REMX', '?',
                         'DEF FN', 'LOAD', 'SAVE', 'VERIFY', 'MERGE', 'LINE',
-                        'OPEN #', 'CLOSE #', 'LPRINT', 'LLIST', 'COPY']
+                        'OPEN #', 'CLOSE #', 'LPRINT', 'LLIST', 'COPY',
+                        'PLAY', 'SPECTRUM']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT', 'BIN']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
@@ -106,15 +110,27 @@ class Settings:
         stg.remx_lines = []
         if not 1 <= stg.line_start <= 9999 or stg.line_step < 1:
             fail('Spectrum requires line start 1..9999 and a positive line step')
+        model = stg.args.sp_model
+        if 'SP_MODEL' in stg.code_remtags:
+            model = stg.code_remtags['SP_MODEL'].strip()
+        if model not in MODELS:
+            fail(f'--sp_model/SP_MODEL must be 48 or 128, got: {model}')
+        self.sp_model = model
         return self
 
 
 class Expose:
     def __init__(self):
-        self.remtags = {}
+        remtag = namedtuple('remtag', 'name help metavar')
+        self.remtags = {'Spectrum': [
+            remtag('SP_MODEL', 'Target 48K or 128K Spectrum ROM tokens.', '48 or 128'),
+        ]}
         self.parser = argparse.ArgumentParser(add_help=False)
         self.parser.add_argument('--spectrum-version', action='version',
                                  version=f'ZX Spectrum module {VERSION}')
+        group = self.parser.add_argument_group('Spectrum model')
+        group.add_argument('--sp_model', choices=MODELS, default='48',
+                           help='Target 48K (default) or 128K Spectrum ROM tokens.')
 
 
 class Lexer(MSXLexer):
@@ -166,7 +182,7 @@ class Parser(MSXParser):
         if self.par.tk.tok == 'Z_REMX':
             token = self.par.tk
             try:
-                number, payload = parse_remx(token.val)
+                number, payload = parse_remx(token.val, model=self.stg.c_stg.sp_model)
             except SpectrumTokenizeError as error:
                 fail(str(error), token)
             self.stg.remx_lines.append((number, payload, token))

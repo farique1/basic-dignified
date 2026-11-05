@@ -7,8 +7,9 @@ To run Basic Dignified you will need:
 To be able to **run** and **monitor** (monitoring is available on **MSX** and **Mac**/**Linux** only) the program **execution**, you will need:
 - **openMSX** with an emulated disk drive for the MSX (tested on **v.17.0**)
 - **XRoar** for the CoCo. (tested on **v.1.3**)  
-- **EightyOne** on Windows for **ZX Spectrum 48K**, with an English ROM.
-  Manual loading in another compatible emulator remains possible.
+- **EightyOne** on Windows for **ZX Spectrum 48K** (default) or **128K**
+  (`--sp_model 128`), with an English ROM. Manual loading in another
+  compatible emulator remains possible.
 
 **Text** and **TAP/TZX** conversion need no extra Python packages.
 **Z80/SNA snapshots** are optional; their setup is described below.
@@ -77,8 +78,9 @@ ie: `emulator_path = D:\Emulators\openMSX\openmsx.exe`
 Now Basic Dignified can **run** your program after the **conversion**.  
 
 For **Spectrum**, install **EightyOne** independently and select a **48K
-Spectrum** profile. The Spectrum interface uses `[CONFIGS]` in
-`zxspectrum\emulator_interface.ini`, rather than the MSX/CoCo OS sections:
+Spectrum** profile (or **Spectrum 128** with `--sp_model 128`). The Spectrum
+interface uses `[CONFIGS]` in `zxspectrum\emulator_interface.ini`, rather
+than the MSX/CoCo OS sections:
 
 ```INI
 [CONFIGS]
@@ -88,11 +90,19 @@ setting =
 ```
 
 Or pass **--em_run --em_path PATH** on the command line. A temporary copy
-of the 48K profile is used and the converter waits for the emulator to close.
-Tapes use autoload/flash-load; snapshots do not use the tape manager.
+of the model's profile (48K or 128K, matching `--sp_model`) is used and the
+converter waits for the emulator to close. Tapes use autoload/flash-load;
+snapshots do not use the tape manager (snapshots remain 48K-only).
 ROM errors are **not monitored automatically**. The
 [Spectrum reference](ZX_SPECTRUM.md#eightyone-loading-and-launch-integration)
 describes manual LOAD/LIST/RUN and snapshot opening.
+
+For 128K, the user confirmed manual TZX loading in EightyOne and
+Spectaculator, but reported a black-screen freeze with EightyOne's
+`--em_run` launch. Generate the tape without `--em_run`, select Spectrum
+128 in the emulator and open it manually. Spectaculator is not a drop-in
+replacement for `--em_path`; its integrated launcher remains future work.
+See [manual loading and alternative emulators](ZX_SPECTRUM.md#spectaculator-and-other-emulators).
   
 ## Code Editors  
 

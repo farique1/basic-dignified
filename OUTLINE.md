@@ -1,7 +1,11 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data da analise: 2026-11-04. Ultima atualizacao: 2026-11-05.
-Estado: marcos implementados ate modulo Spectrum v1.9.0 preview.
+Estado: marcos publicados ate modulo Spectrum v1.9.0 preview (release abaixo),
+mais a entrega de branch/VSIX v1.10.0 com modelo 128K opcional (`--sp_model
+48|128`). Sem nova tag/release, PR ou integracao ZX81 nesta rodada.
+Os VSIX de cada maquina continuam separados; 48K/128K usam o mesmo
+pacote Spectrum. resume.txt e um registro local, nao incluido no Git.
 
 Entrega anterior verificada: [Spectrum v1.8.0](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0),
 commit `4c66d4a07564018ee92411747e3dd96f1fe07636`, com 32 assets.
@@ -90,7 +94,7 @@ Novas demos fn/streams e tarefas de DignifieR nos editores.
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.9.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.10.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -114,13 +118,49 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] Release 1.8.0, 32 assets e ZIP extraido verificados.
 - [x] Bytes literais gerais, DEF FN/FN nativos e comandos de fita/streams 48K.
 - [x] DignifieR Spectrum AZS -> DZS com validacao real e gravacao atomica.
+- [x] Modelo 128K opcional (`--sp_model 48|128`/`SP_MODEL`): tokens nativos
+  SPECTRUM e PLAY, restricao de UDG %T/%U no 128K, perfil EightyOne
+  `Spectrum 128` proprio e bloqueio explicito de Z80/SNA com 128K
+  (snapshots continuam 48K apenas). Sem alteracao no binario TAP/TZX
+  (formato de fita nao distingue maquina) nem no limite de bytes do
+  programa (mantido conservador, igual ao 48K, por falta de confirmacao
+  do RAMTOP padrao do modo 128 BASIC). DignifieR Spectrum tambem recebeu
+  `--sp_model`, propagado para sua validacao interna e para a validacao
+  via subprocess, depois de um teste pego na revisao de documentacao
+  mostrar que ele so aceitava fonte 48K por padrao. Validacao desta
+  entrega: 68 testes Python executados, 62 aprovados e 6 pulados por
+  ausencia do SkoolKit opcional. VSIX 1.10.0 com selecao de modelo
+  `spectrum-basic.model`, tarefas de conversao/DignifieR e realce
+  PLAY/SPECTRUM. Sem nova tag/release; Sublime anterior preservado.
+- [x] VSIX Spectrum 1.10.0 gerado e inspecionado: integridade, versao,
+  arquivos empacotados e aviso do bug 128K conferidos. npm test aprovado;
+  tarefas extraidas do pacote converteram e dignificaram hello (48K) e
+  play128 (128K) pelo conversor real. MSX/CoCo nao validados nesta rodada,
+  conforme solicitado. Instalacao/teste visual no VS Code fica para o usuario.
 - [ ] Validacao manual das novas demos fn/streams e comandos com midia/impressora.
 - [ ] Validacao manual da nova demo graphics no EightyOne.
 - [ ] Validacao manual da nova demo native (TAP/TZX, com/sem autorun).
 - [ ] Validacao manual dos snapshots Z80/SNA no EightyOne.
+- [x] Carga e execucao manuais de play128.tzx confirmadas pelo usuario em
+  2026-11-05 no EightyOne e no Spectaculator: musica e troca final para
+  48 BASIC por SPECTRUM funcionam. UDG T/U no LIST posterior sao esperados.
+- [ ] Corrigir/validar lancamento automatico EightyOne 128K
+  (`--sp_model 128 --em_run`): usuario relatou boot seguido de tela preta,
+  sem musica e sem resposta a BREAK, liberando apenas com reset.
+- [ ] Integracao automatica do Spectaculator: abertura manual documentada;
+  selecao de modelo por CLI e ciclo de vida ainda nao verificados.
 - [ ] VSIX realmente integrado com conversor e instalacao simplificada.
-- [ ] Monitoramento automatico dos erros de execucao da ROM.
+- [ ] Monitoramento automatico dos erros de execucao da ROM. Verificado:
+  EightyOne nao tem gancho de automacao/depuracao externo (so GUI manual);
+  o monitoramento do MSX via openMSX e exclusivo de Unix. A unica via
+  viavel seria simulacao offline do SkoolKit (Simulator), continuando a
+  execucao apos o LOAD e inspecionando ERR_NR/PPC na RAM — nao e
+  monitorar a janela real do EightyOne. Adiado a pedido do usuario.
 - [ ] Extracao/destokenizacao de BASIC em TAP/TZX/Z80/SNA.
+- [ ] Snapshots Z80/SNA para o modelo 128K (formato de 8 bancos de 16K;
+  comportamento do SkoolKit com `machine=128` e `get_snapshot` nao
+  verificado). Bloqueado explicitamente por enquanto: `--sp_model 128`
+  com `--tk_format z80/sna/all` falha com erro claro.
 
 O detalhamento do comportamento implementado esta em
 [documentation/ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md).
@@ -130,15 +170,18 @@ objetivo completo; v1.1.0 implementa apenas o primeiro marco funcional.
 ## Pendencias priorizadas
 
 Custos relativos estimados, nao prazos. A ordem considera necessidade
-funcional antes do custo; nenhum item abaixo foi implementado nesta revisao.
+funcional antes do custo. Nesta revisao, a parte 128K do item 5 (tokens
+nativos SPECTRUM/PLAY, sem snapshots/perifericos) foi implementada; os
+demais itens continuam pendentes como antes, e o item 2 foi investigado
+e adiado a pedido do usuario (ver justificativa abaixo da tabela).
 
 | Ordem | Trabalho | Necessidade | Custo | Criterio de conclusao |
 | :-: | :- | :-: | :-: | :- |
-| 1 | Validacao manual EightyOne | Alta | Baixo | Native/graphics/fn/streams, snapshots e comandos com midia/impressora, com resultados registrados |
-| 2 | Monitorar erros da ROM | Media | Alto | Detectar erro real no emulador e apontar a linha DZS; fechamento normal do processo nao basta |
+| 1 | Validacao manual e integracao EightyOne | Alta | Baixo para testes; correcao a investigar | Native/graphics/fn/streams, snapshots e midia/impressora com resultados registrados; play128.tzx manual aprovado no EightyOne/Spectaculator, mas launcher 128K congela |
+| 2 | Monitorar erros da ROM | Media | Alto | Investigado e adiado: so viavel via simulacao offline do SkoolKit (Simulator), nao via EightyOne (sem gancho de automacao) nem via o metodo do MSX (openMSX, exclusivo de Unix) |
 | 3 | Empacotamento integrado final | Alta para distribuicao final | Medio/alto | Instalar/configurar conversor e Python com fluxo simples; SkoolKit continua opcional e sem ROM embutida |
 | 4 | Extrair/destokenizar binarios | Media | Alto | Recuperar AZS de TAP/TZX/Z80/SNA; converter AZS para DZS ja funciona |
-| 5 | Outros modelos/perifericos | Opcional | Alto | Escopo proprio para 128K, Microdrive/disco, NextBASIC, turbo e fitas com varios arquivos |
+| 5 | Outros modelos/perifericos | Opcional | Alto | 128K (tokens nativos) implementado; faltam seus snapshots Z80/SNA, Microdrive/disco, NextBASIC, turbo e fitas com varios arquivos |
 
 O empacotamento integrado permanece na etapa final, conforme decidido, apesar da importancia
 para novos usuarios. Publicacao em lojas de editores tambem fica para essa
@@ -153,6 +196,26 @@ etapa; os pacotes offline atuais ja estao disponiveis.
 - [ ] Registrar versao/perfil 48K do EightyOne, formato e resultado de cada caso.
 - [ ] FN/streams: conferir resultados e bytes literais; usar midia/impressora
   apropriadas para a secao de comandos depois de STOP.
+- [ ] 128K: abrir EightyOne com `--sp_model 128 --em_run` (perfil
+  `eightyone128.ini`, MachineName=Spectrum 128); conferir se o menu
+  128/tape loader e o autoload da fita funcionam como esperado. Testado pelo
+  usuario em 2026-11-05: congela em tela preta depois do boot; pendente
+  correcao, nao aprovado.
+- [x] 128K manual: play128.tzx carregou e executou, tocando as notas, no
+  EightyOne e no Spectaculator. SPECTRUM final muda para 48 BASIC;
+  PLAY/SPECTRUM aparecem como UDG U/T no LIST desse modo, como esperado.
+
+O usuario considerou os testes bem-sucedidos nesta rodada; o resultado
+detalhado informado cobre play128.tzx manual nos dois emuladores.
+Nao ha resultados individuais novos para marcar toda a matriz 48K,
+snapshots e perifericos como aprovada. O launcher 128K continua com a
+falha acima. Adaptacao manual para outros emuladores esta documentada em
+[ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md#spectaculator-and-other-emulators).
+Investigacao do Spectaculator 9.1: a associacao Windows local abre TZX via
+SpecStub.exe; o manual oficial documenta File > Open e Auto load.
+Nao foi estabelecida uma opcao CLI verificada para selecionar 48K/128K.
+Abertura externa e simples, mas integracao completa via --em_run fica
+para versao futura, sem reutilizar indevidamente o INI do EightyOne.
 
 As fitas e snapshots fornecidos de graphics estao sem autorun; os casos
 com autorun precisam ser regenerados pelas opcoes documentadas.

@@ -11,7 +11,9 @@ from unittest.mock import MagicMock, patch
 
 from . import emulator_interface, snapshot_zxspectrum, tokenizer_interface
 from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
-from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, parse_remx, tokenize
+from .tokenizer_zxspectrum import (
+    SpectrumTokenizeError, encode_number, encode_text, parse_remx, tokenize,
+)
 from .dignifier import dignify
 
 
@@ -153,6 +155,32 @@ class TokenizerTests(unittest.TestCase):
             with self.subTest(statement=statement):
                 with self.assertRaises(SpectrumTokenizeError):
                     tokenize('10 ' + statement)
+
+    def test_model_128_enables_spectrum_and_play_tokens(self):
+        for statement in ('SPECTRUM', 'PLAY "a"'):
+            with self.subTest(statement=statement, model='48'):
+                with self.assertRaises(SpectrumTokenizeError) as error:
+                    tokenize('10 ' + statement)
+                self.assertIn('--sp_model 128', str(error.exception))
+        self.assertEqual(tokenize('10 SPECTRUM', model='128')[4:], b'\xa3\x0d')
+        self.assertEqual(tokenize('10 PLAY "a","b","c"', model='128')[4:],
+                         b'\xa4 "a","b","c"\x0d')
+        for statement in ('SPECTRUM 1', 'PLAY', 'PLAY "a","b","c","d"', 'PLAY "a",'):
+            with self.subTest(statement=statement):
+                with self.assertRaises(SpectrumTokenizeError):
+                    tokenize('10 ' + statement, model='128')
+        with self.assertRaises(SpectrumTokenizeError):
+            tokenize('10 STOP', model='256')
+
+    def test_model_128_udg_t_and_u_become_reserved_tokens(self):
+        self.assertEqual(encode_text('%T%U', model='48'), b'\xa3\xa4')
+        for literal in ('%T', '%U', r'\A3', r'\a4'):
+            with self.assertRaises(SpectrumTokenizeError):
+                encode_text(literal, model='128')
+        for code in (0xA3, 0xA4):
+            raw = f'\\{{{code:02X}}}'
+            self.assertEqual(encode_text(raw, model='48'), bytes((code,)))
+            self.assertEqual(encode_text(raw, model='128'), bytes((code,)))
 
     def test_known_rom_tokens_and_line_layout(self):
         self.assertEqual(
@@ -353,6 +381,27 @@ class ConversionTests(unittest.TestCase):
                 cwd=ROOT, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('print "\\{FF}%A"', destination.read_text())
+
+    def test_dignifier_sp_model_128_accepts_spectrum_and_play(self):
+        source = '10 PLAY "a"\n20 SPECTRUM\n'
+        with self.assertRaises(SpectrumTokenizeError):
+            dignify(source)
+        converted = dignify(source, model='128')
+        self.assertIn('play "a"', converted)
+        self.assertIn('spectrum', converted)
+        with tempfile.TemporaryDirectory() as folder:
+            classic = Path(folder) / 'classic.AZS'
+            classic.write_text(source, encoding='ascii')
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier', str(classic), '-vb', '0'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1)
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier', str(classic),
+                 '--sp_model', '128'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('play "a"', classic.with_suffix('.DZS').read_text())
 
     def test_raw_native_fn_and_streams_use_the_dignified_pipeline(self):
         result, listing, tape = self.convert(
@@ -698,6 +747,28 @@ class ConversionTests(unittest.TestCase):
         self.assertNotIn('total_score', listing)
         self.assertTrue(tape, result.stdout + result.stderr)
 
+    def test_sp_model_cli_and_remtag_enable_128k_tokens(self):
+        source = 'SPECTRUM\nPLAY "a"\nSTOP\n'
+        result, _, tape = self.convert(source, '-rh')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('--sp_model 128', result.stdout)
+        result, listing, tape = self.convert(source, '-rh', '--sp_model', '128')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('SPECTRUM', listing)
+        self.assertIn('PLAY "a"', listing)
+        self.assertTrue(tape, result.stdout + result.stderr)
+        result, _, tape = self.convert('##BB:sp_model=128\n' + source, '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(tape, result.stdout + result.stderr)
+        result, _, _ = self.convert(source, '-rh', '--sp_model', '256')
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_sp_model_128_rejects_z80_sna_output(self):
+        result, _, _ = self.convert('STOP\n', '-rh', '--sp_model', '128',
+                                    '--tk_format', 'z80')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('only supported for --sp_model 48', result.stdout)
+
     def test_classic_input_and_tape_name_remtag(self):
         result, _, tape = self.convert('10 PRINT "HI"\n20 STOP\n', '--tk_name', 'CLASSIC',
                                       classic=True)
@@ -913,6 +984,7 @@ class SnapshotTests(unittest.TestCase):
             source.write_text('10 STOP\n', encoding='ascii')
             stg = SimpleNamespace(
                 file_save=str(source), verbose_level=0, code_remtags={},
+                c_stg=SimpleNamespace(sp_model='48'),
                 args=SimpleNamespace(tk_name=None, tk_tokenize=True,
                                      tk_format='all', tk_autorun=None))
             destinations = [source.with_suffix('.' + ext)
@@ -1039,11 +1111,38 @@ class SnapshotTests(unittest.TestCase):
 
 
 class EmulatorTests(unittest.TestCase):
+    def test_settings_select_profile_and_machine_name_per_model(self):
+        for model, profile_name, machine in (
+                ('48', 'eightyone48.ini', '48K Spectrum'),
+                ('128', 'eightyone128.ini', 'Spectrum 128')):
+            with self.subTest(model=model):
+                stg = SimpleNamespace(
+                    args=SimpleNamespace(em_run=None, em_path=None, em_setting=None),
+                    code_remtags={}, c_stg=SimpleNamespace(sp_model=model))
+                settings = emulator_interface.Settings(stg)
+                self.assertEqual(settings.model, model)
+                self.assertEqual(settings.setting.name, profile_name)
+                profile = configparser.ConfigParser()
+                profile.read(settings.setting)
+                self.assertEqual(profile.get('HARDWARE', 'MachineName'), machine)
+
+    def test_run_rejects_profile_for_the_wrong_model(self):
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'wrong.ini'
+            profile.write_text('[HARDWARE]\nMachineName=48K Spectrum\n', encoding='ascii')
+            settings = SimpleNamespace(path=Path('missing.exe'), model='128', setting=profile)
+            with patch.object(emulator_interface.subprocess, 'Popen') as launch:
+                with self.assertRaises(SystemExit) as failure:
+                    emulator_interface.run(SimpleNamespace(verbose_level=0), settings,
+                                           Path('demo.tap'))
+                self.assertEqual(failure.exception.code, 1)
+                launch.assert_not_called()
+
     def test_snapshot_profile_disables_tape_autoload(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             settings = SimpleNamespace(
-                path=root / 'EightyOne.exe',
+                path=root / 'EightyOne.exe', model='48',
                 setting=ROOT / 'zxspectrum' / 'eightyone48.ini')
 
             def launch(arguments, **options):
@@ -1068,7 +1167,7 @@ class EmulatorTests(unittest.TestCase):
             original.write_text('[HARDWARE]\nMachineName=48K Spectrum\n'
                                 '[TZXMAN]\nAutoLoad=0\n', encoding='ascii')
             before = original.read_bytes()
-            settings = SimpleNamespace(path=root / 'Eighty One.exe', setting=original)
+            settings = SimpleNamespace(path=root / 'Eighty One.exe', model='48', setting=original)
             tape = root / 'my tape.tap'
             tape.write_bytes(make_tap(tokenize('10 STOP'), 'TEST', 0))
             copied = []
@@ -1092,7 +1191,7 @@ class EmulatorTests(unittest.TestCase):
 
     def test_launch_errors_are_not_success(self):
         settings = SimpleNamespace(
-            path=Path('missing.exe'),
+            path=Path('missing.exe'), model='48',
             setting=ROOT / 'zxspectrum' / 'eightyone48.ini')
         with patch.object(emulator_interface.subprocess, 'Popen', side_effect=OSError('missing')):
             with self.assertRaises(SystemExit) as failure:
@@ -1126,6 +1225,7 @@ class EmulatorTests(unittest.TestCase):
             source.write_text('10 STOP\n', encoding='ascii')
             stg = SimpleNamespace(
                 file_save=str(source), verbose_level=0, code_remtags={},
+                c_stg=SimpleNamespace(sp_model='48'),
                 args=SimpleNamespace(tk_name=None, tk_tokenize=None,
                                      tk_format='both', tk_autorun=None))
             tapes = tokenizer_interface.Run(stg).run(force=True)

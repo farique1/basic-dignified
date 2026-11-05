@@ -15,6 +15,23 @@ are not promises that every Spectrum feature is available.
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
 ## Changes to this version  
+*ZX Spectrum module v1.10.0 preview (branch/VSIX; no new tagged release)*
+- Added an optional 128K model (`--sp_model 48|128` / `SP_MODEL` remtag,
+  default 48): native `SPECTRUM` and `PLAY` tokens, with `%T`/`%U` UDG
+  escapes reserved for them under 128K. The Spectrum DignifieR also gained
+  a matching `--sp_model` flag so it can accept 128K-only source.
+- Added a dedicated EightyOne 128K profile (`Spectrum 128` machine name).
+- One Spectrum VSIX supports both models: `spectrum-basic.model` is passed
+  by build/DignifieR tasks; PLAY/SPECTRUM highlighting is included.
+- User confirmed manual `play128.tzx` loading/execution in EightyOne and
+  Spectaculator. EightyOne's automatic 128K launch freezes after boot;
+  documented manual loading as the workaround and Spectaculator integration
+  as future work (the current launcher uses EightyOne-specific arguments).
+- Z80/SNA snapshots, ROM runtime-error monitoring, and other
+  peripherals/models remain out of scope for this addition (see
+  [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas) for what was
+  investigated and explicitly deferred).
+
 *ZX Spectrum module v1.9.0*
 - Added literal hexadecimal bytes in code/strings/REM, including raw REM preservation.
 - Added native DEF FN/FN with ROM parameter slots, tape commands and streams/printer syntax.
@@ -48,10 +65,18 @@ are not promises that every Spectrum feature is available.
   not features added by this documentation update.
 - Manual emulator validation of the new demos and snapshots.
 - Manual mounted-media/printer validation of native tape and output commands.
+- Investigate EightyOne's 128K automatic-launch freeze; manual `play128.tzx`
+  works in EightyOne and Spectaculator. Integrated Spectaculator launching
+  remains future work; manual loading is documented.
 - Fully integrated editor packaging with simplified converter/interpreter setup.
 - Extract/detokenize BASIC from tapes/snapshots; DignifieR now accepts numbered text.
-- Further models/peripherals and their additional syntax.
+- 128K model: `SPECTRUM`/`PLAY` tokens added (unreleased); 128K Z80/SNA
+  snapshots and other models/peripherals (+2/+2A/+3, NextBASIC, turbo,
+  multi-file tapes) remain future work.
 - Automatic ROM runtime-error monitoring with source-line reporting.
+  Investigated: EightyOne has no automation/debug hook, and the MSX
+  module's openMSX-based approach is Unix-only; only a SkoolKit offline
+  simulation would be viable. Deferred at the user's request.
 - Detailed priorities, manual acceptance checks and module history are in
   [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas).
 

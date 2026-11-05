@@ -33,6 +33,10 @@ Run from the suite folder:
 - *Overwrite*: existing destinations are refused; **--force** explicitly
   replaces them. Source and destination must always be different.
 - *Verbose*: **-vb 0..5**, default **3**. Errors use a nonzero status.
+- *Model*: **--sp_model 48** (default) or **128**, matching the source's ROM
+  token set. Required to accept 128K-only input (`SPECTRUM`, `PLAY`); it is
+  also passed to the internal validation pass, so a mismatched model is
+  rejected rather than silently producing an unusable DZS.
 
 Static **GO TO/GO SUB, RUN, RESTORE, LIST/LLIST** destinations and **SAVE LINE**
 become `{line_number}` labels. A destination between existing lines selects

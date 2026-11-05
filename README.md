@@ -27,7 +27,7 @@ The suite comes with modules for **MSX Basic**, **Color Computer Basic** and **Z
 | :- | :- | :- | :- | :- |
 | **MSX** | `-id msx` (default) | `.DMX` | `.AMX` | `.BMX` |
 | **CoCo** | `-id coco` | `.DCC` | `.ACC` | `.BCC` / `.CAS` |
-| **ZX Spectrum 48K** | `-id zxspectrum` | `.DZS` | `.AZS` | `.TAP` / `.TZX` / `.Z80` / `.SNA` |
+| **ZX Spectrum 48K/128K** | `-id zxspectrum` | `.DZS` | `.AZS` | `.TAP` / `.TZX` / `.Z80` / `.SNA` |
 
 On **Spectrum**, numeric scalars keep their native **long names**; strings,
 arrays and FOR controls use single letters or explicit **DECLARE** aliases.
@@ -35,9 +35,16 @@ arrays and FOR controls use single letters or explicit **DECLARE** aliases.
 [Basic Dignified manual](documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
 The [Spectrum reference](documentation/ZX_SPECTRUM.md) covers the supported
 Sinclair commands and limits. The Spectrum module is independently versioned
-**1.9.0 preview**; the original suite remains **2.2.1**.
+**1.10.0 preview**; the original suite remains **2.2.1**.
 Native **DEF FN/FN**, tape/stream commands, literal **`\{XX}`** bytes and
 the [Spectrum DignifieR](documentation/DIGNIFIER.md#zx-spectrum-dignifier) are included.
+An optional **`--sp_model 128`** flag enables the 128K `SPECTRUM`/`PLAY`
+tokens (Z80/SNA snapshots and other 128K-specific features remain out of
+scope; see the [Spectrum reference](documentation/ZX_SPECTRUM.md#128k-model)).
+This 128K addition is **not yet published** in a tagged release.
+The 1.10.0 VSIX supports both 48K and 128K through its
+`spectrum-basic.model` setting. EightyOne automatic 128K loading has a
+known freeze; use manual loading as documented in the Spectrum reference.
 The [published preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0)
 contains the source, editor packages and eight demos. See
 [remaining work and priorities](OUTLINE.md#pendencias-priorizadas) for

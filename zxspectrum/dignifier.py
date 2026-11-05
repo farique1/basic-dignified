@@ -9,11 +9,13 @@ from pathlib import Path
 
 from . import VERSION
 from .tokenizer_interface import write_output
-from .tokenizer_zxspectrum import LINE, STATEMENTS, SpectrumTokenizeError, source_tokens, tokenize
+from .tokenizer_zxspectrum import (
+    LINE, MODEL_128_STATEMENTS, STATEMENTS, SpectrumTokenizeError, source_tokens, tokenize,
+)
 
 
-def dignify(source: str, lowercase: bool = True) -> str:
-    tokenize(source)
+def dignify(source: str, lowercase: bool = True, model: str = '48') -> str:
+    tokenize(source, model=model)
     lines = []
     for text in source.splitlines():
         if text.strip():
@@ -42,7 +44,8 @@ def dignify(source: str, lowercase: bool = True) -> str:
             if token.kind != 'word':
                 continue
             keyword = ' '.join(token.value.upper().split())
-            if statement is None and keyword in STATEMENTS:
+            if statement is None and (keyword in STATEMENTS
+                                      or (model == '128' and keyword in MODEL_128_STATEMENTS)):
                 statement = keyword
             if keyword == 'THEN':
                 statement = None
@@ -106,13 +109,15 @@ def main(argv=None):
     parser.add_argument('-tr', action='store_true', help='Read/write UTF-8 instead of Latin-1')
     parser.add_argument('-vb', type=int, choices=range(6), default=3, help='Verbosity 0..5')
     parser.add_argument('--force', action='store_true', help='Replace an existing destination')
+    parser.add_argument('--sp_model', choices=('48', '128'), default='48',
+                        help='Target ROM token set of the source (default: 48)')
     args = parser.parse_args(argv)
     destination = args.output or args.input.with_suffix('.DZS')
     try:
         if destination.resolve() == args.input.resolve():
             raise SpectrumTokenizeError('Source and destination must be different files')
         source = args.input.read_text(encoding='utf-8-sig' if args.tr else 'latin-1')
-        result = dignify(source, args.lowercase)
+        result = dignify(source, args.lowercase, args.sp_model)
         if destination.exists() and not args.force:
             raise SpectrumTokenizeError('Destination already exists; use --force to replace it')
         with tempfile.TemporaryDirectory(prefix='spectrum-dignifier-') as folder:
@@ -121,7 +126,8 @@ def main(argv=None):
                 '##BB:em_run=False\n##BB:tk_tokenize=False\n' + result, encoding='latin-1')
             checked = subprocess.run(
                 [sys.executable, '-B', str(Path(__file__).resolve().parents[1] / 'badig.py'),
-                 str(validation), '-id', 'zxspectrum', '--tk_format', 'tap', '-vb', '0'],
+                 str(validation), '-id', 'zxspectrum', '--tk_format', 'tap', '-vb', '0',
+                 '--sp_model', args.sp_model],
                 capture_output=True, text=True, timeout=30)
             if checked.returncode:
                 detail = (checked.stdout + checked.stderr).strip()

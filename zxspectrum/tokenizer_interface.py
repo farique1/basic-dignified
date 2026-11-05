@@ -100,9 +100,12 @@ class Run:
         destinations = [source.with_suffix('.' + extension) for extension in formats]
         if any(source.resolve() == destination.resolve() for destination in destinations):
             fail('ASCII source and Spectrum destination must be different files')
+        model = self.stg.c_stg.sp_model
+        if model != '48' and any(extension in formats for extension in ('z80', 'sna')):
+            fail('Z80/SNA snapshots are only supported for --sp_model 48')
         name = name or source.stem[:10]
         try:
-            program = tokenize(source.read_text(encoding='latin1'))
+            program = tokenize(source.read_text(encoding='latin1'), model=model)
             tape = make_tap(program, name, None if autorun == -1 else autorun)
             outputs = {'tap': tape}
             if 'tzx' in formats:

@@ -20,8 +20,14 @@ KEYWORDS = (
     'POKE', 'PRINT', 'PLOT', 'RUN', 'SAVE', 'RANDOMIZE', 'IF', 'CLS', 'DRAW',
     'CLEAR', 'RETURN', 'COPY',
 )
+# 128K ROM keywords. On 48K these same codes are the last two UDG graphics
+# (%T and %U); the 128K editor ROM repurposes them as SPECTRUM and PLAY.
+MODEL_128_TOKENS = {'SPECTRUM': 0xA3, 'PLAY': 0xA4}
 TOKEN_CODES = {word: code for code, word in enumerate(KEYWORDS, 0xA5)}
+TOKEN_CODES.update(MODEL_128_TOKENS)
 CODE_KEYWORDS = {code: word for word, code in TOKEN_CODES.items()}
+MODEL_128_SUPPORTED = frozenset(('SPECTRUM', 'PLAY'))
+MODEL_128_STATEMENTS = MODEL_128_SUPPORTED
 FUNCTIONS = (
     'RND', 'INKEY$', 'PI', 'POINT', 'SCREEN$', 'ATTR', 'VAL$', 'CODE',
     'VAL', 'LEN', 'SIN', 'COS', 'TAN', 'ASN', 'ACS', 'ATN', 'LN', 'EXP',
@@ -103,7 +109,7 @@ def encode_number(text):
     return bytes((exponent + 129,)) + (mantissa & 0x7FFFFFFF).to_bytes(4, 'big')
 
 
-def encode_text(text, raw=True):
+def encode_text(text, raw=True, model='48'):
     result = bytearray()
     index = 0
     while index < len(text):
@@ -124,6 +130,10 @@ def encode_text(text, raw=True):
                 code = int(escape.group(1), 16)
                 if not 128 <= code <= 164:
                     raise SpectrumTokenizeError(r'Graphic escape must be within \80..\A4')
+                if model == '128' and code in MODEL_128_TOKENS.values():
+                    raise SpectrumTokenizeError(
+                        r'\A3/\A4 are the SPECTRUM/PLAY tokens with --sp_model 128; '
+                        r'use \{XX} for the raw byte')
             result.append(code)
             index = escape.end()
             continue
@@ -132,6 +142,10 @@ def encode_text(text, raw=True):
             letter = text[index + 1].upper()
             if not 'A' <= letter <= 'U':
                 raise SpectrumTokenizeError('Spectrum UDG escapes use %A..%U')
+            if model == '128' and letter in ('T', 'U'):
+                raise SpectrumTokenizeError(
+                    'UDG %T/%U are not available with --sp_model 128; '
+                    'those codes are the SPECTRUM/PLAY tokens')
             result.append(144 + ord(letter) - ord('A'))
             index += 2
             continue
@@ -185,7 +199,7 @@ def source_tokens(text):
         yield SourceToken(kind, value, start, index)
 
 
-def fn_definition(text):
+def fn_definition(text, model='48'):
     """Encode the signature, including the ROM's six-byte parameter slots."""
     match = re.match(r'(\s+[A-Za-z]\$?\s*\()([^()]*)(\)\s*=)', text)
     if not match:
@@ -196,12 +210,12 @@ def fn_definition(text):
         raise SpectrumTokenizeError('DEF FN parameters require single letters with optional $')
     if not text[match.end():].strip() or text[match.end():].lstrip().startswith(':'):
         raise SpectrumTokenizeError('DEF FN requires an expression after =')
-    encoded = bytearray(encode_text(match.group(1)))
+    encoded = bytearray(encode_text(match.group(1), model=model))
     for token in source_tokens(parameters):
-        encoded.extend(encode_text(token.value))
+        encoded.extend(encode_text(token.value, model=model))
         if token.kind == 'word':
             encoded.extend(b'\x0e' + bytes(5))
-    encoded.extend(encode_text(match.group(3)))
+    encoded.extend(encode_text(match.group(3), model=model))
     return bytes(encoded), match.end()
 
 
@@ -229,7 +243,7 @@ def validate_fn_call(text):
     raise SpectrumTokenizeError('FN requires closing argument parentheses')
 
 
-def parse_remx(arguments):
+def parse_remx(arguments, model='48'):
     """Return an absolute BASIC line and its readable REM payload."""
     match = REMX_ARGS.fullmatch(arguments)
     if not match:
@@ -263,7 +277,7 @@ def parse_remx(arguments):
         character = '\u00a3' if code == 96 else '\u00a9'
     elif 32 <= code <= 126:
         character = chr(code)
-    elif 128 <= code <= 164:
+    elif 128 <= code <= 164 and not (model == '128' and code in MODEL_128_TOKENS.values()):
         character = f'\\{code:02X}'
     else:
         character = f'\\{{{code:02X}}}'
@@ -314,7 +328,7 @@ def _validate_command_arguments(command, text):
     arguments.append(text[start:end].strip())
     if arguments == ['']:
         arguments = []
-    if command in ('NEW', 'CONTINUE', 'COPY') and arguments:
+    if command in ('NEW', 'CONTINUE', 'COPY', 'SPECTRUM') and arguments:
         raise SpectrumTokenizeError(f'{command} takes no arguments')
     maximum = 2 if command in ('LIST', 'LLIST') and arguments \
         and arguments[0].lstrip().startswith('#') else 1
@@ -328,9 +342,11 @@ def _validate_command_arguments(command, text):
         raise SpectrumTokenizeError('CLOSE # requires one stream')
     if command in ('LOAD', 'SAVE', 'VERIFY', 'MERGE') and not arguments:
         raise SpectrumTokenizeError(f'{command} requires a filename expression')
+    if command == 'PLAY' and not (1 <= len(arguments) <= 3 and all(arguments)):
+        raise SpectrumTokenizeError('PLAY requires 1 to 3 expressions separated by commas')
 
 
-def tokenize_line(text):
+def tokenize_line(text, model='48'):
     result = bytearray()
     index = 0
     at_statement = True
@@ -350,7 +366,7 @@ def tokenize_line(text):
             if CODE_KEYWORDS.get(code) in STATEMENTS:
                 statement = CODE_KEYWORDS[code]
             if code == TOKEN_CODES['REM']:
-                result.extend(encode_text(text[index:]))
+                result.extend(encode_text(text[index:], model=model))
                 return bytes(result) + b'\x0d'
             at_statement = False
             previous_keyword = None
@@ -364,15 +380,21 @@ def tokenize_line(text):
             keyword = {'GOTO': 'GO TO', 'GOSUB': 'GO SUB'}.get(keyword, keyword)
             keyword = re.sub(r'^(OPEN|CLOSE)\s*#$', r'\1 #', keyword)
             if keyword in TOKEN_CODES:
-                if keyword not in SUPPORTED:
+                model_128_only = keyword in MODEL_128_SUPPORTED
+                if model_128_only and model != '128':
+                    raise SpectrumTokenizeError(f'{keyword} requires --sp_model 128')
+                if not model_128_only and keyword not in SUPPORTED:
                     raise SpectrumTokenizeError(
                         f'{keyword} is not supported in Spectrum v{VERSION}')
-                if at_statement and keyword not in STATEMENTS:
+                is_statement = keyword in STATEMENTS or (model == '128'
+                                                          and keyword in MODEL_128_STATEMENTS)
+                if at_statement and not is_statement:
                     raise SpectrumTokenizeError(f'Expected a statement, got {keyword}')
                 if at_statement:
                     statement = keyword
                 if keyword in ('RUN', 'LIST', 'LLIST', 'NEW', 'CONTINUE', 'OUT',
-                               'OPEN #', 'CLOSE #', 'COPY', 'LOAD', 'SAVE', 'VERIFY', 'MERGE'):
+                               'OPEN #', 'CLOSE #', 'COPY', 'LOAD', 'SAVE', 'VERIFY', 'MERGE',
+                               'PLAY', 'SPECTRUM'):
                     if not at_statement:
                         raise SpectrumTokenizeError(f'{keyword} must start a statement')
                     _validate_command_arguments(keyword, text[match.end():])
@@ -380,7 +402,7 @@ def tokenize_line(text):
                 if keyword == 'DEF FN':
                     tail = text[match.end():]
                     if not RAW_ESCAPE.search(tail.split('=', 1)[0]):
-                        encoded, consumed = fn_definition(tail)
+                        encoded, consumed = fn_definition(tail, model=model)
                         result.extend(encoded)
                         index = match.end() + consumed
                     else:
@@ -402,7 +424,7 @@ def tokenize_line(text):
                     digits = binary.group(1).replace(' ', '').replace('\t', '').lstrip('0')
                     if len(digits) > 16:
                         raise SpectrumTokenizeError('BIN value exceeds 65535')
-                    result.extend(encode_text(binary.group().replace('\t', ' ')))
+                    result.extend(encode_text(binary.group().replace('\t', ' '), model=model))
                     result.append(0x0E)
                     result.extend(encode_number(str(int(digits or '0', 2))))
                     index = binary.end()
@@ -410,7 +432,7 @@ def tokenize_line(text):
                     previous_keyword = None
                     continue
                 if keyword == 'REM':
-                    result.extend(encode_text(text[match.end():], raw=True))
+                    result.extend(encode_text(text[match.end():], raw=True, model=model))
                     return bytes(result) + b'\x0d'
                 at_statement = keyword == 'THEN'
                 previous_keyword = keyword
@@ -429,7 +451,7 @@ def tokenize_line(text):
             raise SpectrumTokenizeError('Expected a supported statement after line number, : or THEN')
         if character == '"':
             end = quoted_end(text, index)
-            result.extend(encode_text(text[index:end]))
+            result.extend(encode_text(text[index:end], model=model))
             index = end
             continue
         number = NUMBER.match(text, index)
@@ -451,7 +473,7 @@ def tokenize_line(text):
             raise SpectrumTokenizeError('# stream selector requires PRINT, INPUT or LIST')
         if character not in '+-*/^=<>(),;:\'#':
             raise SpectrumTokenizeError(f'Unsupported symbol: {character}')
-        result.extend(encode_text(character))
+        result.extend(encode_text(character, model=model))
         if character == ':':
             at_statement = True
         index += 1
@@ -460,7 +482,9 @@ def tokenize_line(text):
     return bytes(result) + b'\x0d'
 
 
-def tokenize(source):
+def tokenize(source, model='48'):
+    if model not in ('48', '128'):
+        raise SpectrumTokenizeError(f'Unknown Spectrum model: {model}; use 48 or 128')
     program = bytearray()
     previous = 0
     for source_line, text in enumerate(source.splitlines(), 1):
@@ -477,7 +501,7 @@ def tokenize(source):
             raise SpectrumTokenizeError(
                 f'Source line {source_line}: line numbers must increase within 1..9999')
         try:
-            body = tokenize_line(match.group(2))
+            body = tokenize_line(match.group(2), model=model)
         except SpectrumTokenizeError as error:
             raise SpectrumTokenizeError(f'BASIC line {number}: {error}') from error
         if len(body) > 65535:

@@ -2,7 +2,7 @@
   "name": "basic-dignified-zxspectrum",
   "displayName": "Basic Dignified ZX Spectrum",
   "description": "Sinclair BASIC and Dignified source highlighting, snippets and build templates.",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "publisher": "wilsonpilon",
   "license": "UNLICENSED",
   "engines": {
@@ -75,6 +75,15 @@
           "type": "string",
           "default": "",
           "description": "Absolute path to badig.py."
+        },
+        "spectrum-basic.model": {
+          "type": "string",
+          "enum": [
+            "48",
+            "128"
+          ],
+          "default": "48",
+          "description": "Spectrum ROM model for build and DignifieR tasks. Snapshots require 48. EightyOne automatic 128K loading has a known freeze; load 128K tapes manually."
         },
         "spectrum-basic.emulatorPath": {
           "type": "string",

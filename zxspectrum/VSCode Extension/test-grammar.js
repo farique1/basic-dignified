@@ -8,6 +8,12 @@ async function main() {
     const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, 'tasks.json'), 'utf8'));
     assert(Array.isArray(tasks.tasks), 'Task template must contain a VS Code tasks array');
     assert(tasks.tasks.some(task => task.args.includes('zxspectrum.dignifier')));
+    for (const task of tasks.tasks.filter(task =>
+        task.args.includes('-id') || task.args.includes('zxspectrum.dignifier'))) {
+        const modelIndex = task.args.indexOf('--sp_model');
+        assert(modelIndex >= 0, `${task.label} must pass the selected Spectrum model`);
+        assert.equal(task.args[modelIndex + 1], '${config:spectrum-basic.model}');
+    }
     const bytes = fs.readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
     await oniguruma.loadWASM(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const registry = new textmate.Registry({
@@ -63,9 +69,16 @@ async function main() {
         }
         const rawRem = grammar.tokenizeLine(String.raw`\{EA} 123:FN`).tokens;
         assert(rawRem.every(token => token.scopes.includes('comment.line.basic.spectrum')));
+        const model128 = 'PLAY "a4","b4","c4":SPECTRUM';
+        const model128Tokens = grammar.tokenizeLine(model128).tokens;
+        for (const command of ['PLAY', 'SPECTRUM']) {
+            const index = model128.indexOf(command);
+            assert(model128Tokens.find(token => token.startIndex <= index
+                && token.endIndex > index).scopes.includes('keyword.control.basic.spectrum'));
+        }
     }
     registry.dispose();
-    console.log('Task template and both grammars: strings, REM, functions, native commands and BIN verified.');
+    console.log('Task model selection and both grammars: strings, REM, functions, native commands, BIN and 128K verified.');
 }
 
 main().catch(error => {

@@ -1,15 +1,17 @@
 # ZX Spectrum Basic
 
-**Module v1.9.0 preview**
+**Module v1.10.0 preview (branch/VSIX; no new tagged release)**
 
 The **ZX Spectrum** module converts **Dignified** code to **Sinclair Basic**
-for the **48K English ROM**. Use `-id zxspectrum` to select it. The module
-version is independent of the Basic Dignified Suite version (2.2.1).
+for the **48K English ROM** by default, with an opt-in **128K** token set
+selected by `--sp_model 128` (see "128K model" below). Use `-id zxspectrum`
+to select the module. The module version is independent of the Basic
+Dignified Suite version (2.2.1).
 
 The common [Basic Dignified manual](BASIC_DIGNIFIED.md),
 [installation](INSTALLATION.md) and [module tools](MODULE_TOOLS.md) apply
 alongside the system-specific rules below. The module supports a documented
-subset, not the complete Sinclair language or 128K extensions.
+subset, not the complete Sinclair language or every 128K/+2/+2A/+3 extension.
 
 ## Supported language
 
@@ -48,11 +50,15 @@ Implemented:
 - Literal **`\{XX}`** bytes in strings, REM and code; **DEF FN/FN**, source
   LOAD/SAVE/VERIFY/MERGE, LINE, OPEN#/CLOSE#, streams and printer commands.
 - [Spectrum DignifieR](DIGNIFIER.md#zx-spectrum-dignifier) for AZS to DZS.
+- `--sp_model 128`: the `SPECTRUM` and `PLAY` 128K editor ROM tokens
+  (see "128K model" below).
 
 Not implemented in this preview:
 
-- Microdrive/disk/128K extensions and their hardware-dependent
+- Microdrive/disk extensions and their hardware-dependent
   CAT/FORMAT/MOVE/ERASE commands.
+- 128K Z80/SNA snapshots, the +2/+2A/+3 ROM variants, NextBASIC, turbo
+  loaders and multi-file tapes.
 - Automatic contextual short-name allocation; explicit aliases are required.
 - Array/slice compound assignments and recursive local function frames.
 - Extracting/detokenizing BASIC from tapes or snapshots.
@@ -61,6 +67,48 @@ Not implemented in this preview:
 Unsupported native words are rejected rather than advertised as working.
 The tokenizer is not a complete Sinclair syntax checker: errors in supported
 expressions can still be reported by the ROM when the program runs.
+
+## 128K model
+
+`--sp_model 48` (default) or `--sp_model 128` selects the ROM token set;
+the equivalent remtag is `SP_MODEL=48|128`. INI < CLI < remtags precedence
+applies, same as the other options. An invalid value is an explicit error.
+
+The 128K editor ROM repurposes the last two UDG graphic codes (`%T` and
+`%U`, bytes `0xA3`/`0xA4`) as two new keyword tokens:
+
+- `SPECTRUM` takes no arguments; it switches permanently to 48 BASIC
+  (there is no way back without a reset). `SPECTRUM 1` is rejected.
+- `PLAY stringexpr[,stringexpr[,stringexpr]]` takes 1 to 3 comma-separated
+  expressions, one per sound channel. The converter only validates the
+  argument count and that none is empty; the note/octave/duration mini
+  language inside each string is a ROM runtime concern, exactly like a
+  `LOAD`/`SAVE` filename expression is not content-checked.
+
+Both words are reserved identifiers in **either** model (like the existing
+`CAT`/`FORMAT`/`MOVE`/`ERASE` disk tokens), so `LET spectrum=1` is rejected
+even with `--sp_model 48`; the Spectrum ROM itself would allow it as a
+48K variable name, but keeping them reserved avoids depending on a
+model-aware grammar in the shared Dignified core. Using `SPECTRUM`/`PLAY`
+as a statement, or the UDG forms `%T`/`%U`/`\A3`/`\A4`, requires
+`--sp_model 128`; the raw byte escapes `\{A3}`/`\{A4}` still insert those
+bytes literally in either model, like any other `\{XX}` byte.
+
+`--sp_model 128` only changes which BASIC tokens are accepted. It does not
+enable 128K Z80/SNA snapshots (`--tk_format z80`/`sna`/`all` are rejected
+with `--sp_model 128`; snapshots remain 48K-only), paging/AY commands beyond
+what `OUT`/`PLAY` already express, a RAM disk, or the +2/+2A/+3 ROM
+variants. `--em_run` with `--sp_model 128` copies `eightyone128.ini`
+(`MachineName=Spectrum 128`, `spectrum128.rom`) instead of the 48K
+template. **Manual loading and execution of `play128.tzx` were confirmed
+by the user in EightyOne and Spectaculator on 2026-11-05. Automatic 128K
+launch/loading through `--em_run` instead froze EightyOne after its boot
+screen**; use manual loading as described below.
+
+The [Spectrum DignifieR](DIGNIFIER.md#zx-spectrum-dignifier) (`-m
+zxspectrum.dignifier`) has its own `--sp_model 48|128` flag; it must match
+the classic source's token set, since the tool validates the input (and
+the DZS it produces) against that model.
 
 ## Chained statements, native control commands and BIN
 
@@ -354,6 +402,7 @@ Use `REM` to retain a comment in the Spectrum program.
 | --- | --- | --- |
 | `-id zxspectrum` | Select the module before argument/remtag processing | MSX otherwise |
 | `--spectrum-version` | Display the independent module version | No conversion |
+| `--sp_model 48\|128` | Target ROM token set (see "128K model" above) | 48 |
 | `--tk_tokenize` | Create selected binary formats after validating the listing | False |
 | `--tk_name "MY TAPE"` | Name inside the tape header | First 10 characters of output stem |
 | `--tk_format tap\|tzx\|both\|z80\|sna\|all` | Select tapes/snapshots (see table above) | tap |
@@ -417,7 +466,8 @@ values are explicit errors. `TK_TOKENIZE=False` conflicts with enabled EM_RUN.
 
 Manual loading remains available:
 
-1. Start EightyOne and select a **Spectrum 48K**, English ROM.
+1. Start EightyOne and select a **Spectrum 48K** (or **Spectrum 128** with
+   `--sp_model 128`), English ROM.
 2. Open `hello.tap` in the emulator's tape manager and rewind it.
 3. If not using the emulator's own autoload facility, enter `LOAD ""` on the
    Spectrum and start tape playback. Flash loading is an emulator option.
@@ -437,13 +487,37 @@ Use `--tk_autorun -1` to load without BASIC autorun, or `--tk_format tzx`
 to launch the TZX instead. If both containers are generated, TAP is opened.
 
 The bundled `eightyone48.ini` template selects Spectrum 48K and the installed
-`spectrum48.rom`. `--em_setting` accepts an existing profile only if its
-HARDWARE/MachineName is exactly `48K Spectrum`. The profile is parsed as
-Latin-1, copied to a temporary directory, and autoload/flash-load are enabled
-in that copy for tapes (disabled for snapshots). The converter waits for EightyOne, checks its exit status,
+`spectrum48.rom`; with `--sp_model 128`, `eightyone128.ini`
+(`MachineName=Spectrum 128`, `spectrum128.rom`) is used instead. `--em_setting`
+accepts an existing profile only if its HARDWARE/MachineName matches the
+selected `--sp_model` exactly (`48K Spectrum` for 48, `Spectrum 128` for 128).
+The profile is parsed as Latin-1, copied to a temporary directory, and
+autoload/flash-load are enabled in that copy for tapes (disabled for
+snapshots). The converter waits for EightyOne, checks its exit status,
 then removes the copy. Ctrl+C terminates the child and reports interruption.
 The emulator itself may write its own support files; the converter does not
 overwrite the original INI. ROMs must already exist in the emulator installation.
+
+**Known 128K launch issue (user report, 2026-11-05):** EightyOne launched
+through `--em_run` shows its boot screen and then a black screen, with no
+music or response to BREAK until reset. The same `play128.tzx` loads and
+plays correctly when EightyOne is opened separately and Spectrum 128 is
+selected manually. The cause has not been isolated; this is not a successful
+automatic-launch test. `--tk_autorun -1` only disables BASIC autorun, not
+the emulator's autoload/flash-load settings.
+
+For now, generate the tape without `--em_run`, then load it manually:
+
+```powershell
+python -B badig.py examples\zxspectrum\play128.DZS -id zxspectrum --sp_model 128 --tk_tokenize --tk_format tzx --tk_autorun -1 -rh -ca
+```
+
+In the emulator, select Spectrum 128, load the TZX, inspect it with `LIST`
+and enter `RUN`. The example plays three channels, prints `DONE`, then
+deliberately executes `SPECTRUM` to enter 48 BASIC. In 48 BASIC, the bytes
+for `SPECTRUM`/`PLAY` are displayed as UDG T/U rather than keywords; this
+is expected, not tape corruption. To remain in 128 BASIC, omit the final
+`SPECTRUM` statement before regenerating the tape.
 
 Launch validation does not imply BASIC runtime-error monitoring. An emulator
 can close successfully after a ROM error; inspect the Spectrum screen.
@@ -451,6 +525,35 @@ can close successfully after a ROM error; inspect the Spectrum screen.
 Do not assume that opening a TAP argument also changes a ZX81 profile into
 a Spectrum profile. The executable is not bundled, and no ROMs are included
 in this release.
+
+### Spectaculator and other emulators
+
+The user confirmed manual loading and execution of `play128.tzx`, including
+its music and final switch to 48 BASIC, in Spectaculator as well as EightyOne.
+This confirms that example's manual TZX workflow, not every format/model.
+
+Generate TAP/TZX without `--em_run`, select the matching 48K or 128K model
+in your emulator and open the tape. In Spectaculator, use **File > Open**;
+with **Auto load** enabled, opening a tape resets the emulated Spectrum and
+starts loading. Otherwise, initiate loading from BASIC and start tape
+playback as needed. See its official [tape-loading instructions](https://www.spectaculator.com/docs/spectaculator/9.1/tape/load.html)
+and [Auto load settings](https://www.spectaculator.com/docs/spectaculator/9.1/cassette/autoload.html).
+Tape autoload and the BASIC autorun line stored in the tape are separate.
+
+If Windows associates `.tzx` files with Spectaculator, you can also request
+opening the generated tape from PowerShell:
+
+```powershell
+Start-Process -FilePath (Resolve-Path .\examples\zxspectrum\play128.tzx).Path
+```
+
+This uses the current Windows file association and the emulator's own
+settings; it does not select the model or certify that loading succeeded.
+Without that association, open the file from Spectaculator itself.
+Do not pass Spectaculator as `--em_path`: the current launcher passes an
+EightyOne-specific INI and arguments. Integrated Spectaculator launching,
+model selection and lifecycle handling remain future work; no verified
+command-line model-selection option was established in this investigation.
 
 ## Editor integration and distribution
 
@@ -461,6 +564,10 @@ offline VSIX, and Sublime templates. No marketplace publication is required.
 - [VS Code companion](../zxspectrum/VSCode%20Extension/README.md):
   install the VSIX, configure converter/Python/emulator paths, and merge
   the supplied task template into existing workspace tasks.
+  The single Spectrum VSIX supports 48K and 128K; set
+  `spectrum-basic.model` to `"48"` or `"128"` before running its tasks.
+  Snapshot tasks still require 48K. For 128K, use tape conversion and
+  manual loading rather than the EightyOne launch task (known bug above).
 - [Sublime templates](../zxspectrum/Sublime%20Package/README.md):
   open the repository root as the project folder and use the provided build.
 
