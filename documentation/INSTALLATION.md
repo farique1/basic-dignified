@@ -99,19 +99,25 @@ If there is a **folder** called `User`, **open** it, if not, **create** one and 
 Sublime Text **should** correctly **interpret** the **Dignified** and **classic** Basic files based on their **extension** but you might have to **manually** chose them the first time you **create** or **open** one. With a **Dignified** or **classic** Basic file **opened**, click on the **bottom left** of Sublime Text (it should be reading `Plain Text`) and go to `Open all with the current extension as...` at the **top** of the **list**, then go to `User` and **select** the **appropriated** syntax description (`MSX Basic classic` or `MSX Basic Dignified`).  
 
 See [the code editor integration section](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md) on how to **use** the Sublime Package.  
-## Addition: ZX Spectrum module v1.6.0 preview
+## Addition: ZX Spectrum module v1.7.0 preview
 
 The original installation instructions above are unchanged.
-The Spectrum fork preview uses Python 3.8+ and no additional packages.
+The Spectrum fork preview uses Python 3.8+; text and tapes need no additional
+packages. Optional Z80/SNA snapshots require SkoolKit in that same interpreter:
+`python -m pip install -r zxspectrum\requirements-snapshots.txt`.
 Keep `badig.py`, `support`, `msx` and `zxspectrum` together.
 Select it explicitly with `-id zxspectrum`; MSX remains the default.
 
 ```powershell
-python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize --tk_format both -rh -ca
+python -B badig.py examples\zxspectrum\hello.DZS -id zxspectrum --tk_tokenize --tk_format both -rh -ca
 ```
 
-This generates `.ASP`, `.tap` and `.tzx`. Load a tape manually in EightyOne
+This generates `.AZS`, `.tap` and `.tzx`. Load a tape manually in EightyOne
 configured as Spectrum 48K with the English ROM, then RUN the program.
+
+Use `--tk_format all` for all four binary formats, or `z80`/`sna` for a
+snapshot only. DZS/AZS are the new defaults; DSP/ASP remain compatible.
+See the [optional snapshot setup](ZX_SPECTRUM.md#optional-z80-and-sna-snapshots).
 Alternatively use `--em_run --em_path "C:\zeddy\EightyOne.exe"` on Windows.
 The launcher uses a temporary profile copy and waits for EightyOne to close.
 The release includes an offline Spectrum VSIX and Sublime templates.

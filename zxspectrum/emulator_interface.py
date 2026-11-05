@@ -17,14 +17,14 @@ class Expose:
     def __init__(self):
         remtag = namedtuple('remtag', 'name help metavar')
         self.remtags = {'EightyOne': [
-            remtag('EM_RUN', 'Open EightyOne and load the tape.', 'True or false'),
+            remtag('EM_RUN', 'Open EightyOne and load the tape or snapshot.', 'True or false'),
             remtag('EM_PATH', 'Path to EightyOne.exe.', 'Executable'),
             remtag('EM_SETTING', 'Spectrum 48K INI to copy for this session.', 'INI file'),
         ]}
         self.parser = argparse.ArgumentParser(add_help=False)
         group = self.parser.add_argument_group('EightyOne (Windows)')
         group.add_argument('--em_run', action='store_true', default=None,
-                           help='Generate a tape and open EightyOne; wait until it closes.')
+                           help='Generate Spectrum output and open EightyOne; wait until it closes.')
         group.add_argument('--em_path', help='Path to EightyOne.exe.')
         group.add_argument('--em_setting', help='48K profile to copy; original is not edited.')
 
@@ -72,7 +72,7 @@ def run(stg, settings, tape):
         if not profile.has_section('TZXMAN'):
             profile.add_section('TZXMAN')
         for key in ('FlashLoad', 'AutoStart', 'AutoLoad'):
-            profile.set('TZXMAN', key, '1')
+            profile.set('TZXMAN', key, '1' if tape.suffix.lower() in ('.tap', '.tzx') else '0')
         logger = Infolog()
         logger.level = stg.verbose_level
         logger.log(3, f'EightyOne: {tape}; close the emulator to return to the converter')

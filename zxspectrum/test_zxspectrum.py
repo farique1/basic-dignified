@@ -1,4 +1,5 @@
 import configparser
+import importlib.util
 import struct
 import subprocess
 import sys
@@ -8,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from . import emulator_interface, tokenizer_interface
+from . import emulator_interface, snapshot_zxspectrum, tokenizer_interface
 from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
 from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, tokenize
 
@@ -236,7 +237,7 @@ class ConversionTests(unittest.TestCase):
             ('GO TO {missing}\n', 'Label does not exist'),
             ('PRINT [missing]\n', 'define not defined'),
             ('PRINT `\n', 'Character not recognized'),
-            ('INCLUDE "absent.DSP"\n', 'File not found'),
+            ('INCLUDE "absent.DZS"\n', 'File not found'),
             ('##BB:help=maybe\nSTOP\n', 'Remtag must be true or false'),
         )
         for source, diagnostic in cases:
@@ -254,14 +255,14 @@ class ConversionTests(unittest.TestCase):
 
     def test_shared_io_errors_exit_nonzero(self):
         with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'demo.DSP'
+            path = Path(folder) / 'demo.DZS'
             command = [sys.executable, '-B', str(ROOT / 'badig.py'), str(path),
                        '-id', 'zxspectrum', '--tk_tokenize']
             result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
             self.assertIn('File not found', result.stdout)
             path.write_text('STOP\n', encoding='ascii')
-            output = Path(folder) / 'absent' / 'demo.ASP'
+            output = Path(folder) / 'absent' / 'demo.AZS'
             result = subprocess.run(
                 command + [str(output)], cwd=ROOT, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
@@ -363,7 +364,7 @@ class ConversionTests(unittest.TestCase):
         self.assertFalse(tape)
 
     def test_implicit_let_compounds_and_dignified_function(self):
-        source = (ROOT / 'examples' / 'zxspectrum' / 'functions.DSP').read_text(encoding='ascii')
+        source = (ROOT / 'examples' / 'zxspectrum' / 'functions.DZS').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('LET score=score*(1+2)', listing)
@@ -391,7 +392,7 @@ class ConversionTests(unittest.TestCase):
         self.assertIn('PRINT VALUE', listing)
         self.assertTrue(tape)
     def test_colours_loops_and_subroutine_labels(self):
-        source = (ROOT / 'examples' / 'zxspectrum' / 'colours.DSP').read_text(encoding='ascii')
+        source = (ROOT / 'examples' / 'zxspectrum' / 'colours.DZS').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh', '--tk_format', 'both')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('GO SUB 80', listing)
@@ -401,7 +402,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_tzx_remtag_overrides_cli_and_preserves_input(self):
         with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'demo.DSP'
+            path = Path(folder) / 'demo.DZS'
             path.write_text('##BB:tk_format=tzx\nSTOP\n', encoding='ascii')
             result = subprocess.run(
                 [sys.executable, '-B', str(ROOT / 'badig.py'), str(path),
@@ -415,9 +416,34 @@ class ConversionTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('TK_FORMAT must be', result.stdout)
 
+    def test_new_defaults_and_legacy_source_listing_compatibility(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / 'legacy.DSP'
+            source.write_text('PRINT "HI"\nSTOP\n', encoding='ascii')
+            command = [sys.executable, '-B', str(ROOT / 'badig.py'), str(source)]
+            options = ['-id', 'zxspectrum', '-rh', '--tk_tokenize']
+            result = subprocess.run(command + options, cwd=ROOT, capture_output=True,
+                                    text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual((root / 'legacy.AZS').read_text(encoding='ascii'),
+                             '10 PRINT "HI"\n20 STOP\n')
+            legacy = root / 'old.ASP'
+            result = subprocess.run(command + [str(legacy)] + options, cwd=ROOT,
+                                    capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(legacy.read_bytes(), (root / 'legacy.AZS').read_bytes())
+            result = subprocess.run(
+                [sys.executable, '-B', str(ROOT / 'badig.py'), str(legacy),
+                 '-id', 'zxspectrum', '-asc', '--tk_tokenize'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual((root / 'old.tap').read_bytes(),
+                             make_tap(tokenize(legacy.read_text(encoding='ascii')), 'old'))
+
     def convert(self, source, *arguments, classic=False, includes=None, tokenized=True):
         with tempfile.TemporaryDirectory(prefix='Spectrum test ') as folder:
-            path = Path(folder) / ('demo.ASP' if classic else 'demo.DSP')
+            path = Path(folder) / ('demo.AZS' if classic else 'demo.DZS')
             path.write_text(source, encoding='latin1')
             for name, content in (includes or {}).items():
                 (Path(folder) / name).write_text(content, encoding='latin1')
@@ -429,14 +455,14 @@ class ConversionTests(unittest.TestCase):
                 command.append('-asc')
             result = subprocess.run(command + list(arguments), cwd=ROOT,
                                     capture_output=True, text=True, timeout=15)
-            listing_path = path.with_suffix('.ASP')
+            listing_path = path.with_suffix('.AZS')
             listing = listing_path.read_text(encoding='latin1') if listing_path.exists() else ''
             tape_path = path.with_suffix('.tap')
             tape = tape_path.read_bytes() if tape_path.exists() else b''
             return result, listing, tape
 
     def test_example_labels_and_native_long_names(self):
-        source = (ROOT / 'examples' / 'zxspectrum' / 'hello.DSP').read_text(encoding='ascii')
+        source = (ROOT / 'examples' / 'zxspectrum' / 'hello.DZS').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh', '-ca')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('40 PRINT "SPECTRUM ";COUNTER', listing)
@@ -474,11 +500,11 @@ class ConversionTests(unittest.TestCase):
         self.assertTrue(tape, result.stdout + result.stderr)
 
     def test_include_is_numbered_with_the_main_program(self):
-        source = 'LET counter=1\nINCLUDE "part.DSP"\nIF counter<2 THEN GOTO {again}\nSTOP\n'
+        source = 'LET counter=1\nINCLUDE "part.DZS"\nIF counter<2 THEN GOTO {again}\nSTOP\n'
         # Labels belong to their source file, so keep the main jump local.
         source = '{again}\n' + source
         result, listing, tape = self.convert(
-            source, '-rh', includes={'part.DSP': 'PRINT counter\nLET counter=counter+1\n'})
+            source, '-rh', includes={'part.DZS': 'PRINT counter\nLET counter=counter+1\n'})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('20 PRINT counter', listing)
         self.assertIn('40 IF counter<2 THEN GO TO 10', listing)
@@ -502,7 +528,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_failed_tokenization_preserves_an_existing_tape(self):
         with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'bad.ASP'
+            path = Path(folder) / 'bad.AZS'
             path.write_text('10 CAT\n', encoding='ascii')
             tape = path.with_suffix('.tap')
             tape.write_bytes(b'old tape')
@@ -530,7 +556,7 @@ class ConversionTests(unittest.TestCase):
                 self.assertFalse(tape)
 
     def test_strings_arrays_data_and_native_functions(self):
-        source = (ROOT / 'examples' / 'zxspectrum' / 'data.DSP').read_text(encoding='ascii')
+        source = (ROOT / 'examples' / 'zxspectrum' / 'data.DZS').read_text(encoding='ascii')
         result, listing, tape = self.convert(source, '-rh', '-ss', '-ca')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('DIM A(3)', listing)
@@ -557,7 +583,192 @@ class ConversionTests(unittest.TestCase):
         self.assertTrue(tape)
 
 
+class SnapshotTests(unittest.TestCase):
+    def test_sna_saves_pc_on_stack_without_mutating_ram(self):
+        header = bytearray(86)
+        header[30] = 54
+        header[0:2] = b'\x12\x34'
+        header[10:13] = b'\x3f\x05\x0f'
+        header[27:30] = b'\x01\x01\x01'
+        struct.pack_into('<H', header, 8, 65500)
+        struct.pack_into('<H', header, 32, snapshot_zxspectrum.LOAD_RETURN)
+        state = snapshot_zxspectrum.read_registers(header)
+        ram = bytes(49152)
+        sna = snapshot_zxspectrum.make_sna(state, ram)
+        self.assertEqual(len(sna), 49179)
+        self.assertEqual(sna[19:23], b'\x04\x85\x34\x12')
+        self.assertEqual(sna[25:27], b'\x01\x07')
+        stack = struct.unpack_from('<H', sna, 23)[0]
+        self.assertEqual(stack + 2, state.sp)
+        offset = 27 + stack - 16384
+        self.assertEqual(int.from_bytes(sna[offset:offset + 2], 'little'), state.pc)
+        restored = bytearray(sna[27:])
+        restored[stack - 16384:stack - 16382] = b'\0\0'
+        self.assertEqual(restored, ram)
+        self.assertEqual(ram, bytes(49152))
+        for invalid in (b'', bytes(86), header[:40]):
+            with self.assertRaises(ValueError):
+                snapshot_zxspectrum.read_registers(invalid)
+        for sp, iff2, memory in ((16385, 1, ram), (65500, 0, ram),
+                                  (65500, 1, ram[:-1])):
+            state.sp, state.iff2 = sp, iff2
+            with self.assertRaises(ValueError):
+                snapshot_zxspectrum.make_sna(state, memory)
+
+    def test_snapshot_failure_preserves_all_existing_outputs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'demo.AZS'
+            source.write_text('10 STOP\n', encoding='ascii')
+            stg = SimpleNamespace(
+                file_save=str(source), verbose_level=0, code_remtags={},
+                args=SimpleNamespace(tk_name=None, tk_tokenize=True,
+                                     tk_format='all', tk_autorun=None))
+            destinations = [source.with_suffix('.' + ext)
+                            for ext in ('tap', 'tzx', 'z80', 'sna')]
+            for path in destinations:
+                path.write_bytes(b'previous output')
+            failures = (
+                subprocess.CompletedProcess([], 1, '', 'optional engine unavailable'),
+                subprocess.TimeoutExpired('snapshot engine', 120))
+            for failure in failures:
+                with patch.object(tokenizer_interface.subprocess, 'run',
+                                  side_effect=[failure]):
+                    with self.assertRaises(SystemExit) as error:
+                        tokenizer_interface.Run(stg).run()
+                    self.assertEqual(error.exception.code, 1)
+                self.assertTrue(all(path.read_bytes() == b'previous output'
+                                    for path in destinations))
+                self.assertEqual(len(list(Path(folder).iterdir())), 5)
+
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_engine_loads_program_and_preserves_autorun_in_both_snapshots(self):
+        from skoolkit.snapshot import get_snapshot
+
+        listing = '10 LET marker=42\n20 STOP\n'
+        program = tokenize(listing)
+        with tempfile.TemporaryDirectory(prefix='Spectrum snapshots ') as folder:
+            source = Path(folder) / 'demo.AZS'
+            source.write_text(listing, encoding='ascii')
+            for autorun in (-1, 0, 9999):
+                command = [sys.executable, '-B', str(ROOT / 'badig.py'), str(source),
+                           '-id', 'zxspectrum', '-asc', '--tk_tokenize',
+                           '--tk_format', 'all', '--tk_autorun', str(autorun)]
+                result = subprocess.run(command, cwd=ROOT, capture_output=True,
+                                        text=True, timeout=150)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                z80 = source.with_suffix('.z80')
+                sna = source.with_suffix('.sna')
+                memory = bytes(get_snapshot(str(z80)))
+                restored = bytes(get_snapshot(str(sna)))
+                state = snapshot_zxspectrum.read_registers(z80.read_bytes())
+                self.assertEqual(state.pc, snapshot_zxspectrum.LOAD_RETURN)
+                self.assertEqual(memory[23755:23755 + len(program)], program)
+                self.assertEqual(int.from_bytes(memory[23627:23629], 'little'),
+                                 23755 + len(program))
+                self.assertEqual(memory[23755 + len(program)], 128)
+                self.assertEqual(int.from_bytes(memory[23618:23620], 'little'),
+                                 max(autorun, 0))
+                self.assertEqual(memory[23620], 255 if autorun == -1 else 0)
+                saved_sp = struct.unpack_from('<H', sna.read_bytes(), 23)[0]
+                self.assertEqual(saved_sp + 2, state.sp)
+                self.assertEqual(int.from_bytes(restored[saved_sp:saved_sp + 2], 'little'),
+                                 state.pc)
+                self.assertEqual(restored[:saved_sp], memory[:saved_sp])
+                self.assertEqual(restored[saved_sp + 2:], memory[saved_sp + 2:])
+                self.assertEqual(source.with_suffix('.tap').read_bytes(),
+                                 make_tap(program, 'demo', None if autorun == -1 else autorun))
+                self.assertEqual(source.with_suffix('.tzx').read_bytes(),
+                                 make_tzx(program, 'demo', None if autorun == -1 else autorun))
+
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_single_snapshot_formats_and_remtag_precedence(self):
+        for selected, remtag in (('z80', None), ('sna', None), ('z80', 'sna')):
+            with self.subTest(selected=selected, remtag=remtag), \
+                    tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                source = root / ('demo.DZS' if remtag else 'demo.AZS')
+                source.write_text('##BB:tk_format=sna\nSTOP\n' if remtag else '10 STOP\n',
+                                  encoding='ascii')
+                arguments = ['-rh'] if remtag else ['-asc']
+                result = subprocess.run(
+                    [sys.executable, '-B', str(ROOT / 'badig.py'), str(source),
+                     '-id', 'zxspectrum', '--tk_tokenize', '--tk_format', selected] + arguments,
+                    cwd=ROOT, capture_output=True, text=True, timeout=150)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                expected = {'demo.AZS', 'demo.' + (remtag or selected)}
+                if remtag:
+                    expected.add('demo.DZS')
+                self.assertEqual({path.name for path in root.iterdir()}, expected)
+
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_both_snapshots_resume_basic_in_the_rom(self):
+        import skoolkit.snapshot as snapshots
+
+        if not hasattr(snapshots, 'Snapshot'):
+            self.skipTest('ROM continuation probe requires the newer SkoolKit snapshot API')
+        from skoolkit.simulator import Simulator
+        from skoolkit.simutils import from_snapshot
+
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'resume.AZS'
+            source.write_text('10 POKE 30000,123\n20 STOP\n', encoding='ascii')
+            for autorun in (-1, 0):
+                result = subprocess.run(
+                    [sys.executable, '-B', str(ROOT / 'badig.py'), str(source),
+                     '-id', 'zxspectrum', '-asc', '--tk_tokenize', '--tk_format', 'all',
+                     '--tk_autorun', str(autorun)],
+                    cwd=ROOT, capture_output=True, text=True, timeout=150)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for extension in ('.z80', '.sna'):
+                    snapshot = snapshots.Snapshot.get(str(source.with_suffix(extension)))
+                    # The SNA loader consumes the stacked PC with RETN.
+                    registers = {'SP': snapshot.sp + 2} if extension == '.sna' else None
+                    simulator = from_snapshot(Simulator, snapshot, registers=registers)
+                    self.assertNotEqual(simulator.memory[30000], 123)
+                    for _ in range(50000):
+                        simulator.run()
+                        if simulator.memory[30000] == 123:
+                            break
+                    self.assertEqual(simulator.memory[30000] == 123, autorun == 0,
+                                     extension)
+
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_engine_success_status_without_loaded_state_is_rejected(self):
+        header = bytearray(86)
+        header[30] = 54
+        struct.pack_into('<H', header, 8, 65500)
+        struct.pack_into('<H', header, 32, snapshot_zxspectrum.LOAD_RETURN)
+        with patch('skoolkit.tap2sna.main'), \
+                patch('skoolkit.snapshot.get_snapshot', return_value=[0] * 65536), \
+                patch.object(Path, 'read_bytes', side_effect=[bytes(header), b'']), \
+                patch.object(Path, 'write_bytes') as write:
+            self.assertEqual(snapshot_zxspectrum.build(), 1)
+            write.assert_not_called()
+
+
 class EmulatorTests(unittest.TestCase):
+    def test_snapshot_profile_disables_tape_autoload(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            settings = SimpleNamespace(
+                path=root / 'EightyOne.exe',
+                setting=ROOT / 'zxspectrum' / 'eightyone48.ini')
+
+            def launch(arguments, **options):
+                profile = configparser.ConfigParser()
+                self.assertEqual(options, {'cwd': root})
+                profile.read(arguments[1])
+                for key in ('FlashLoad', 'AutoStart', 'AutoLoad'):
+                    self.assertFalse(profile.getboolean('TZXMAN', key))
+                process = MagicMock()
+                process.__enter__.return_value.wait.return_value = 0
+                return process
+
+            with patch.object(emulator_interface.subprocess, 'Popen', side_effect=launch):
+                for extension in ('.z80', '.sna'):
+                    emulator_interface.run(SimpleNamespace(verbose_level=0), settings,
+                                           root / ('demo' + extension))
+
     def test_launch_uses_private_profile_and_argv_with_spaces(self):
         with tempfile.TemporaryDirectory(prefix='Spectrum emulator ') as folder:
             root = Path(folder)
@@ -619,7 +830,7 @@ class EmulatorTests(unittest.TestCase):
 
     def test_em_run_forces_tape_and_defaults_to_autorun(self):
         with tempfile.TemporaryDirectory() as folder:
-            source = Path(folder) / 'demo.ASP'
+            source = Path(folder) / 'demo.AZS'
             source.write_text('10 STOP\n', encoding='ascii')
             stg = SimpleNamespace(
                 file_save=str(source), verbose_level=0, code_remtags={},

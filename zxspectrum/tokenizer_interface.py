@@ -1,7 +1,9 @@
-"""Expose Spectrum TAP/TZX generation to Basic Dignified."""
+"""Expose Spectrum tape and optional snapshot generation to Basic Dignified."""
 
 import argparse
 import configparser
+import subprocess
+import sys
 import tempfile
 from collections import namedtuple
 from pathlib import Path
@@ -16,19 +18,19 @@ from .tokenizer_zxspectrum import SpectrumTokenizeError, tokenize
 class Expose:
     def __init__(self):
         remtag = namedtuple('remtag', 'name help metavar')
-        self.remtags = {'Spectrum TAP': [
-            remtag('TK_TOKENIZE', 'Generate a tokenized Spectrum TAP.', 'True or false'),
+        self.remtags = {'Spectrum output': [
+            remtag('TK_TOKENIZE', 'Generate Spectrum tapes or snapshots.', 'True or false'),
             remtag('TK_NAME', 'Name stored in the tape header.', '1-10 ASCII characters'),
-            remtag('TK_FORMAT', 'Tape container to generate.', 'tap, tzx or both'),
+            remtag('TK_FORMAT', 'Tape/snapshot format to generate.', 'tap, tzx, both, z80, sna, all'),
             remtag('TK_AUTORUN', 'BASIC autorun line (-1 disables).', '-1 or 0-9999'),
         ]}
         self.parser = argparse.ArgumentParser(add_help=False)
-        group = self.parser.add_argument_group('Spectrum TAP')
+        group = self.parser.add_argument_group('Spectrum output')
         group.add_argument('--tk_tokenize', action='store_true', default=None,
-                           help='Generate a tokenized Spectrum TAP.')
+                           help='Generate Spectrum tapes or optional snapshots.')
         group.add_argument('--tk_name', help='Tape header name (1-10 ASCII characters).')
-        group.add_argument('--tk_format', choices=('tap', 'tzx', 'both'),
-                           help='Tape container (default: tap).')
+        group.add_argument('--tk_format', choices=('tap', 'tzx', 'both', 'z80', 'sna', 'all'),
+                           help='Output format; both=tapes, all=tapes+snapshots (default: tap).')
         group.add_argument('--tk_autorun', type=int,
                            help='BASIC autorun line: 0-9999, or -1 to disable.')
 
@@ -64,8 +66,8 @@ class Run:
         enabled = enabled or force
         name = remtags.get('TK_NAME', name)
         tape_format = remtags.get('TK_FORMAT', self.stg.args.tk_format or tape_format).strip().lower()
-        if tape_format not in ('tap', 'tzx', 'both'):
-            fail('TK_FORMAT must be tap, tzx or both')
+        if tape_format not in ('tap', 'tzx', 'both', 'z80', 'sna', 'all'):
+            fail('TK_FORMAT must be tap, tzx, both, z80, sna or all')
         if self.stg.args.tk_autorun is not None:
             autorun = self.stg.args.tk_autorun
         elif force and autorun == -1 and 'TK_AUTORUN' not in remtags:
@@ -81,30 +83,45 @@ class Run:
         if not name and (self.stg.args.tk_name is not None or 'TK_NAME' in remtags):
             fail('Tape name must contain 1..10 printable ASCII characters')
         source = Path(self.stg.file_save)
-        formats = ('tap', 'tzx') if tape_format == 'both' else (tape_format,)
+        formats = (('tap', 'tzx', 'z80', 'sna') if tape_format == 'all' else
+                   ('tap', 'tzx') if tape_format == 'both' else (tape_format,))
         destinations = [source.with_suffix('.' + extension) for extension in formats]
         if any(source.resolve() == destination.resolve() for destination in destinations):
-            fail('ASCII source and tape destination must be different files')
+            fail('ASCII source and Spectrum destination must be different files')
         name = name or source.stem[:10]
         try:
             program = tokenize(source.read_text(encoding='latin1'))
-            tapes = [(make_tap if extension == 'tap' else make_tzx)(
-                program, name, None if autorun == -1 else autorun)
-                     for extension in formats]
-            for destination, tape in zip(destinations, tapes):
+            tape = make_tap(program, name, None if autorun == -1 else autorun)
+            outputs = {'tap': tape}
+            if 'tzx' in formats:
+                outputs['tzx'] = make_tzx(program, name, None if autorun == -1 else autorun)
+            if any(extension in formats for extension in ('z80', 'sna')):
+                with tempfile.TemporaryDirectory(prefix='badig-snapshot-') as folder:
+                    workspace = Path(folder)
+                    (workspace / 'input.tap').write_bytes(tape)
+                    result = subprocess.run(
+                        [sys.executable, '-B', str(Path(__file__).with_name('snapshot_zxspectrum.py'))],
+                        cwd=workspace, capture_output=True, text=True, timeout=120)
+                    if result.returncode:
+                        raise SpectrumTokenizeError(
+                            result.stderr.strip() or result.stdout.strip()
+                            or f'Snapshot engine exited with status {result.returncode}')
+                    for extension in ('z80', 'sna'):
+                        outputs[extension] = (workspace / ('state.' + extension)).read_bytes()
+            for destination, extension in zip(destinations, formats):
                 temporary = None
                 try:
                     with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as stream:
                         temporary = Path(stream.name)
-                        stream.write(tape)
+                        stream.write(outputs[extension])
                     temporary.replace(destination)
                 finally:
                     if temporary is not None and temporary.exists():
                         temporary.unlink()
-        except (OSError, SpectrumTokenizeError) as error:
-            fail(f'Spectrum tape: {error}')
+        except (OSError, subprocess.TimeoutExpired, SpectrumTokenizeError) as error:
+            fail(f'Spectrum output: {error}')
         logger = Infolog()
         logger.level = self.stg.verbose_level
         for destination in destinations:
-            logger.log(3, f'Spectrum tape: {destination}')
+            logger.log(3, f'Spectrum output: {destination}')
         return tuple(destinations)

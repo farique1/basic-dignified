@@ -2,7 +2,7 @@
   "name": "basic-dignified-zxspectrum",
   "displayName": "Basic Dignified ZX Spectrum",
   "description": "Sinclair BASIC and Dignified source highlighting, snippets and build templates.",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "publisher": "wilsonpilon",
   "license": "UNLICENSED",
   "engines": {
@@ -24,6 +24,8 @@
           "Spectrum Dignified"
         ],
         "extensions": [
+          ".dzs",
+          ".DZS",
           ".dsp",
           ".DSP"
         ],
@@ -35,6 +37,8 @@
           "Sinclair BASIC"
         ],
         "extensions": [
+          ".azs",
+          ".AZS",
           ".asp",
           ".ASP"
         ],

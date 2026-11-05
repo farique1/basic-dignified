@@ -2,6 +2,27 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Spectrum: Install optional snapshot engine",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-m", "pip", "install", "skoolkit>=8.10,<11"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Convert all formats (optional engine required)",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--tk_tokenize", "--tk_format", "all"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Classic to all formats (optional engine required)",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "-asc", "--tk_tokenize", "--tk_format", "all"],
+      "problemMatcher": []
+    },
+    {
       "label": "Spectrum: Convert TAP and TZX",
       "type": "process",
       "command": "${config:spectrum-basic.python}",

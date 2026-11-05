@@ -69,9 +69,12 @@ Thanks.
 ## ZX Spectrum addition (fork preview)
 
 The original documentation above is preserved. This fork adds an
-independently versioned **ZX Spectrum module v1.6.0 preview** for the
-48K English-ROM machine: Dignified -> numbered BASIC -> **TAP/TZX**,
-with strings/arrays, loops, DATA, native functions and Dignified conveniences.
+independently versioned **ZX Spectrum module v1.7.0 preview** for the
+48K English-ROM machine: **DZS** Dignified -> **AZS** numbered text ->
+**TAP/TZX**, or optional **Z80/SNA** snapshots via locally installed SkoolKit.
+Legacy DSP/ASP remain supported, alongside strings/arrays, loops, DATA,
+native functions and Dignified conveniences. Tapes need no extra packages;
+the editor companion still uses an external Python and converter.
 
 See the [Spectrum manual](documentation/ZX_SPECTRUM.md) for installation,
 supported syntax, commands, limitations, editor packages and isolated-profile

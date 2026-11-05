@@ -1,4 +1,4 @@
-# ZX Spectrum module - v1.6.0 preview
+# ZX Spectrum module - v1.7.0 preview
 
 This is an **addition** to Fred Rique's original Basic Dignified
 documentation. The original MSX/CoCo manuals and suite version (2.2.1)
@@ -12,13 +12,30 @@ Version 1.5.0 completes the five agreed milestones for the **48K English ROM**
 target. This is still a preview of a documented subset, not a claim of full
 Sinclair BASIC coverage. MSX/CoCo defaults and suite version 2.2.1 are unchanged.
 
+### Dedicated extensions and optional snapshots 1.7.0
+
+- `.DZS`: Dignified Spectrum source, without line numbers.
+- `.AZS`: numbered Sinclair BASIC text, **not tokenized**.
+- `.TAP` / `.TZX`: tokenized program in a tape container.
+- `.Z80` / `.SNA`: real 48K machine snapshots, including RAM and CPU state.
+
+DZS/AZS are now the defaults and the canonical example names. Legacy DSP
+sources and ASP listings remain accepted; a DSP conversion now defaults to
+AZS, unless an explicit ASP output is requested. Classic input, including
+AZS or legacy ASP, still requires `-asc`; extensions do not select a parser.
+Editor packages recognize new extensions and keep the old associations.
+
+Snapshots use an **optional local SkoolKit installation**, described below.
+Tapes and text conversion remain dependency-free. No engine or ROM is bundled
+in the source archive or editor packages.
+
 ### Native commands and BIN 1.6.0
 
 Adds RUN, LIST, NEW, CONTINUE, OUT and binary literals with their actual
 Sinclair numeric records. RUN/LIST accept Dignified labels. Permanent
 regressions cover chained statements, IF/THEN, strings, REM and colon errors.
 VS Code/Sublime highlighting and the VSIX companion are updated to 1.6.0.
-See the reference below and [native.DSP](../examples/zxspectrum/native.DSP).
+See the reference below and [native.DZS](../examples/zxspectrum/native.DZS).
 DEF FN/FN remains separate work.
 
 ### Stabilization 1.5.1
@@ -59,7 +76,7 @@ the parameter order is Sinclair row/column, not MSX LOCATE x/y.
 FUNC/RET use the existing Dignified GO SUB/RETURN lowering with LET inserted
 for parameter and result transfers. Parameters/results are global variables,
 not local stack frames; this does not add recursive-local semantics.
-See [functions.DSP](../examples/zxspectrum/functions.DSP).
+See [functions.DZS](../examples/zxspectrum/functions.DZS).
 
 Additional native commands/modifiers: AT, TAB, FLASH, BRIGHT, INVERSE, OVER,
 PLOT, DRAW, CIRCLE, POKE and CLEAR.
@@ -83,7 +100,7 @@ original DECLARE mechanism; there is no silent truncation/automatic allocator.
 String arrays follow the ROM's fixed-length rules: the last dimension
 is the string length, not an extra freely sized string element.
 Numeric scalars and arrays of the same letter may coexist in Sinclair BASIC.
-See [data.DSP](../examples/zxspectrum/data.DSP).
+See [data.DZS](../examples/zxspectrum/data.DZS).
 These additions supersede the corresponding baseline limitations below.
 
 ### Milestone 1.2.0
@@ -101,14 +118,15 @@ transaction across the pair.
 
 New commands: BORDER, INK, PAPER, PAUSE, BEEP, INPUT, GO SUB/GOSUB,
 RETURN, FOR/NEXT, TO and STEP. Use a single-letter FOR control variable.
-See [colours.DSP](../examples/zxspectrum/colours.DSP).
+See [colours.DZS](../examples/zxspectrum/colours.DZS).
 The following reference describes the cumulative implementation, including
 these extensions to the original 1.1.0 baseline.
 
 ## Supported language
 
 The module converts Dignified source to a numbered listing and optionally
-creates standard ROM-loadable **TAP and TZX**. The first example prints a counter three
+creates standard ROM-loadable **TAP/TZX** or optional **Z80/SNA** snapshots.
+The first example prints a counter three
 times using a jump label.
 
 Implemented:
@@ -145,7 +163,7 @@ Not implemented in this preview:
   Microdrive/disk/128K extensions. Host-side tape generation is implemented.
 - Automatic contextual short-name allocation; explicit aliases are required.
 - Array/slice compound assignments and recursive local function frames.
-- UDG/graphics escapes, snapshots, a Spectrum DignifieR.
+- UDG/graphics escapes and a Spectrum DignifieR.
 - Automatic ROM runtime-error monitoring or assertions of emulated output.
 
 Unsupported native words are rejected rather than advertised as working.
@@ -209,7 +227,7 @@ Strings and REM text containing BIN are left literal.
 Generate the new demonstration with:
 
 ```powershell
-python -B badig.py examples\zxspectrum\native.DSP -id zxspectrum --tk_tokenize --tk_format both -rh
+python -B badig.py examples\zxspectrum\native.DZS -id zxspectrum --tk_tokenize --tk_format both -rh
 ```
 
 Its expected execution prints `BIN 7`, `CHAIN OK`, `A:B` and
@@ -229,27 +247,29 @@ Keep `badig.py`, `support`, `msx` and `zxspectrum` together: the new module
 reuses the existing MSX class scaffolding, but overrides the active dialect
 and does **not** use MSX tokenization.
 
-The suite's Python 3.8+ requirement is unchanged; no Python packages need
-to be installed. Python 3.14 was used for this milestone's automated checks.
+The suite's Python 3.8+ requirement is unchanged; text and tapes need no
+additional Python packages. Snapshots require the optional engine below.
+Python 3.14 was used for this milestone's automated checks, not a Python 3.8
+runtime certification.
 
 From the repository root:
 
 ```powershell
 python -B badig.py -id zxspectrum --spectrum-version
 python -B badig.py -id zxspectrum -h
-python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize --tk_format both -rh -ca
+python -B badig.py examples\zxspectrum\hello.DZS -id zxspectrum --tk_tokenize --tk_format both -rh -ca
 ```
 
 Outputs:
 
-- `hello.ASP`: numbered classic Sinclair BASIC listing.
+- `hello.AZS`: numbered classic Sinclair BASIC listing.
 - `hello.tap`: tokenized program in a standard tape container.
 - `hello.tzx`: the same program in TZX 1.20 standard-speed blocks,
   with one-second pauses.
 
-`.DSP` is the proposed Spectrum Dignified extension adopted by this module;
-`.ASP` is its classic text extension. They are distinct from the ZX81
-module's extensions.
+`.DZS` and `.AZS` are the Spectrum-specific source/text extensions.
+They are distinct from the ZX81 module's extensions. Existing `.DSP` and
+`.ASP` files remain supported, but are no longer the default example names.
 
 Without `--tk_tokenize` or `--em_run`, only the listing is saved. The Dignified listing
 is still checked for the supported subset before being written.
@@ -259,12 +279,71 @@ the header. MSX remains the default system unless `-id zxspectrum` is given.
 To select an output folder/name, pass the second positional argument:
 
 ```powershell
-python -B badig.py examples\zxspectrum\hello.DSP "C:\Spectrum Programs\demo.ASP" -id zxspectrum --tk_tokenize
+python -B badig.py examples\zxspectrum\hello.DZS "C:\Spectrum Programs\demo.AZS" -id zxspectrum --tk_tokenize
 ```
 
-The output folder must already exist. Tapes use the listing's stem and folder.
-Do not name the intermediate text output `.tap` or `.tzx`, because text and tape must
-be different files.
+The output folder must already exist. Binary outputs use the listing's stem
+and folder. Do not give the intermediate text an extension selected for
+binary output; source and destination must be different files.
+
+## Optional Z80 and SNA snapshots
+
+Install the extra **only when snapshots are needed**, using the same Python
+interpreter that runs the converter. A virtual environment is recommended:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r zxspectrum\requirements-snapshots.txt
+.\.venv\Scripts\python.exe -B badig.py examples\zxspectrum\hello.DZS -id zxspectrum --tk_tokenize --tk_format all -rh -ca
+```
+
+The optional requirement is `skoolkit>=8.10,<11`; pip selects a release
+compatible with the chosen Python. SkoolKit 8.10 supports Python 3.8;
+newer engine releases may require newer Python. Versions 8.10 and 10.1
+were exercised here. Existing Python/interpreter choices are not changed
+automatically, and generating TAP/TZX never installs or imports SkoolKit.
+SkoolKit and its separately installed resources retain their own licenses.
+
+| `--tk_format` / `TK_FORMAT` | Binary outputs |
+| --- | --- |
+| `tap` (default) | TAP |
+| `tzx` | TZX |
+| `both` | TAP + TZX, unchanged |
+| `z80` | Z80 v3, 48K |
+| `sna` | SNA 48K |
+| `all` | TAP + TZX + Z80 + SNA |
+
+AZS is still the intermediate text output. For an existing numbered listing,
+add `-asc`. The snapshot worker uses a temporary local TAP and the engine's
+48K English ROM simulation, stopping immediately after ROM loading, before
+executing the user's BASIC. It validates the program bytes, PROG/VARS,
+variable terminator, stack space and expected ROM return address. Engine
+exit status alone is not treated as proof that loading succeeded.
+
+Z80 and SNA describe the same loaded state. SNA stores the saved PC on the
+stack as required by its format; the loader's RETN restores PC/SP. Conversion
+rejects states that cannot be represented safely. These are not renamed
+tapes, generic 128K snapshots or captures of a running user program.
+
+`--tk_autorun -1` leaves BASIC ready for manual LIST/RUN; `0` or `1..9999`
+preserves the ROM's pending autorun selection. Conversion does not execute
+arbitrary BASIC to create the snapshot. Open Z80/SNA with the emulator's
+snapshot/file-open command, not its tape manager. With `--em_run`, select
+`--tk_format z80` or `sna`; tape autoload is disabled in the private profile.
+For `both`/`all`, the launcher opens the first output, TAP.
+
+Missing engine, simulation timeout/incomplete loading and invalid state are
+explicit nonzero failures. All selected formats are built before any binary
+output is replaced, so snapshot-generation failure preserves existing tapes
+as well. Each final file is replaced atomically, not as one multi-file
+transaction; an OS error during replacement can still leave a partial set.
+An AZS listing may already have been written when binary generation fails.
+
+The VS Code task template includes **Spectrum: Install optional snapshot
+engine**, an explicit user-run pip task using `spectrum-basic.python`, and
+all-format conversion tasks. The VSIX still requires an external Python and
+converter; a genuinely integrated, low-setup VSIX is a **future packaging
+milestone**, not a feature delivered by this release.
 
 ## First program
 
@@ -327,11 +406,11 @@ Use `REM` to retain a comment in the Spectrum program.
 | --- | --- | --- |
 | `-id zxspectrum` | Select the module before argument/remtag processing | MSX otherwise |
 | `--spectrum-version` | Display the independent module version | No conversion |
-| `--tk_tokenize` | Create tapes after creating/validating the listing | False |
+| `--tk_tokenize` | Create selected binary formats after validating the listing | False |
 | `--tk_name "MY TAPE"` | Name inside the tape header | First 10 characters of output stem |
-| `--tk_format tap\|tzx\|both` | Select containers | tap |
+| `--tk_format tap\|tzx\|both\|z80\|sna\|all` | Select tapes/snapshots (see table above) | tap |
 | `--tk_autorun N` | BASIC starting line; -1 disables | -1; 0 with --em_run |
-| `--em_run` | Generate tape, open EightyOne and wait for it to close | False |
+| `--em_run` | Generate selected output, open EightyOne and wait for it to close | False |
 | `--em_path PATH` | EightyOne executable on Windows | Must be configured to run |
 | `--em_setting PATH` | 48K INI to copy for the session | Bundled 48K template |
 | `-asc` | Tokenize an already numbered classic text file | False |
@@ -370,7 +449,7 @@ must select the module before the source's remtags are read.
 Classic input is preserved rather than renumbered:
 
 ```powershell
-python -B badig.py examples\zxspectrum\hello.ASP -id zxspectrum -asc --tk_tokenize
+python -B badig.py examples\zxspectrum\hello.AZS -id zxspectrum -asc --tk_tokenize
 ```
 
 The emulator defaults are in `zxspectrum\emulator_interface.ini`:
@@ -402,7 +481,7 @@ Tape autoload in EightyOne and BASIC autorun are different settings.
 To generate, launch and autoload:
 
 ```powershell
-python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --em_run --em_path "C:\zeddy\EightyOne.exe" -rh -ca
+python -B badig.py examples\zxspectrum\hello.DZS -id zxspectrum --em_run --em_path "C:\zeddy\EightyOne.exe" -rh -ca
 ```
 
 `--em_run` enables tokenization and defaults to autorun line 0.
@@ -413,7 +492,7 @@ The bundled `eightyone48.ini` template selects Spectrum 48K and the installed
 `spectrum48.rom`. `--em_setting` accepts an existing profile only if its
 HARDWARE/MachineName is exactly `48K Spectrum`. The profile is parsed as
 Latin-1, copied to a temporary directory, and autoload/flash-load are enabled
-in that copy. The converter waits for EightyOne, checks its exit status,
+in that copy for tapes (disabled for snapshots). The converter waits for EightyOne, checks its exit status,
 then removes the copy. Ctrl+C terminates the child and reports interruption.
 The emulator itself may write its own support files; the converter does not
 overwrite the original INI. ROMs must already exist in the emulator installation.
@@ -427,7 +506,8 @@ in this release.
 
 ## Editor integration and distribution
 
-The release includes source archives, example DSP/ASP/TAP/TZX files, an
+The release includes source archives, example DZS/AZS/TAP/TZX files, a
+representative hello Z80/SNA pair, an
 offline VSIX, and Sublime templates. No marketplace publication is required.
 
 - [VS Code companion](../zxspectrum/VSCode%20Extension/README.md):
@@ -436,10 +516,12 @@ offline VSIX, and Sublime templates. No marketplace publication is required.
 - [Sublime templates](../zxspectrum/Sublime%20Package/README.md):
   open the repository root as the project folder and use the provided build.
 
-DSP and ASP conflict with other products' file extensions. Select the language
+DZS/AZS are primary; legacy DSP and ASP conflict with other products' file
+extensions. Select the language
 mode or set workspace-specific file associations when needed.
 Building the VSIX needs Node/npm (`npm ci`, `npm test`, `npm run package`
-in its source directory); using the Python converter needs no new packages.
+in its source directory); text/tape conversion needs no new Python packages.
+Snapshot support is installed explicitly, using the configured interpreter.
 
 ## Limits and failure handling
 
@@ -459,7 +541,7 @@ in its source directory); using the Python converter needs no new packages.
   Spectrum selection, including missing labels, macros, includes and sources.
   Quiet mode does not turn a failure into success. Existing per-logger
   verbosity behavior is unchanged; some early/file errors can still print.
-- Each tape is generated in memory and replaced only after a successful
+- Each binary output is generated before replacement and saved only after a successful
   temporary-file write. A failed conversion does not refresh an existing
   tape; do not mistake an older output for a newly generated one.
 
@@ -486,6 +568,17 @@ Focused MSX/CoCo conversions
 and the complete CoCo example matched the original implementation byte for
 byte. The supplied MSX example has obsolete remtags in the base branch,
 so its unmodified conversion was not counted as a passing regression.
+
+Version 1.7.0 passes 49 tests with SkoolKit 10.1 and adds
+legacy-extension compatibility, SNA stack/register
+serialization, preservation on engine failure/timeout, snapshot launch flags,
+ROM-loaded program/autorun checks and actual ROM continuation of Z80/SNA.
+Run the same suite with the optional interpreter for integration coverage;
+without SkoolKit those cases are explicitly skipped. The continuation probe
+uses the newer snapshot API and is skipped with 8.10; loading/state checks
+also run with 8.10. A bounded ROM test resumes a BASIC POKE with autorun and
+confirms it does not run with autorun disabled. This is not rendered-output
+verification or manual EightyOne snapshot certification.
 
 An isolated EightyOne 1.41 session selected the 48K model and recognized
 the TAP in its tape manager, but did not provide verified ROM loading or
@@ -525,15 +618,17 @@ Delivered module milestones:
 | 1.5.0 | Autorun, isolated-profile launcher, editor packages and distribution |
 | 1.5.1 | Consistent Spectrum fatal exits, preserving legacy defaults |
 | 1.6.0 | Chaining regressions, RUN/LIST/NEW/CONTINUE/OUT, BIN and editor updates |
+| 1.7.0 | DZS/AZS defaults, legacy aliases, optional Z80/SNA and setup task |
 
 These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.6.0 are implemented.
+version. Versions 1.1.0 through 1.7.0 are implemented.
 The original four-demo manual validation and Spectrum error-exit correction
 are complete. Follow-up priorities are manual validation of the new demo,
-native DEF FN/FN, remaining native keywords and graphics/UDG escapes.
+manual Z80/SNA loading, native DEF FN/FN, remaining native keywords,
+graphics/UDG escapes and the future fully integrated VSIX.
 
 See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
-and [the example sources](../examples/zxspectrum/hello.DSP).
+and [the example sources](../examples/zxspectrum/hello.DZS).
 
 Technical references:
 
@@ -545,4 +640,7 @@ Technical references:
 - [ROM: hidden numeric records](https://skoolkid.github.io/rom/asm/268D.html)
 - [ROM: RUN](https://skoolkid.github.io/rom/asm/1EA1.html)
 - [Spectrum tape formats](https://worldofspectrum.org/faq/reference/formats.htm)
+- [Z80 snapshot format](https://worldofspectrum.org/faq/reference/z80format.htm)
+- [SkoolKit documentation](https://skoolkit.ca/docs/skoolkit/index.html)
+- [ROM statement return](https://skoolkid.github.io/rom/asm/1B76.html)
 - [EightyOne project](https://sourceforge.net/projects/eightyone-sinclair-emulator/)

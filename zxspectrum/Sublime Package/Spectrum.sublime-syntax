@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 name: Spectrum BASIC Dignified
-file_extensions: [DSP, dsp, ASP, asp]
+file_extensions: [DZS, dzs, AZS, azs, DSP, dsp, ASP, asp]
 scope: source.basic.spectrum
 contexts:
   main:

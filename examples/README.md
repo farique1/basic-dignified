@@ -48,32 +48,39 @@ The classic binary code converted with the tokenizer.
 
 The original MSX/CoCo examples above are preserved.
 
-- [hello.DSP](zxspectrum/hello.DSP): first Dignified example, using explicit
+- [hello.DZS](zxspectrum/hello.DZS): first Dignified example, using explicit
   LET, a long numeric scalar name and IF/GO TO with a label.
-- [colours.DSP](zxspectrum/colours.DSP): colours, FOR/NEXT, sound, GO SUB/RETURN.
-- [data.DSP](zxspectrum/data.DSP): strings, arrays, DATA/READ and native functions.
-- [functions.DSP](zxspectrum/functions.DSP): implicit LET, compounds, PRINT AT,
+- [colours.DZS](zxspectrum/colours.DZS): colours, FOR/NEXT, sound, GO SUB/RETURN.
+- [data.DZS](zxspectrum/data.DZS): strings, arrays, DATA/READ and native functions.
+- [functions.DZS](zxspectrum/functions.DZS): implicit LET, compounds, PRINT AT,
   Dignified FUNC/RET. Its expected SCORE is 10, followed by answer 20.
-- [native.DSP](zxspectrum/native.DSP): 1.6.0 binary literals, chained
+- [native.DZS](zxspectrum/native.DZS): 1.6.0 binary literals, chained
   statements, OUT and LIST/RUN with a label. Expected: BIN 7, CHAIN OK,
   A:B, then PRESS A KEY TO LIST. The border becomes blue. Press a key to
   list the final PRINT/STOP lines; PRESS A KEY TO RUN introduces a second
   pause. Another key runs the finish label, clearing variables/display and
   printing DONE.
-- [hello.ASP](zxspectrum/hello.ASP): numbered listing generated with `-rh -ca`.
+- [hello.AZS](zxspectrum/hello.AZS): numbered listing generated with `-rh -ca`.
 - [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
 
 ```powershell
-python -B badig.py examples\zxspectrum\hello.DSP -id zxspectrum --tk_tokenize -rh -ca
+python -B badig.py examples\zxspectrum\hello.DZS -id zxspectrum --tk_tokenize -rh -ca
 ```
 
 Expected output: SPECTRUM 1, SPECTRUM 2, SPECTRUM 3, then DONE.
 Load manually in EightyOne configured for Spectrum 48K and enter RUN.
-Each example has generated ASP/TAP/TZX companions; use `--tk_format both`
+Each example has generated AZS/TAP/TZX companions; use `--tk_format both`
 to regenerate both tape containers. On 2026-11-04 the user confirmed all
 16 manual Spectrum 48K cases passed: four examples in TAP/TZX, with and
 without BASIC autorun. This is user-reported manual validation, separate
 from the automated conversion/format tests.
-The new native example also has ASP/TAP/TZX companions, but its manual
+The new native example also has AZS/TAP/TZX companions, but its manual
 emulator validation is still pending; it is not part of those 16 passes.
+Since 1.7.0 the canonical sources/listings are DZS/AZS; older DSP/ASP
+inputs remain accepted. [hello.z80](zxspectrum/hello.z80) and
+[hello.sna](zxspectrum/hello.sna) are representative 48K snapshots without
+BASIC autorun. Generating snapshots requires optional SkoolKit;
+`--tk_format all` produces tapes and snapshots. Load snapshots through
+the emulator's file-open command, then LIST/RUN manually. Their ROM state
+is tested automatically; manual EightyOne snapshot validation is pending.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

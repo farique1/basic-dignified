@@ -32,8 +32,8 @@ def postprocess(code, stg):
 class Description(MSXDescription):
     def sysinfo(self):
         self.system_name = f'ZX Spectrum 48K (module {VERSION} preview)'
-        self.dignified_ext = '.DSP'
-        self.ascii_ext = '.ASP'
+        self.dignified_ext = '.DZS'
+        self.ascii_ext = '.AZS'
         self.binary_ext = '.tap'
 
     def __init__(self):

@@ -5,6 +5,8 @@ const textmate = require('vscode-textmate');
 const oniguruma = require('vscode-oniguruma');
 
 async function main() {
+    const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, 'tasks.json'), 'utf8'));
+    assert(Array.isArray(tasks.tasks), 'Task template must contain a VS Code tasks array');
     const bytes = fs.readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
     await oniguruma.loadWASM(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const registry = new textmate.Registry({
@@ -40,7 +42,7 @@ async function main() {
         assert(nativeAt(native.indexOf('1010')).includes('constant.numeric.basic.spectrum'));
     }
     registry.dispose();
-    console.log('Both grammars: strings, REM, functions, chained native commands and BIN verified.');
+    console.log('Task template and both grammars: strings, REM, functions, native commands and BIN verified.');
 }
 
 main().catch(error => {

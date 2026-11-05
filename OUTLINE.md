@@ -1,7 +1,7 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data: 2026-11-04.
-Estado: marcos implementados ate modulo Spectrum v1.6.0 preview.
+Estado: marcos implementados ate modulo Spectrum v1.7.0 preview.
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -37,12 +37,24 @@ Sinclair correto para binarios 0..65535. RUN/LIST aceitam labels.
 Nova demo native em DSP/ASP/TAP/TZX; execucao manual ainda pendente.
 DEF FN/FN fica para uma entrega propria.
 
+Atualizacao 1.7.0: extensoes proprias DZS (Dignified) e AZS (texto numerado)
+como padrao, mantendo DSP/ASP compativeis. Exemplos e editores migrados.
+Z80 v3 e SNA 48K reais gerados por motor SkoolKit local e opcional,
+com carga simulada pela ROM, estado validado antes de executar BASIC e
+autorun preservado. TAP/TZX continuam sem dependencias extras; both continua
+significando as duas fitas e all acrescenta os dois snapshots.
+Motor 8.10 e 10.1 exercitados; Z80/SNA retomados para executar POKE na ROM.
+49 testes aprovados com SkoolKit 10.1.
+Task explicita de instalacao opcional no template VS Code; VSIX ainda
+depende de Python/conversor externos. Empacotamento realmente integrado
+fica para etapa final. Validacao manual EightyOne dos snapshots pendente.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.6.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.7.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -57,7 +69,12 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] Validacao manual das quatro demos em TAP/TZX, com/sem autorun: 16 OK.
 - [x] Retorno de erro consistente no fluxo Spectrum, com 35 testes aprovados.
 - [x] Encadeamento com :, novos comandos e BIN, com 41 testes aprovados.
+- [x] DZS/AZS como padrao, DSP/ASP compativeis, exemplos/editores migrados.
+- [x] Z80/SNA 48K opcionais, validacao de carga/autorun e retomada BASIC na ROM.
+- [x] Instalacao opcional explicita com o Python configurado no template VS Code.
 - [ ] Validacao manual da nova demo native (TAP/TZX, com/sem autorun).
+- [ ] Validacao manual dos snapshots Z80/SNA no EightyOne.
+- [ ] VSIX realmente integrado com conversor e instalacao simplificada.
 - [ ] DEF FN/FN, demais keywords, streams e escapes graficos/UDG.
 
 O detalhamento do comportamento implementado esta em
