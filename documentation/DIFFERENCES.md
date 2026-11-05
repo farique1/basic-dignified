@@ -173,5 +173,6 @@ DZS/AZS are the Spectrum defaults; older DSP/ASP remain accepted.
 Since **Spectrum module 1.8.0**, strings and REM interpret **\80..\A4**
 and **%A..%U**. To preserve literal old text, double its percent/backslash
 symbols: **%%** and **\\**. Unknown escapes fail rather than being silently
-changed. REM-only **\{XX}** stores raw bytes.
+changed. Since **module 1.9.0**, **`\{XX}`** stores raw bytes in code,
+strings and REM. Raw insertion may create invalid ROM syntax.
 See the [character table and REMX](BASIC_DIGNIFIED.md#zx-spectrum-characters).

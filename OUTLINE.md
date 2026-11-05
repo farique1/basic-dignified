@@ -1,14 +1,15 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data da analise: 2026-11-04. Ultima atualizacao: 2026-11-05.
-Estado: modulo Spectrum v1.8.0 preview publicado e verificado.
+Estado: marcos implementados ate modulo Spectrum v1.9.0 preview.
 
-Release: [Spectrum v1.8.0](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0),
+Entrega anterior verificada: [Spectrum v1.8.0](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0),
 commit `4c66d4a07564018ee92411747e3dd96f1fe07636`, com 32 assets.
 ZIP extraido e downloads conferidos; SHA-256 local/API/download iguais.
 As seis demos e todos os binarios fornecidos foram reproduzidos.
-A suite original permanece em 2.2.1. Esta atualizacao documental nao muda
-codigo, versoes, tags ou assets ja publicados.
+A suite original permanece em 2.2.1. A entrega 1.9.0 acrescenta codigo e
+documentacao, sem modificar tags/assets anteriores.
+Release: [Spectrum v1.9.0](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0).
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -68,12 +69,28 @@ Manuais originais integrados: secoes, exemplos e instrucoes MSX/CoCo
 preservados, com tabelas, instalacao e referencias Spectrum no contexto.
 Demo graphics e editores atualizados; validacao manual do demo pendente.
 
+Atualizacao 1.9.0: itens 2, 3 e 5 do roteiro anterior implementados.
+Bytes literais `\{XX}` em strings, REM e codigo, inclusive insercao bruta
+fora de literais conforme confirmado pelo usuario. DEF FN/FN nativos com
+slots ROM de seis bytes por parametro, nomes/argumentos numericos/string,
+zero/multiplos argumentos e chamadas aninhadas. LOAD/SAVE/VERIFY/MERGE,
+LINE, OPEN#/CLOSE#, streams, LPRINT/LLIST/COPY aceitos; perifericos extra
+continuam fora do recorte 48K.
+DignifieR AZS -> DZS com labels, encadeamento condicional preservado, REM
+sem mudar o payload, numeracao regular mantida e protecao de sobrescrita.
+Numeracao irregular com destinos dinamicos e rejeitada; binarios nao sao
+entradas do DignifieR. A CLI valida o DZS gerado pelo conversor real.
+61 testes com SkoolKit 10.1 aprovados; sem motor, seis skips explicitos.
+ROM confirmou FN num/string/zero/aninhado, isolamento de x global,
+bytes 0/255 em string e stream S nos dois snapshots.
+Novas demos fn/streams e tarefas de DignifieR nos editores.
+
 ## Progresso da implementacao (atualizado em 2026-11-05)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.8.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.9.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -95,13 +112,15 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] REMX com linha absoluta, fill byte/caractere, colisoes e relatorios.
 - [x] Manuais integrados no estilo original, sem remover secoes/exemplos MSX/CoCo.
 - [x] Release 1.8.0, 32 assets e ZIP extraido verificados.
+- [x] Bytes literais gerais, DEF FN/FN nativos e comandos de fita/streams 48K.
+- [x] DignifieR Spectrum AZS -> DZS com validacao real e gravacao atomica.
+- [ ] Validacao manual das novas demos fn/streams e comandos com midia/impressora.
 - [ ] Validacao manual da nova demo graphics no EightyOne.
 - [ ] Validacao manual da nova demo native (TAP/TZX, com/sem autorun).
 - [ ] Validacao manual dos snapshots Z80/SNA no EightyOne.
 - [ ] VSIX realmente integrado com conversor e instalacao simplificada.
-- [ ] DEF FN/FN, demais keywords e streams.
 - [ ] Monitoramento automatico dos erros de execucao da ROM.
-- [ ] DignifieR Spectrum: texto classico AZS para fonte Dignified DZS.
+- [ ] Extracao/destokenizacao de BASIC em TAP/TZX/Z80/SNA.
 
 O detalhamento do comportamento implementado esta em
 [documentation/ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md).
@@ -115,15 +134,13 @@ funcional antes do custo; nenhum item abaixo foi implementado nesta revisao.
 
 | Ordem | Trabalho | Necessidade | Custo | Criterio de conclusao |
 | :-: | :- | :-: | :-: | :- |
-| 1 | Validacao manual EightyOne | Alta | Baixo | Native/graphics em TAP/TZX com/sem autorun; hello/graphics em Z80/SNA com/sem autorun, com resultados registrados |
-| 2 | DEF FN/FN nativos | Alta | Medio | Sintaxe, parametros, tokenizacao e execucao pela ROM, sem confundir com FUNC/RET Dignified |
-| 3 | Ampliar Sinclair 48K | Alta | Medio/alto | LOAD/SAVE/VERIFY/MERGE no fonte e streams, entregues em subconjuntos testados; gerar fitas no host ja funciona |
-| 4 | Monitorar erros da ROM | Media | Alto | Detectar erro real no emulador e apontar a linha DZS; fechamento normal do processo nao basta |
-| 5 | DignifieR Spectrum | Media | Alto | AZS para DZS, retirando numeros, criando labels e preservando strings, REM, escapes e comandos encadeados |
-| 6 | Empacotamento integrado final | Alta para distribuicao final | Medio/alto | Instalar/configurar conversor e Python com fluxo simples; SkoolKit continua opcional e sem ROM embutida |
-| 7 | Outros modelos/perifericos | Opcional | Alto | Escopo proprio para 128K, Microdrive/disco, NextBASIC, turbo e fitas com varios arquivos |
+| 1 | Validacao manual EightyOne | Alta | Baixo | Native/graphics/fn/streams, snapshots e comandos com midia/impressora, com resultados registrados |
+| 2 | Monitorar erros da ROM | Media | Alto | Detectar erro real no emulador e apontar a linha DZS; fechamento normal do processo nao basta |
+| 3 | Empacotamento integrado final | Alta para distribuicao final | Medio/alto | Instalar/configurar conversor e Python com fluxo simples; SkoolKit continua opcional e sem ROM embutida |
+| 4 | Extrair/destokenizar binarios | Media | Alto | Recuperar AZS de TAP/TZX/Z80/SNA; converter AZS para DZS ja funciona |
+| 5 | Outros modelos/perifericos | Opcional | Alto | Escopo proprio para 128K, Microdrive/disco, NextBASIC, turbo e fitas com varios arquivos |
 
-O item 6 permanece na etapa final, conforme decidido, apesar da importancia
+O empacotamento integrado permanece na etapa final, conforme decidido, apesar da importancia
 para novos usuarios. Publicacao em lojas de editores tambem fica para essa
 etapa; os pacotes offline atuais ja estao disponiveis.
 
@@ -134,6 +151,8 @@ etapa; os pacotes offline atuais ja estao disponiveis.
 - [ ] Hello e graphics: abrir Z80/SNA sem autorun, conferir LIST e executar RUN.
 - [ ] Regenerar hello/graphics com autorun 0 e conferir ambos os snapshots.
 - [ ] Registrar versao/perfil 48K do EightyOne, formato e resultado de cada caso.
+- [ ] FN/streams: conferir resultados e bytes literais; usar midia/impressora
+  apropriadas para a secao de comandos depois de STOP.
 
 As fitas e snapshots fornecidos de graphics estao sem autorun; os casos
 com autorun precisam ser regenerados pelas opcoes documentadas.
@@ -146,8 +165,8 @@ Aliases automaticos para nomes restritos, compostos em arrays/slices e
 frames locais recursivos continuam fora do subconjunto atual. Nao sao
 promessas de implementacao para a proxima entrega. O DignifieR MSX original
 e os bugs/ideias gerais de Farique permanecem separados deste roteiro.
-Recuperar AZS de TAP/TZX/Z80/SNA exigiria destokenizacao/extracao adicional;
-o futuro AZS para DZS nao implica essa capacidade nem recupera macros e
+Recuperar AZS de TAP/TZX/Z80/SNA exige destokenizacao/extracao adicional;
+AZS para DZS nao implica essa capacidade nem recupera macros e
 aliases originais que se perderam na conversao.
 
 ## 1. Conclusao e escopo

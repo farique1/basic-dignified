@@ -35,9 +35,11 @@ arrays and FOR controls use single letters or explicit **DECLARE** aliases.
 [Basic Dignified manual](documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
 The [Spectrum reference](documentation/ZX_SPECTRUM.md) covers the supported
 Sinclair commands and limits. The Spectrum module is independently versioned
-**1.8.0 preview**; the original suite remains **2.2.1**.
-The [published preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0)
-contains the source, editor packages and six demos. See
+**1.9.0 preview**; the original suite remains **2.2.1**.
+Native **DEF FN/FN**, tape/stream commands, literal **`\{XX}`** bytes and
+the [Spectrum DignifieR](documentation/DIGNIFIER.md#zx-spectrum-dignifier) are included.
+The [published preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0)
+contains the source, editor packages and eight demos. See
 [remaining work and priorities](OUTLINE.md#pendencias-priorizadas) for
 manual validation, language coverage and final packaging.
   

@@ -1,9 +1,13 @@
 # Basic Dignified ZX Spectrum
 
-Spectrum module 1.8.0 editor companion. Adds DZS/AZS highlighting and
+Spectrum module 1.9.0 editor companion. Adds DZS/AZS highlighting and
 Dignified snippets. It does not include Python, the converter, ROMs or EightyOne.
 Includes RUN/LIST/NEW/CONTINUE/OUT and BIN highlighting.
 REMX, graphic/UDG escapes and bitmap/reservation snippets are included.
+Native DEF FN/FN, tape/stream commands and raw bytes in code/strings/REM
+are highlighted. The byte and DEF FN snippets use the new syntax.
+The DignifieR task uses the suite folder as workspace/cwd and writes
+`input.AZS.dignified.DZS`; it refuses existing output. It is not `-asc`.
 See the [character table](../../documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
 
 Install the VSIX using VS Code's **Extensions: Install from VSIX** command.

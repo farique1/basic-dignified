@@ -58,7 +58,9 @@ class Description(MSXDescription):
                         'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
                         'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER',
                         'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR',
-                        'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'REMX', '?']
+                        'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'REMX', '?',
+                        'DEF FN', 'LOAD', 'SAVE', 'VERIFY', 'MERGE', 'LINE',
+                        'OPEN #', 'CLOSE #', 'LPRINT', 'LLIST', 'COPY']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT', 'BIN']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
@@ -67,7 +69,7 @@ class Description(MSXDescription):
         self.c_quotes = '"'
         self.c_altrem = 'REM'
         self.c_lab_rep_rem = ' : REM '
-        self.c_lit_toks = ['C_LITREM', 'C_LIBREM', 'C_LITQUO']
+        self.c_lit_toks = ['C_LITREM', 'C_LIBREM', 'C_LITQUO', 'C_RAWBYT']
         self.c_replacements = {}
         self.c_original = ''
         self.c_translat = ''
@@ -83,12 +85,16 @@ class Description(MSXDescription):
             ('c_operat', self.join_commands(operators)),
             ('c_symbol', self.join_commands([re.escape(s) for s in symbols])),
             ('c_jumpin', self.join_commands(['GOTO', 'GO +TO', 'GOSUB', 'GO +SUB', 'THEN'])),
-            ('c_instrc', self.join_commands([re.escape(word) for word in instructions])),
+            ('c_instrc', self.join_commands(
+                [re.escape(word).replace(r'\ ', ' *' if word.endswith('#') else ' +')
+                 for word in instructions])),
+            ('c_rawbyt', r'^\\\{[0-9A-Fa-f]{2}\}$'),
             ('c_e_symb', r'^(?:\+\+|--|\+=|-=|\*=|/=|\^=)$'),
             ('c_functs', self.join_commands([re.escape(word) for word in FUNCTIONS])),
             ('c_number', f'^{number}$'),
             ('c_linrem', '^REM$'),
-            ('c_partls', r'^(?:GO(?: +(?:T|S|SU)?)?|\d+(?:\.\d*)?E[+-]?|\.)$'),
+            ('c_partls', r'^(?:GO(?: +(?:T|S|SU)?)?|DEF(?: +F?)?|'
+             r'(?:OPEN|CLOSE) *|\\(?:\{[0-9A-Fa-f]{0,2})?|\d+(?:\.\d*)?E[+-]?|\.)$'),
             ('c_instsp', '^:$'),
             ('c_quotes', '^"$'),
         ]
@@ -114,6 +120,17 @@ class Expose:
 class Lexer(MSXLexer):
     def lexing(self):
         tk = self.lex.tk
+        if tk.tok == 'D_IDNTTP' and tk.uval.endswith('#') \
+                and tk.uval[:-1] in ('PRINT', 'INPUT', 'LIST', 'LPRINT', 'LLIST'):
+            command = tk.val[:-1]
+            self.lex.lexer.append(self.Tok(tok='C_INSTRC', val=command, pos=tk.pos))
+            return self.Tok(tok='C_SYMBOL', val='#',
+                            pos=tk.pos.copy(col=tk.pos.col + len(command)))
+        if tk.tok == 'C_RAWBYT' and tk.uval == r'\{EA}':
+            self.lex.lexer.append(tk)
+            literal = self.lex.get_lit_line(
+                tok='C_LITREM', end=self.des.newline, part='', l_pos=self.pos.copy())
+            return literal or None
         if tk.tok == 'C_INSTRC' and tk.uval == 'REMX':
             if self.lex.last_tok.tok != 'NEWLINE':
                 fail('REMX must be alone on a source line', tk)

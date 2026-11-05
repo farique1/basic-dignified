@@ -1,0 +1,25 @@
+{start}
+CLS
+OPEN #4,"S"
+PRINT #4;"STREAM 4"
+CLOSE #4
+a$="\{00}\{FF}"
+PRINT "LITERAL BYTES ";CODE a$(1);",";CODE a$(2)
+\{F5}"RAW PRINT TOKEN"
+STOP
+## Tape/printer examples below are deliberately not run automatically.
+SAVE "STREAMS" LINE {start}
+SAVE "BLOCK" CODE 30000,16
+VERIFY "BLOCK" CODE 30000,16
+LOAD "BLOCK" CODE 30000,16
+LOAD "PICTURE" SCREEN$
+DIM b(3)
+SAVE "ARRAY" DATA b()
+LOAD "ARRAY" DATA b()
+MERGE "EXTRA"
+INPUT #0;LINE b$
+LIST #2;{start}
+LPRINT "PRINTER":LLIST
+COPY
+STOP
+

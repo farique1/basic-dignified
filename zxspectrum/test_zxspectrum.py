@@ -12,12 +12,56 @@ from unittest.mock import MagicMock, patch
 from . import emulator_interface, snapshot_zxspectrum, tokenizer_interface
 from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
 from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, parse_remx, tokenize
+from .dignifier import dignify
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class TokenizerTests(unittest.TestCase):
+    def test_raw_bytes_are_literal_in_code_strings_and_rem(self):
+        literal = ''.join(f'\\{{{code:02X}}}' for code in range(256))
+        expected = bytes(range(256))
+        self.assertEqual(tokenize(f'10 {literal}')[4:], expected + b'\r')
+        self.assertEqual(tokenize(f'10 PRINT "{literal}"')[4:],
+                         b'\xf5 "' + expected + b'"\r')
+        self.assertEqual(tokenize(r'10 \{EA} 123:FN "%%A"')[4:],
+                         b'\xea 123:FN "%A"\r')
+        self.assertEqual(
+            tokenize(r'10 DEF FN f(x\{0E}\{00}\{00}\{00}\{00}\{00})=x'),
+            tokenize('10 DEF FN f(x)=x'))
+        self.assertEqual(tokenize(r'10 \{F5}#2;"OK"')[4:],
+                         tokenize('10 PRINT#2;"OK"')[4:])
+        self.assertEqual(tokenize(r'10 PRINT FN f\{28}3\{29}'),
+                         tokenize('10 PRINT FN f(3)'))
+        for text in (r'\{0}', r'\{000}', r'\{GG}', r'\{FF', r'\FF'):
+            with self.assertRaises(SpectrumTokenizeError):
+                tokenize('10 ' + text)
+
+    def test_native_fn_parameter_slots_and_tape_stream_commands(self):
+        self.assertEqual(tokenize('10 DEF FN f(x,a$)=x+LEN a$')[4:],
+                         b'\xce f(x\x0e' + bytes(5) + b',a$\x0e' + bytes(5)
+                         + b')=x+\xb1 a$\r')
+        for statement in (
+                'DEF FN z()=42', 'PRINT FN z()', 'PRINT LEN (FN s$("A"))',
+                'LOAD ""', 'SAVE "P" LINE 10', 'VERIFY "P" CODE 30000,16',
+                'MERGE "P"', 'LOAD "P" CODE', 'LOAD "P" SCREEN$',
+                'SAVE "P" DATA a()', 'LOAD "P" DATA a$()',
+                'OPEN#4,"S":PRINT #4;"OK":CLOSE#4',
+                'INPUT #0;LINE a$', 'LIST #2;10', 'LIST #2,10',
+                'LIST #FN s(1,2),10', 'LPRINT "P"', 'LLIST', 'COPY'):
+            with self.subTest(statement=statement):
+                self.assertTrue(tokenize('10 ' + statement))
+        for statement in (
+                'DEF FN long(x)=x', 'DEF FN f(long)=long', 'DEF FN f(x)',
+                'DEF FN f(x)=', 'PRINT FN f 1', 'PRINT FN f(1',
+                'OPEN#4', 'CLOSE#', 'CLOSE#1,2', 'LIST #2,10,20',
+                'COPY 1', 'SAVE', 'LOAD',
+                'LET x#=1'):
+            with self.subTest(statement=statement):
+                with self.assertRaises(SpectrumTokenizeError):
+                    tokenize('10 ' + statement)
+
     def test_graphic_and_udg_escapes_emit_real_character_bytes(self):
         graphics = ''.join(f'\\{code:02X}' for code in range(128, 144))
         udgs = ''.join('%' + chr(letter) for letter in range(ord('A'), ord('U') + 1))
@@ -31,7 +75,7 @@ class TokenizerTests(unittest.TestCase):
                          b'\xf5 "%ABC\\80""\x90"\r')
         self.assertEqual(tokenize(r'10 REM \{00}\{A5}\{FF}')[4:],
                          b'\xea \x00\xa5\xff\r')
-        for literal in (r'\7F', r'\A5', r'\8', r'\GG', r'\{90}', '%V', '%Z'):
+        for literal in (r'\7F', r'\A5', r'\8', r'\GG', '%V', '%Z'):
             with self.assertRaises(SpectrumTokenizeError):
                 tokenize(f'10 PRINT "{literal}"')
         self.assertEqual(tokenize(r'10 REM \{0D}')[4:], b'\xea \r\r')
@@ -159,7 +203,7 @@ class TokenizerTests(unittest.TestCase):
             '10 PRINT 1e-1000', '10 PRINT "\u00e9"', '10 CAT',
             '10 LET name$="X"', '10 LET total_score=1', '10 LET array(1)=2',
             '10 a=1', '10 IF a=1 THEN 20', '10 PRINT 1:',
-            '10 FOR counter=1 TO 2', '10 NEXT count', '10 DEF FN f(x)=x',
+            '10 FOR counter=1 TO 2', '10 NEXT count', '10 DEF FN long(x)=x',
             '10 PRINT 1e999999999999999999999999',
         )
         for source in sources:
@@ -229,6 +273,99 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_dignifier_round_trip_preserves_literals_fn_and_rem_data(self):
+        classic = (
+            '10 DEF FN f(x,a$)=x+LEN a$\n'
+            '20 IF FN f(1,"A")=2 THEN GO TO 50:PRINT "NOT UNCONDITIONAL"\n'
+            '30 REM  123:\\{00} %%A\n'
+            '40 RESTORE 60:SAVE "P" LINE 50\n'
+            '50 PRINT "\\{00}%A":GO TO 20\n'
+            '60 DATA 1,"GO TO 20":STOP\n')
+        converted = dignify(classic, lowercase=False)
+        self.assertIn('{line_50}', converted)
+        self.assertIn('THEN GO TO {line_50}:PRINT "NOT UNCONDITIONAL"', converted)
+        self.assertIn(r'\{EA}  123:\{00} %%A', converted)
+        result, listing, tape = self.convert(converted)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(tape[24:-1], tokenize(classic))
+        self.assertIn('SAVE "P" LINE 50', listing)
+        near_limit = '10 PRINT "' + 'X' * 230 + '":GO TO 20\n20 STOP\n'
+        result, _, tape = self.convert(dignify(near_limit, lowercase=False))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(tape[24:-1], tokenize(near_limit))
+        for name in ('hello', 'colours', 'data', 'functions', 'native'):
+            original = (ROOT / 'examples' / 'zxspectrum' / (name + '.AZS')).read_text()
+            result, _, tape = self.convert(dignify(original, lowercase=False))
+            self.assertEqual(result.returncode, 0, name + result.stdout + result.stderr)
+            self.assertEqual(tape[24:-1], tokenize(original), name)
+
+    def test_dignifier_irregular_numbering_and_unsafe_destinations(self):
+        original = '5 PRINT "GO TO 900"\n90 GO TO 6\n900 STOP\n'
+        converted = dignify(original)
+        self.assertIn('arguments=-rh -ls 1 -lp 1', converted)
+        self.assertIn('go to {line_90}', converted)
+        result, listing, _ = self.convert(converted)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('2 GO TO 2', listing)
+        converted = dignify('5 LIST #FN s(1,2),90\n90 STOP\n900 STOP\n')
+        self.assertIn('list #fn s(1,2),{line_90}', converted)
+        result, listing, _ = self.convert(converted)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('1 LIST#FN s(1,2),2', listing)
+        for source in ('5 GO TO destination\n90 STOP\n900 STOP\n',
+                       '10 GO TO 999\n20 STOP\n', '10 STOP\n10 PRINT 1\n'):
+            with self.assertRaises(SpectrumTokenizeError):
+                dignify(source)
+        converted = dignify('10 LET destination=30\n20 GO TO destination\n30 STOP\n')
+        self.assertIn('go to destination', converted)
+        self.assertIn('arguments=-rh -ls 10 -lp 10', converted)
+
+    def test_dignifier_cli_preserves_destination_on_failure(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'classic.AZS'
+            destination = source.with_suffix('.DZS')
+            source.write_text('10 GO TO 999\n20 STOP\n')
+            destination.write_text('previous source')
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier',
+                 str(source), str(destination), '-vb', '0'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('destination 999', result.stderr)
+            self.assertEqual(destination.read_text(), 'previous source')
+            source.write_text('10 PRINT "\u00a3"\n20 STOP\n', encoding='utf-8')
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier',
+                 str(source), str(destination), '-tr'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('use --force', result.stderr)
+            self.assertEqual(destination.read_text(), 'previous source')
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier',
+                 str(source), str(destination), '-tr', '--force'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('"\u00a3"', destination.read_text(encoding='utf-8'))
+            source.write_text(r'10 PRINT "\{FF}%A"' + '\n20 STOP\n')
+            result = subprocess.run(
+                [sys.executable, '-B', '-m', 'zxspectrum.dignifier', str(source), '--force'],
+                cwd=ROOT, capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('print "\\{FF}%A"', destination.read_text())
+
+    def test_raw_native_fn_and_streams_use_the_dignified_pipeline(self):
+        result, listing, tape = self.convert(
+            'DEF FN f(x,a$)=x+LEN a$\n'
+            'PRINT FN f(3,"AB"):OPEN#4,"S":PRINT#4;"OK":CLOSE#4\n'
+            '\\{F5}"RAW"\n\\{EA} 123:FN "%%A"\n'
+            'SAVE "P" LINE {start}\n{start}\nSTOP\n', '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('DEF FN f(x,a$)', listing)
+        self.assertIn('SAVE "P" LINE 60', listing)
+        self.assertIn(r'\{EA} 123:FN "%%A"', listing)
+        self.assertEqual(tape[24:-1], tokenize(listing))
+
     def test_remx_absolute_lines_preserve_labels_includes_and_reports(self):
         result, listing, tape = self.convert(
             'remx 15,3,"%A"\n{start}\nPRINT "\\80%U"\n'
@@ -663,6 +800,44 @@ class ConversionTests(unittest.TestCase):
 
 
 class SnapshotTests(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_native_fn_raw_strings_and_streams_execute_in_the_rom(self):
+        import skoolkit.snapshot as snapshots
+
+        if not hasattr(snapshots, 'Snapshot'):
+            self.skipTest('ROM execution probe requires the newer SkoolKit snapshot API')
+        from skoolkit.simulator import Simulator
+        from skoolkit.simutils import from_snapshot
+
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'fn.DZS'
+            source.write_text(
+                'CLS\nDEF FN f(x,a$)=x+LEN a$\nDEF FN s$(a$)=a$+"!"\n'
+                'DEF FN z()=42\nDEF FN g(x)=FN f(x,"AB")*2\n'
+                'x=99\nOPEN #4,"S":PRINT #4;"OK"\n'
+                'LIST #4,9999:LIST #4;9999:CLOSE #4\n'
+                'POKE 30000,FN f(3,"AB"):POKE 30001,x\n'
+                'POKE 30002,LEN (FN s$("Z")):POKE 30003,FN z()\n'
+                'POKE 30004,FN g(3)\na$="\\{00}\\{FF}"\n'
+                'POKE 30005,CODE a$(1):POKE 30006,CODE a$(2)\n'
+                '\\{F5}"RAW"\nPOKE 30007,123\nSTOP\n', encoding='ascii')
+            result = subprocess.run(
+                [sys.executable, '-B', str(ROOT / 'badig.py'), str(source),
+                 '-id', 'zxspectrum', '-rh', '--tk_tokenize', '--tk_format', 'all',
+                 '--tk_autorun', '0'],
+                cwd=ROOT, capture_output=True, text=True, timeout=150)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for extension in ('.z80', '.sna'):
+                snapshot = snapshots.Snapshot.get(str(source.with_suffix(extension)))
+                registers = {'SP': snapshot.sp + 2} if extension == '.sna' else None
+                simulator = from_snapshot(Simulator, snapshot, registers=registers)
+                for _ in range(200000):
+                    simulator.run()
+                    if simulator.memory[30007] == 123:
+                        break
+                self.assertEqual(simulator.memory[30000:30008],
+                                 [5, 99, 2, 42, 10, 0, 255, 123], extension)
+
     @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
     def test_graphics_udg_bitmap_and_raw_remx_execute_in_the_rom(self):
         import skoolkit.snapshot as snapshots

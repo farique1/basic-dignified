@@ -35,6 +35,18 @@ class Expose:
                            help='BASIC autorun line: 0-9999, or -1 to disable.')
 
 
+def write_output(destination, content):
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(content)
+        temporary.replace(destination)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+
+
 class Run:
     def __init__(self, stg):
         self.stg = stg
@@ -109,15 +121,7 @@ class Run:
                     for extension in ('z80', 'sna'):
                         outputs[extension] = (workspace / ('state.' + extension)).read_bytes()
             for destination, extension in zip(destinations, formats):
-                temporary = None
-                try:
-                    with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as stream:
-                        temporary = Path(stream.name)
-                        stream.write(outputs[extension])
-                    temporary.replace(destination)
-                finally:
-                    if temporary is not None and temporary.exists():
-                        temporary.unlink()
+                write_output(destination, outputs[extension])
         except (OSError, subprocess.TimeoutExpired, SpectrumTokenizeError) as error:
             fail(f'Spectrum output: {error}')
         logger = Infolog()

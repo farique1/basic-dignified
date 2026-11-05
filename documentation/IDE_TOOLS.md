@@ -99,6 +99,11 @@ Snippets for auto completion for:
 A snippet for the creation of the standard **remtags**.  
 Spectrum snippets include single-letter **FOR**, **PRINT AT**, string
 **DECLARE** aliases, **UDG bitmap definition** and **REMX**.
+Native **DEF FN** and literal-byte snippets are also included.
+The **Dignify numbered AZS** task writes `${file}.dignified.DZS`, not the
+original source. This module task needs the suite folder as the workspace
+root (or an adjusted task cwd). Existing output is refused unless the CLI
+is explicitly invoked with **--force**.
   
 ## Comment Preference  
   

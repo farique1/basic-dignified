@@ -7,6 +7,7 @@ const oniguruma = require('vscode-oniguruma');
 async function main() {
     const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, 'tasks.json'), 'utf8'));
     assert(Array.isArray(tasks.tasks), 'Task template must contain a VS Code tasks array');
+    assert(tasks.tasks.some(task => task.args.includes('zxspectrum.dignifier')));
     const bytes = fs.readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
     await oniguruma.loadWASM(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const registry = new textmate.Registry({
@@ -50,6 +51,18 @@ async function main() {
         }
         assert(grammar.tokenizeLine('REMX 1000,256').tokens[0].scopes
             .includes('keyword.control.basic.spectrum'));
+        const extended = String.raw`\{F5}"\{00}":DEF FN f(x)=x:SAVE "P" LINE 10:OPEN#4,"S"`;
+        const extendedTokens = grammar.tokenizeLine(extended).tokens;
+        const extendedAt = index => extendedTokens.find(
+            token => token.startIndex <= index && token.endIndex > index).scopes;
+        for (const escape of [String.raw`\{F5}`, String.raw`\{00}`]) {
+            assert(extendedAt(extended.indexOf(escape)).includes('constant.character.escape'));
+        }
+        for (const command of ['DEF FN', 'SAVE', 'LINE', 'OPEN']) {
+            assert(extendedAt(extended.indexOf(command)).includes('keyword.control.basic.spectrum'));
+        }
+        const rawRem = grammar.tokenizeLine(String.raw`\{EA} 123:FN`).tokens;
+        assert(rawRem.every(token => token.scopes.includes('comment.line.basic.spectrum')));
     }
     registry.dispose();
     console.log('Task template and both grammars: strings, REM, functions, native commands and BIN verified.');

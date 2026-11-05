@@ -1,6 +1,7 @@
 """Tokenize the supported Sinclair BASIC 48K subset without external tools."""
 
 import re
+from collections import namedtuple
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 
@@ -20,10 +21,11 @@ KEYWORDS = (
     'CLEAR', 'RETURN', 'COPY',
 )
 TOKEN_CODES = {word: code for code, word in enumerate(KEYWORDS, 0xA5)}
+CODE_KEYWORDS = {code: word for word, code in TOKEN_CODES.items()}
 FUNCTIONS = (
     'RND', 'INKEY$', 'PI', 'POINT', 'SCREEN$', 'ATTR', 'VAL$', 'CODE',
     'VAL', 'LEN', 'SIN', 'COS', 'TAN', 'ASN', 'ACS', 'ATN', 'LN', 'EXP',
-    'INT', 'SQR', 'SGN', 'ABS', 'PEEK', 'IN', 'USR', 'STR$', 'CHR$',
+    'INT', 'SQR', 'SGN', 'ABS', 'PEEK', 'IN', 'USR', 'STR$', 'CHR$', 'FN',
 )
 SUPPORTED = frozenset((
     'PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
@@ -33,6 +35,8 @@ SUPPORTED = frozenset((
     'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
     'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
     'CIRCLE', 'POKE', 'CLEAR', 'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'BIN',
+    'DEF FN', 'LOAD', 'SAVE', 'VERIFY', 'MERGE', 'LINE', 'OPEN #', 'CLOSE #',
+    'LPRINT', 'LLIST', 'COPY',
 ) + FUNCTIONS)
 STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
                         'BORDER', 'INK', 'PAPER', 'PAUSE', 'BEEP', 'INPUT',
@@ -40,17 +44,19 @@ STATEMENTS = frozenset(('PRINT', 'LET', 'IF', 'GO TO', 'REM', 'CLS', 'STOP',
                         'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
                         'FLASH', 'BRIGHT', 'INVERSE', 'OVER', 'PLOT', 'DRAW',
                         'CIRCLE', 'POKE', 'CLEAR', 'RUN', 'LIST', 'NEW',
-                        'CONTINUE', 'OUT'))
+                        'CONTINUE', 'OUT', 'DEF FN', 'LOAD', 'SAVE', 'VERIFY',
+                        'MERGE', 'OPEN #', 'CLOSE #', 'LPRINT', 'LLIST', 'COPY'))
 NUMBER = re.compile(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', re.ASCII)
-WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
+WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!]?')
 BINARY_NUMBER = re.compile(r'[ \t]*([01](?:[ \t]*[01])*)')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
-COMPOUND = re.compile(r'(GO\s+(?:TO|SUB)|DEF\s+FN|OPEN\s*#|CLOSE\s*#)\b', re.I)
+COMPOUND = re.compile(r'GO\s+(?:TO|SUB)\b|DEF\s+FN\b|(?:OPEN|CLOSE)\s*#', re.I)
 GRAPHIC_ESCAPE = re.compile(r'\\([0-9A-Fa-f]{2})')
 RAW_ESCAPE = re.compile(r'\\\{([0-9A-Fa-f]{2})\}')
 REMX_ARGS = re.compile(
     r'\s*([0-9]+)\s*,\s*([0-9]+)\s*(?:,\s*([0-9]+|"(?:[^"]|"")*"|\'[^\']*\'))?\s*')
 MAX_REMX_COUNT = 65532
+SourceToken = namedtuple('SourceToken', 'kind value start end')
 
 
 class SpectrumTokenizeError(ValueError):
@@ -97,7 +103,7 @@ def encode_number(text):
     return bytes((exponent + 129,)) + (mantissa & 0x7FFFFFFF).to_bytes(4, 'big')
 
 
-def encode_text(text, raw=False):
+def encode_text(text, raw=True):
     result = bytearray()
     index = 0
     while index < len(text):
@@ -114,7 +120,7 @@ def encode_text(text, raw=False):
                 escape = GRAPHIC_ESCAPE.match(text, index)
                 if not escape:
                     raise SpectrumTokenizeError(
-                        r'Invalid Spectrum escape: use \80..\A4, \\ or \{XX} inside REM')
+                        r'Invalid Spectrum escape: use \80..\A4, \\ or \{XX}')
                 code = int(escape.group(1), 16)
                 if not 128 <= code <= 164:
                     raise SpectrumTokenizeError(r'Graphic escape must be within \80..\A4')
@@ -136,6 +142,91 @@ def encode_text(text, raw=False):
         result.append(code)
         index += 1
     return bytes(result)
+
+
+def quoted_end(text, start):
+    end = start + 1
+    while end < len(text):
+        if text[end] == '"':
+            end += 1
+            if end < len(text) and text[end] == '"':
+                end += 1
+                continue
+            return end
+        end += 1
+    raise SpectrumTokenizeError('Unterminated string')
+
+
+def source_tokens(text):
+    """Scan readable BASIC while keeping strings, REM and raw bytes opaque."""
+    index = 0
+    while index < len(text):
+        start = index
+        if text[index] == '"':
+            index = quoted_end(text, index)
+            kind = 'string'
+        else:
+            match = RAW_ESCAPE.match(text, index)
+            kind = 'raw'
+            if not match:
+                match = COMPOUND.match(text, index) or WORD.match(text, index)
+                kind = 'word'
+            if not match:
+                match = NUMBER.match(text, index)
+                kind = 'number'
+            index = match.end() if match else index + 1
+            if not match:
+                kind = 'symbol'
+        value = text[start:index]
+        if (kind == 'word' and value.upper() == 'REM') or (
+                kind == 'raw' and int(value[2:4], 16) == TOKEN_CODES['REM']):
+            yield SourceToken('rem', text[start:], start, len(text))
+            return
+        yield SourceToken(kind, value, start, index)
+
+
+def fn_definition(text):
+    """Encode the signature, including the ROM's six-byte parameter slots."""
+    match = re.match(r'(\s+[A-Za-z]\$?\s*\()([^()]*)(\)\s*=)', text)
+    if not match:
+        raise SpectrumTokenizeError('DEF FN requires letter[$](parameters)=expression')
+    parameters = match.group(2)
+    names = parameters.split(',') if parameters.strip() else []
+    if any(not re.fullmatch(r'\s*[A-Za-z]\$?\s*', name) for name in names):
+        raise SpectrumTokenizeError('DEF FN parameters require single letters with optional $')
+    if not text[match.end():].strip() or text[match.end():].lstrip().startswith(':'):
+        raise SpectrumTokenizeError('DEF FN requires an expression after =')
+    encoded = bytearray(encode_text(match.group(1)))
+    for token in source_tokens(parameters):
+        encoded.extend(encode_text(token.value))
+        if token.kind == 'word':
+            encoded.extend(b'\x0e' + bytes(5))
+    encoded.extend(encode_text(match.group(3)))
+    return bytes(encoded), match.end()
+
+
+def validate_fn_call(text):
+    for token in source_tokens(text):
+        if token.kind == 'symbol' and token.value == ':':
+            break
+        if token.kind == 'raw':
+            return
+    match = re.match(r'\s+[A-Za-z]\$?\s*\(', text)
+    if not match:
+        if re.match(r'\s+\\\{', text):
+            return
+        raise SpectrumTokenizeError('FN requires letter[$](arguments)')
+    depth = 1
+    for token in source_tokens(text[match.end():]):
+        if token.kind != 'symbol':
+            continue
+        if token.value == '(':
+            depth += 1
+        elif token.value == ')':
+            depth -= 1
+            if depth == 0:
+                return
+    raise SpectrumTokenizeError('FN requires closing argument parentheses')
 
 
 def parse_remx(arguments):
@@ -195,6 +286,11 @@ def validate_identifier(name, array=False, for_control=False):
 
 
 def _validate_command_arguments(command, text):
+    for token in source_tokens(text):
+        if token.kind == 'symbol' and token.value == ':':
+            break
+        if token.kind == 'raw':
+            return
     arguments = []
     start = 0
     depth = 0
@@ -218,12 +314,20 @@ def _validate_command_arguments(command, text):
     arguments.append(text[start:end].strip())
     if arguments == ['']:
         arguments = []
-    if command in ('NEW', 'CONTINUE') and arguments:
+    if command in ('NEW', 'CONTINUE', 'COPY') and arguments:
         raise SpectrumTokenizeError(f'{command} takes no arguments')
-    if command in ('RUN', 'LIST') and len(arguments) > 1:
+    maximum = 2 if command in ('LIST', 'LLIST') and arguments \
+        and arguments[0].lstrip().startswith('#') else 1
+    if command in ('RUN', 'LIST', 'LLIST') and len(arguments) > maximum:
         raise SpectrumTokenizeError(f'{command} takes at most one expression')
     if command == 'OUT' and (len(arguments) != 2 or not all(arguments)):
         raise SpectrumTokenizeError('OUT requires two expressions separated by a comma')
+    if command == 'OPEN #' and (len(arguments) != 2 or not all(arguments)):
+        raise SpectrumTokenizeError('OPEN # requires stream,channel')
+    if command == 'CLOSE #' and (len(arguments) != 1 or not arguments[0]):
+        raise SpectrumTokenizeError('CLOSE # requires one stream')
+    if command in ('LOAD', 'SAVE', 'VERIFY', 'MERGE') and not arguments:
+        raise SpectrumTokenizeError(f'{command} requires a filename expression')
 
 
 def tokenize_line(text):
@@ -231,30 +335,61 @@ def tokenize_line(text):
     index = 0
     at_statement = True
     previous_keyword = None
+    statement = None
     while index < len(text):
         character = text[index]
         if character in ' \t':
             result.append(32)
             index += 1
             continue
-        compound = COMPOUND.match(text, index)
-        word = WORD.match(text, index)
-        if compound or word:
-            match = compound or word
+        raw_byte = RAW_ESCAPE.match(text, index)
+        if raw_byte:
+            code = int(raw_byte.group(1), 16)
+            result.append(code)
+            index = raw_byte.end()
+            if CODE_KEYWORDS.get(code) in STATEMENTS:
+                statement = CODE_KEYWORDS[code]
+            if code == TOKEN_CODES['REM']:
+                result.extend(encode_text(text[index:]))
+                return bytes(result) + b'\x0d'
+            at_statement = False
+            previous_keyword = None
+            continue
+        if character == '\\':
+            raise SpectrumTokenizeError(r'Raw code bytes require \{XX}, exactly two hex digits')
+        match = COMPOUND.match(text, index) or WORD.match(text, index)
+        if match:
             raw = match.group()
             keyword = ' '.join(raw.upper().split())
             keyword = {'GOTO': 'GO TO', 'GOSUB': 'GO SUB'}.get(keyword, keyword)
+            keyword = re.sub(r'^(OPEN|CLOSE)\s*#$', r'\1 #', keyword)
             if keyword in TOKEN_CODES:
                 if keyword not in SUPPORTED:
                     raise SpectrumTokenizeError(
                         f'{keyword} is not supported in Spectrum v{VERSION}')
                 if at_statement and keyword not in STATEMENTS:
                     raise SpectrumTokenizeError(f'Expected a statement, got {keyword}')
-                if keyword in ('RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT'):
+                if at_statement:
+                    statement = keyword
+                if keyword in ('RUN', 'LIST', 'LLIST', 'NEW', 'CONTINUE', 'OUT',
+                               'OPEN #', 'CLOSE #', 'COPY', 'LOAD', 'SAVE', 'VERIFY', 'MERGE'):
                     if not at_statement:
                         raise SpectrumTokenizeError(f'{keyword} must start a statement')
                     _validate_command_arguments(keyword, text[match.end():])
                 result.append(TOKEN_CODES[keyword])
+                if keyword == 'DEF FN':
+                    tail = text[match.end():]
+                    if not RAW_ESCAPE.search(tail.split('=', 1)[0]):
+                        encoded, consumed = fn_definition(tail)
+                        result.extend(encoded)
+                        index = match.end() + consumed
+                    else:
+                        index = match.end()
+                    at_statement = False
+                    previous_keyword = None
+                    continue
+                if keyword == 'FN':
+                    validate_fn_call(text[match.end():])
                 if keyword == 'BIN':
                     binary = BINARY_NUMBER.match(text, match.end())
                     if not binary:
@@ -293,17 +428,7 @@ def tokenize_line(text):
         if at_statement:
             raise SpectrumTokenizeError('Expected a supported statement after line number, : or THEN')
         if character == '"':
-            end = index + 1
-            while end < len(text):
-                if text[end] == '"':
-                    end += 1
-                    if end < len(text) and text[end] == '"':
-                        end += 1
-                        continue
-                    break
-                end += 1
-            else:
-                raise SpectrumTokenizeError('Unterminated string')
+            end = quoted_end(text, index)
             result.extend(encode_text(text[index:end]))
             index = end
             continue
@@ -322,7 +447,9 @@ def tokenize_line(text):
             result.append(TOKEN_CODES[pair])
             index += 2
             continue
-        if character not in '+-*/^=<>(),;:\'':
+        if character == '#' and statement not in ('PRINT', 'INPUT', 'LIST', 'LPRINT', 'LLIST'):
+            raise SpectrumTokenizeError('# stream selector requires PRINT, INPUT or LIST')
+        if character not in '+-*/^=<>(),;:\'#':
             raise SpectrumTokenizeError(f'Unsupported symbol: {character}')
         result.extend(encode_text(character))
         if character == ':':

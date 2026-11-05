@@ -62,6 +62,12 @@ The classic binary code converted with the tokenizer.
   UDG A..U (144..164), an eight-row custom A bitmap, and REMX 1000 filled
   with 32 copies of character '0'. The tables are in the
   [character reference](../documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
+- [fn.DZS](zxspectrum/fn.DZS): native numeric/string, zero-argument and
+  nested DEF FN/FN; global x remains unchanged by function parameters.
+- [streams.DZS](zxspectrum/streams.DZS): screen stream 4, literal bytes
+  in strings/code, and native tape/printer examples after STOP.
+  Those latter commands need appropriate media/hardware and are not
+  automatically executed by the demo.
 - [hello.AZS](zxspectrum/hello.AZS): numbered listing generated with `-rh -ca`.
 - [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
 
@@ -89,4 +95,6 @@ The graphics example also has AZS/TAP/TZX/Z80/SNA companions, without autorun.
 Its conversion and
 the underlying block/UDG pixel behavior are tested; manual EightyOne
 verification of this new demo remains pending.
+FN also has Z80/SNA companions without autorun. Manual execution of FN
+and streams, especially the mounted-media/printer examples, remains pending.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

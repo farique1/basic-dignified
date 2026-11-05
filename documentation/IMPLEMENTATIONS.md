@@ -15,6 +15,13 @@ are not promises that every Spectrum feature is available.
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
 ## Changes to this version  
+*ZX Spectrum module v1.9.0*
+- Added literal hexadecimal bytes in code/strings/REM, including raw REM preservation.
+- Added native DEF FN/FN with ROM parameter slots, tape commands and streams/printer syntax.
+- Added AZS-to-DZS DignifieR with labels, safe numbering and overwrite protection.
+- Added native FN/streams examples, editor highlighting, snippets and reverse-conversion tasks.
+- Preserved the original suite and earlier published tags/assets.
+
 *ZX Spectrum module v1.8.0*
 - Integrated Spectrum usage, installation, editors and tools into the common manuals.
 - Added graphics 128..143, UDGs 144..164 and readable string/REM escapes.
@@ -36,13 +43,14 @@ are not promises that every Spectrum feature is available.
   
 ## To Do  
 **ZX Spectrum**
-- Current release: [module v1.8.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0).
+- Current release: [module v1.9.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0).
   Published packages are verified; the items below are remaining work,
   not features added by this documentation update.
-- Native DEF FN/FN, remaining Sinclair keywords, streams and further models.
 - Manual emulator validation of the new demos and snapshots.
+- Manual mounted-media/printer validation of native tape and output commands.
 - Fully integrated editor packaging with simplified converter/interpreter setup.
-- Classic-to-Dignified conversion; `-asc` is not a Spectrum DignifieR.
+- Extract/detokenize BASIC from tapes/snapshots; DignifieR now accepts numbered text.
+- Further models/peripherals and their additional syntax.
 - Automatic ROM runtime-error monitoring with source-line reporting.
 - Detailed priorities, manual acceptance checks and module history are in
   [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas).

@@ -1,6 +1,6 @@
 # ZX Spectrum Basic
 
-**Module v1.8.0 preview**
+**Module v1.9.0 preview**
 
 The **ZX Spectrum** module converts **Dignified** code to **Sinclair Basic**
 for the **48K English ROM**. Use `-id zxspectrum` to select it. The module
@@ -45,15 +45,17 @@ Implemented:
   BASIC records, TAP header/data blocks and XOR checksums.
 - Existing common options such as line start/step and reports.
 - Graphic blocks **128..143**, UDGs **144..164**, and the **REMX** directive.
+- Literal **`\{XX}`** bytes in strings, REM and code; **DEF FN/FN**, source
+  LOAD/SAVE/VERIFY/MERGE, LINE, OPEN#/CLOSE#, streams and printer commands.
+- [Spectrum DignifieR](DIGNIFIER.md#zx-spectrum-dignifier) for AZS to DZS.
 
 Not implemented in this preview:
 
-- Native DEF FN/FN, tape/file-management commands inside the BASIC
-  source (LOAD/SAVE/VERIFY/MERGE), streams and
-  Microdrive/disk/128K extensions. Host-side tape generation is implemented.
+- Microdrive/disk/128K extensions and their hardware-dependent
+  CAT/FORMAT/MOVE/ERASE commands.
 - Automatic contextual short-name allocation; explicit aliases are required.
 - Array/slice compound assignments and recursive local function frames.
-- A Spectrum DignifieR.
+- Extracting/detokenizing BASIC from tapes or snapshots.
 - Automatic ROM runtime-error monitoring or assertions of emulated output.
 
 Unsupported native words are rejected rather than advertised as working.
@@ -148,6 +150,42 @@ for counts, raw bytes and memory limits.
 
 [graphics.DZS](../examples/zxspectrum/graphics.DZS) demonstrates all 16
 blocks, UDG selection/definition and a reserved REM.
+
+## Native functions, files and streams
+
+**DEF FN f(x,a$)=expression** defines a native numeric function;
+**DEF FN s$(a$)=expression** returns a string. Names/parameters are single
+letters, optionally followed by `$`; zero arguments use **()**.
+Call **FN f(3,"AB")** inside expressions. The tokenizer adds the ROM's
+**0E + five-byte parameter slots** after each definition parameter;
+calls do not get these slots. This is separate from Dignified FUNC/RET.
+See [fn.DZS](../examples/zxspectrum/fn.DZS).
+
+Source **LOAD/SAVE/VERIFY/MERGE** accept the Sinclair filename forms.
+LOAD/SAVE/VERIFY support **DATA a()/a$()**, **CODE** and **SCREEN$**;
+**SAVE name LINE {label}** supports autorun. MERGE applies to programs,
+not arrays/CODE. Filename expressions, types, ranges and mounted media
+remain the ROM's responsibility. These are emulator-side commands, not
+host file operations; host TAP/TZX output is unchanged.
+
+**OPEN #4,"S":PRINT #4;"OK":CLOSE #4** uses a stream connected to the screen.
+Base channels are **K/S/P**; extended channels need their hardware.
+**INPUT #0;LINE a$**, **LIST #2;line**, **LPRINT**, **LLIST** and **COPY**
+are accepted. Printer output needs a printer to be visible.
+See [streams.DZS](../examples/zxspectrum/streams.DZS); its tape/printer
+section follows STOP and is deliberately not executed automatically.
+
+**`\{XX}`** emits a literal byte in code as well as strings/REM. For example,
+`\{F5}"HI"` supplies PRINT directly. Raw insertion can bypass structural
+checks and create invalid programs; normal syntax is preferred for automatic
+numbers/FN slots. See [literal bytes](BASIC_DIGNIFIED.md#literal-bytes).
+
+**AZS to DZS** uses `python -B -m zxspectrum.dignifier input.AZS output.DZS`.
+It replaces static line references with labels and keeps conditional
+colon chains and literal data. Regular numbering is retained; irregular
+numbering with dynamic destinations is rejected. Existing destinations
+need **--force**. Read the [DignifieR manual](DIGNIFIER.md#zx-spectrum-dignifier)
+before importing externally numbered or machine-code-containing programs.
 
 ## Installation
 
@@ -474,10 +512,11 @@ demos and snapshot loading still need manual emulator confirmation.
 Release history and pending implementation work are kept in
 [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas), including manual acceptance
 checks, separate from the usage reference. The published
-[1.8.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.8.0)
-contains 32 verified assets. Its extracted source passed 54 tests with
-SkoolKit 10.1, or 54 with five explicit optional skips without the engine;
-the six supplied demos and binaries were reproduced.
+[1.9.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0)
+also supplies native FN and streams demos. ROM probes exercise numeric/string,
+zero/multiple-argument and nested FN calls, verify global-variable isolation,
+raw string bytes and screen streams in both snapshot formats. Native tape
+operations/printer output still require manual emulator/media verification.
 
 ## Technical references
 

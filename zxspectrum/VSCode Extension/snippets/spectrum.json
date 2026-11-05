@@ -1,4 +1,14 @@
 {
+  "Spectrum native function": {
+    "prefix": "deffn",
+    "body": ["DEF FN ${1:f}(${2:x})=${3:x*x}$0"],
+    "description": "Native Sinclair function; use single-letter names and parameters"
+  },
+  "Spectrum raw byte": {
+    "prefix": "byte",
+    "body": ["\\\\{${1:00}}$0"],
+    "description": "One literal hexadecimal byte in the BASIC body"
+  },
   "Spectrum REM reserve": {
     "prefix": "remx",
     "body": ["REMX ${1:1000},${2:256}${3:,48}$0"],

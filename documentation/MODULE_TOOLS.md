@@ -305,5 +305,6 @@ Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **casse
 The [Spectrum reference](ZX_SPECTRUM.md) describes numbered input, TAP/TZX,
 optional Z80/SNA and **REMX**. The tokenizer is part of the language module;
 MSX DignifieR and CoCo to CAS do not convert Spectrum programs.
-There is no Spectrum classic-to-Dignified converter yet: **-asc** preserves
-the numbered listing rather than removing its line numbers.
+The [Spectrum DignifieR](DIGNIFIER.md#zx-spectrum-dignifier) converts
+numbered AZS to DZS through `python -m zxspectrum.dignifier`; **-asc**
+instead preserves the numbered listing. Both use Suite graphic/raw escapes.

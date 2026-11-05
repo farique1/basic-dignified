@@ -2,6 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Spectrum: Dignify numbered AZS",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "-m", "zxspectrum.dignifier", "${file}", "${file}.dignified.DZS"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": []
+    },
+    {
       "label": "Spectrum: Install optional snapshot engine",
       "type": "process",
       "command": "${config:spectrum-basic.python}",
