@@ -1,9 +1,9 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data da analise: 2026-11-04. Ultima atualizacao: 2026-11-05.
-Estado: marcos publicados ate modulo Spectrum v1.9.0 preview (release abaixo),
-mais a entrega de branch/VSIX v1.10.0 com modelo 128K opcional (`--sp_model
-48|128`). Sem nova tag/release, PR ou integracao ZX81 nesta rodada.
+Estado: modulo Spectrum v1.10.0 publicado como pre-release no fork
+(tag `spectrum-v1.10.0`), com modelo 128K opcional (`--sp_model 48|128`)
+e VSIX 1.10.1. Sem integracao ZX81 nesta rodada.
 Os VSIX de cada maquina continuam separados; 48K/128K usam o mesmo
 pacote Spectrum. resume.txt e um registro local, nao incluido no Git.
 
@@ -129,11 +129,13 @@ com seus registros historicos. O estado atual prevalece nesta secao:
   via subprocess, depois de um teste pego na revisao de documentacao
   mostrar que ele so aceitava fonte 48K por padrao. Validacao desta
   entrega: 68 testes Python executados, 62 aprovados e 6 pulados por
-  ausencia do SkoolKit opcional. VSIX 1.10.0 com selecao de modelo
+  ausencia do SkoolKit opcional. VSIX 1.10.1 com selecao de modelo
   `spectrum-basic.model`, tarefas de conversao/DignifieR e realce
-  PLAY/SPECTRUM. Sem nova tag/release; Sublime anterior preservado.
-- [x] VSIX Spectrum 1.10.0 gerado e inspecionado: integridade, versao,
-  arquivos empacotados e aviso do bug 128K conferidos. npm test aprovado;
+  PLAY/SPECTRUM. Pre-release `spectrum-v1.10.0` publicado no fork;
+  Sublime anterior preservado.
+- [x] VSIX Spectrum 1.10.1 (modulo 1.10.0) gerado e inspecionado:
+  integridade, versao, arquivos empacotados e aviso do bug 128K conferidos.
+  npm test aprovado;
   tarefas extraidas do pacote converteram e dignificaram hello (48K) e
   play128 (128K) pelo conversor real. MSX/CoCo nao validados nesta rodada,
   conforme solicitado. Instalacao/teste visual no VS Code fica para o usuario.

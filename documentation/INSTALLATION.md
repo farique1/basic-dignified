@@ -125,10 +125,10 @@ VSCode **should** correctly **interpret** the **Dignified** and **classic** Basi
   
 See [the code editor integration section](IDE_TOOLS.md) on how to **use** the VSCode extension.  
 
-For **Spectrum**, install **basic-dignified-zxspectrum-1.9.0.vsix** and set
+For **Spectrum**, install **basic-dignified-zxspectrum-1.10.1.vsix** and set
 **spectrum-basic.python**, **spectrum-basic.badigPath** and, if needed,
 **spectrum-basic.emulatorPath**. DZS/AZS and legacy DSP/ASP are recognized.
-Merge `zxspectrum\VSCode Extension\tasks.json` into your project's
+Merge `zxspectrum\VSCode Extension\.vscode\tasks.json` into your project's
 `.vscode\tasks.json`; **do not replace existing tasks**.
 The optional snapshot-engine installation is an **explicit task**, using
 the configured Python, not an automatic installation on opening a file.

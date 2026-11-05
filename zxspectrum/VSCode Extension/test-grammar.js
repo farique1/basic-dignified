@@ -5,7 +5,15 @@ const textmate = require('vscode-textmate');
 const oniguruma = require('vscode-oniguruma');
 
 async function main() {
-    const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, 'tasks.json'), 'utf8'));
+    const tasks = JSON.parse(fs.readFileSync(path.join(__dirname, '.vscode', 'tasks.json'), 'utf8'));
+    const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    for (const language of manifest.contributes.languages) {
+        assert(language.configuration.startsWith('./config/'));
+        const configuration = JSON.parse(fs.readFileSync(
+            path.join(__dirname, language.configuration), 'utf8'));
+        assert.equal(configuration.comments.lineComment, 'REM');
+        assert.deepEqual(configuration.brackets, [['(', ')'], ['[', ']'], ['{', '}']]);
+    }
     assert(Array.isArray(tasks.tasks), 'Task template must contain a VS Code tasks array');
     assert(tasks.tasks.some(task => task.args.includes('zxspectrum.dignifier')));
     for (const task of tasks.tasks.filter(task =>

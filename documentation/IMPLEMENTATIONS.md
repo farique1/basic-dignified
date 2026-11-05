@@ -15,7 +15,7 @@ are not promises that every Spectrum feature is available.
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
 ## Changes to this version  
-*ZX Spectrum module v1.10.0 preview (branch/VSIX; no new tagged release)*
+*ZX Spectrum module v1.10.0 preview (published on the fork; VSIX 1.10.1)*
 - Added an optional 128K model (`--sp_model 48|128` / `SP_MODEL` remtag,
   default 48): native `SPECTRUM` and `PLAY` tokens, with `%T`/`%U` UDG
   escapes reserved for them under 128K. The Spectrum DignifieR also gained
@@ -60,7 +60,7 @@ are not promises that every Spectrum feature is available.
   
 ## To Do  
 **ZX Spectrum**
-- Current release: [module v1.9.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0).
+- Current release: [module v1.10.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.10.0).
   Published packages are verified; the items below are remaining work,
   not features added by this documentation update.
 - Manual emulator validation of the new demos and snapshots.
@@ -70,7 +70,7 @@ are not promises that every Spectrum feature is available.
   remains future work; manual loading is documented.
 - Fully integrated editor packaging with simplified converter/interpreter setup.
 - Extract/detokenize BASIC from tapes/snapshots; DignifieR now accepts numbered text.
-- 128K model: `SPECTRUM`/`PLAY` tokens added (unreleased); 128K Z80/SNA
+- 128K model: `SPECTRUM`/`PLAY` tokens are included; 128K Z80/SNA
   snapshots and other models/peripherals (+2/+2A/+3, NextBASIC, turbo,
   multi-file tapes) remain future work.
 - Automatic ROM runtime-error monitoring with source-line reporting.

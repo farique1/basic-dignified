@@ -33,7 +33,7 @@ You can further **refine** the build **behavior** by passing **arguments** with 
   
 > See the end of the [Basic Dignified usage secton](BASIC_DIGNIFIED.md) for an explanation of the **remtags**.  
 
-For **Spectrum**, merge the supplied `tasks.json` into `.vscode/tasks.json`
+For **Spectrum**, merge the supplied `zxspectrum\VSCode Extension\.vscode\tasks.json` into `.vscode/tasks.json`
 and set **spectrum-basic.python**, **spectrum-basic.badigPath** and
 **spectrum-basic.emulatorPath**. Choose a **Dignified** task for DZS/DSP
 and a **Classic** task (`-asc`) for numbered AZS/ASP.

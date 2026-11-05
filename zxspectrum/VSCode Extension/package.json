@@ -2,7 +2,7 @@
   "name": "basic-dignified-zxspectrum",
   "displayName": "Basic Dignified ZX Spectrum",
   "description": "Sinclair BASIC and Dignified source highlighting, snippets and build templates.",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "publisher": "wilsonpilon",
   "license": "UNLICENSED",
   "engines": {
@@ -29,7 +29,7 @@
           ".dsp",
           ".DSP"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./config/language-configuration.json"
       },
       {
         "id": "spectrum-classic",
@@ -42,7 +42,7 @@
           ".asp",
           ".ASP"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./config/language-configuration.json"
       }
     ],
     "grammars": [

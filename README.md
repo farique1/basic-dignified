@@ -41,12 +41,12 @@ the [Spectrum DignifieR](documentation/DIGNIFIER.md#zx-spectrum-dignifier) are i
 An optional **`--sp_model 128`** flag enables the 128K `SPECTRUM`/`PLAY`
 tokens (Z80/SNA snapshots and other 128K-specific features remain out of
 scope; see the [Spectrum reference](documentation/ZX_SPECTRUM.md#128k-model)).
-This 128K addition is **not yet published** in a tagged release.
-The 1.10.0 VSIX supports both 48K and 128K through its
+The 1.10.0 module preview is published as a pre-release on the
+[project fork](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.10.0).
+The 1.10.1 VSIX supports both 48K and 128K through its
 `spectrum-basic.model` setting. EightyOne automatic 128K loading has a
 known freeze; use manual loading as documented in the Spectrum reference.
-The [published preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0)
-contains the source, editor packages and eight demos. See
+The preview includes the source, editor packages and demos. See
 [remaining work and priorities](OUTLINE.md#pendencias-priorizadas) for
 manual validation, language coverage and final packaging.
   

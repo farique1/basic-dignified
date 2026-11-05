@@ -1,6 +1,6 @@
 # ZX Spectrum Basic
 
-**Module v1.10.0 preview (branch/VSIX; no new tagged release)**
+**Module v1.10.0 preview (published on the fork; no upstream release)**
 
 The **ZX Spectrum** module converts **Dignified** code to **Sinclair Basic**
 for the **48K English ROM** by default, with an opt-in **128K** token set
@@ -619,11 +619,12 @@ demos and snapshot loading still need manual emulator confirmation.
 Release history and pending implementation work are kept in
 [OUTLINE.md](../OUTLINE.md#pendencias-priorizadas), including manual acceptance
 checks, separate from the usage reference. The published
-[1.9.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.9.0)
-also supplies native FN and streams demos. ROM probes exercise numeric/string,
-zero/multiple-argument and nested FN calls, verify global-variable isolation,
-raw string bytes and screen streams in both snapshot formats. Native tape
-operations/printer output still require manual emulator/media verification.
+[1.10.0 preview](https://github.com/wilsonpilon/basic-dignified/releases/tag/spectrum-v1.10.0)
+includes the VSIX 1.10.1 and demos, including native FN and streams. ROM
+probes exercise numeric/string, zero/multiple-argument and nested FN calls,
+verify global-variable isolation, raw string bytes and screen streams in both
+snapshot formats. Native tape operations/printer output still require manual
+emulator/media verification.
 
 ## Technical references
 

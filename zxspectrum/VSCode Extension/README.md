@@ -1,6 +1,7 @@
 # Basic Dignified ZX Spectrum
 
-Spectrum module 1.10.0 editor companion for both 48K and 128K. Adds DZS/AZS highlighting and
+VSIX 1.10.1, companion for Spectrum module 1.10.0, for both 48K and 128K.
+Adds DZS/AZS highlighting and
 Dignified snippets. It does not include Python, the converter, ROMs or EightyOne.
 Includes RUN/LIST/NEW/CONTINUE/OUT and BIN highlighting.
 REMX, graphic/UDG escapes and bitmap/reservation snippets are included.
@@ -18,8 +19,12 @@ existing web projects can override the file association.
 
 Set `spectrum-basic.python`, `spectrum-basic.badigPath` (absolute badig.py path)
 and, on Windows, `spectrum-basic.emulatorPath` (EightyOne.exe).
-Merge the supplied `tasks.json` tasks into your workspace's `.vscode/tasks.json`;
+Merge the supplied [`.vscode/tasks.json`](.vscode/tasks.json) tasks into your workspace's `.vscode/tasks.json`;
 do not overwrite existing tasks. Run **Tasks: Run Build Task** for TAP/TZX.
+The [language configuration](config/language-configuration.json) is shared
+by the two Spectrum language modes and loaded automatically by VS Code.
+Both `.vscode/` and `config/` are included in the VSIX. Installing the VSIX
+does not copy build tasks into your workspace; merge them manually.
 Set `spectrum-basic.model` to `"48"` (default) or `"128"` in VS Code
 settings before building or using the DignifieR task. The supplied tasks
 pass the selection as `--sp_model`; a source `##BB:SP_MODEL=128` remtag
