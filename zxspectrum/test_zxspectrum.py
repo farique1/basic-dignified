@@ -11,13 +11,58 @@ from unittest.mock import MagicMock, patch
 
 from . import emulator_interface, snapshot_zxspectrum, tokenizer_interface
 from .tape_zxspectrum import MAX_PROGRAM_BYTES, make_tap, make_tzx
-from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, tokenize
+from .tokenizer_zxspectrum import SpectrumTokenizeError, encode_number, parse_remx, tokenize
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class TokenizerTests(unittest.TestCase):
+    def test_graphic_and_udg_escapes_emit_real_character_bytes(self):
+        graphics = ''.join(f'\\{code:02X}' for code in range(128, 144))
+        udgs = ''.join('%' + chr(letter) for letter in range(ord('A'), ord('U') + 1))
+        expected = bytes(range(128, 165))
+        for literal in (graphics + udgs, ''.join(f'\\{code:02x}' for code in range(128, 165))):
+            self.assertEqual(tokenize(f'10 PRINT "{literal}"')[4:],
+                             b'\xf5 "' + expected + b'"\r')
+            self.assertEqual(tokenize(f'10 REM {literal}')[4:],
+                             b'\xea ' + expected + b'\r')
+        self.assertEqual(tokenize(r'10 PRINT "%%ABC\\80""%a"')[4:],
+                         b'\xf5 "%ABC\\80""\x90"\r')
+        self.assertEqual(tokenize(r'10 REM \{00}\{A5}\{FF}')[4:],
+                         b'\xea \x00\xa5\xff\r')
+        for literal in (r'\7F', r'\A5', r'\8', r'\GG', r'\{90}', '%V', '%Z'):
+            with self.assertRaises(SpectrumTokenizeError):
+                tokenize(f'10 PRINT "{literal}"')
+        self.assertEqual(tokenize(r'10 REM \{0D}')[4:], b'\xea \r\r')
+        for literal in (r'\{0}', r'\{GG}'):
+            with self.assertRaises(SpectrumTokenizeError):
+                tokenize(f'10 REM {literal}')
+
+    def test_remx_fill_counts_decoded_bytes_and_rejects_invalid_arguments(self):
+        for arguments, payload in (('100,4', '0000'), ('100,3,65', 'AAA'),
+                                   (r'100,2,"%A"', r'\90\90'),
+                                   (r'100,2,"\8F"', r'\8F\8F'),
+                                   ('100,2,0', r'\{00}\{00}'),
+                                   ('100,2,13', r'\{0D}\{0D}'),
+                                   ('100,2,255', r'\{FF}\{FF}'),
+                                   ('100,2,37', '%%%%'),
+                                   ('100,2,92', '\\\\' * 2)):
+            self.assertEqual(parse_remx(arguments), (100, payload))
+        for arguments in ('0,1', '10000,1', '10,0', '10,65533', '10,2,256',
+                          '10,1,"AB"', '10,1,""', '10,-1',
+                          '10,1,1,2', '10,1:PRINT 1', '9' * 5000 + ',1'):
+            with self.assertRaises(SpectrumTokenizeError):
+                parse_remx(arguments)
+        number, payload = parse_remx('9999,65532,0')
+        record = tokenize(f'{number} REM {payload}')
+        self.assertEqual(struct.unpack_from('<H', record, 2)[0], 65535)
+        number, payload = parse_remx('10,41605')
+        make_tap(tokenize(f'{number} REM {payload}'), 'LIMIT')
+        number, payload = parse_remx('10,41606')
+        with self.assertRaises(SpectrumTokenizeError):
+            make_tap(tokenize(f'{number} REM {payload}'), 'LIMIT')
+
     def test_binary_literals_use_binary_values_in_rom_number_records(self):
         self.assertEqual(
             tokenize('10 PRINT BIN 1010'),
@@ -184,6 +229,40 @@ class TapeTests(unittest.TestCase):
 
 
 class ConversionTests(unittest.TestCase):
+    def test_remx_absolute_lines_preserve_labels_includes_and_reports(self):
+        result, listing, tape = self.convert(
+            'remx 15,3,"%A"\n{start}\nPRINT "\\80%U"\n'
+            'INCLUDE "part.DZS"\nGO TO {start}\nSTOP\n',
+            '-rh', '-lnr', '-prr', includes={'part.DZS': 'remx 100,300\n'})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('10 PRINT "\\80%U"\n15 REM \\90\\90\\90\n20 GO TO 10', listing)
+        self.assertIn('100 REM ' + '0' * 300, listing)
+        self.assertIn('15 - 1', result.stdout)
+        self.assertIn('100 - 1', result.stdout)
+        self.assertEqual(tape[24:-1], tokenize(listing))
+        result, listing, tape = self.convert('remx 100,4\n', '-rh', '-lnr', '-prr')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(listing, '100 REM 0000\n')
+        self.assertIn('100 - 1', result.stdout)
+        self.assertTrue(tape)
+
+    def test_remx_collisions_and_removed_directives(self):
+        for source, options in (
+                ('STOP\nremx 10,2\n', ('-rh',)),
+                ('remx 100,2\nremx 100,3\n', ('-rh',)),
+                ('remx 10,2\nSTOP\n', ()),
+                ('PRINT 1:REMX 100,2\n', ('-rh',)),
+                ('remx 100,2:PRINT 1\n', ('-rh',))):
+            result, listing, tape = self.convert(source, *options)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertFalse(listing)
+            self.assertFalse(tape)
+        result, listing, tape = self.convert(
+            '###\nremx 100,2\n###\n#off\nremx 200,2\n#off\nSTOP\n', '-rh')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(listing, '10 STOP\n')
+        self.assertTrue(tape)
+
     def test_chained_statements_preserve_if_strings_rem_and_normalization(self):
         for source, expected in (
                 ('counter=1:counter+=2:PRINT counter:STOP\n',
@@ -584,6 +663,44 @@ class ConversionTests(unittest.TestCase):
 
 
 class SnapshotTests(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec('skoolkit'), 'optional SkoolKit not installed')
+    def test_graphics_udg_bitmap_and_raw_remx_execute_in_the_rom(self):
+        import skoolkit.snapshot as snapshots
+
+        if not hasattr(snapshots, 'Snapshot'):
+            self.skipTest('ROM graphics probe requires the newer SkoolKit snapshot API')
+        from skoolkit.simulator import Simulator
+        from skoolkit.simutils import from_snapshot
+
+        rows = [60, 66, 165, 129, 165, 153, 66, 60]
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'graphics.DZS'
+            source.write_text(
+                'remx 5,4,13\nCLS\nFOR i=0 TO 7\nREAD pixel\n'
+                'POKE USR "A"+i,pixel\nNEXT i\n'
+                'DATA 60,66,165,129,165,153,66,60\n'
+                'PRINT "\\8F%A"\nPOKE 30000,123\nSTOP\n', encoding='ascii')
+            result = subprocess.run(
+                [sys.executable, '-B', str(ROOT / 'badig.py'), str(source),
+                 '-id', 'zxspectrum', '-rh', '--tk_tokenize', '--tk_format', 'all',
+                 '--tk_autorun', '0'],
+                cwd=ROOT, capture_output=True, text=True, timeout=150)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            for extension in ('.z80', '.sna'):
+                snapshot = snapshots.Snapshot.get(str(source.with_suffix(extension)))
+                registers = {'SP': snapshot.sp + 2} if extension == '.sna' else None
+                simulator = from_snapshot(Simulator, snapshot, registers=registers)
+                for _ in range(100000):
+                    simulator.run()
+                    if simulator.memory[30000] == 123:
+                        break
+                self.assertEqual(simulator.memory[30000], 123, extension)
+                address = simulator.memory[23675] + 256 * simulator.memory[23676]
+                self.assertEqual(simulator.memory[address:address + 8], rows)
+                for row, value in enumerate(rows):
+                    self.assertEqual(simulator.memory[16384 + 256 * row], 255)
+                    self.assertEqual(simulator.memory[16385 + 256 * row], value)
+
     def test_sna_saves_pc_on_stack_without_mutating_ram(self):
         header = bytearray(86)
         header[30] = 54

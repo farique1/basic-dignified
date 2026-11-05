@@ -7,6 +7,18 @@ It **eases** the heavily **repetitive** and **error** prone task of **removing**
 > The interplay between all the configurable options and the variety of the Basic itself is somewhat complex and was not nearly as tested as it should so please keep an eye and report any bugs.  
   
 ## Usage  
+
+### Supported systems
+
+**MSX Basic DignifieR** handles **MSX** classic-to-Dignified conversion;
+the options below keep that system's semantics.
+On **ZX Spectrum**, a numbered `.AZS` listing can instead be **tokenized**
+with `badig.py -id zxspectrum -asc`, but this is **not** a DignifieR and
+does not remove line numbers or create labels. Spectrum reverse conversion
+remains separate work. See the [Spectrum reference](ZX_SPECTRUM.md) and
+[graphic/UDG table](BASIC_DIGNIFIED.md#zx-spectrum-characters).
+
+The following usage and formatting options apply to the **MSX tool**.
   
   
 Run with:  

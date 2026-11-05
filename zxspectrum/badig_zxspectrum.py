@@ -10,7 +10,7 @@ from msx.badig_msx import Lexer as MSXLexer
 from msx.badig_msx import Parser as MSXParser
 from . import VERSION
 from .tokenizer_zxspectrum import (
-    FUNCTIONS, SpectrumTokenizeError, TOKEN_CODES, tokenize, validate_identifier,
+    FUNCTIONS, SpectrumTokenizeError, TOKEN_CODES, parse_remx, tokenize, validate_identifier,
 )
 
 ERROR_EXIT_CODE = 1
@@ -23,6 +23,21 @@ def fail(message, token=None):
 
 def postprocess(code, stg):
     try:
+        remx_lines = getattr(stg, 'remx_lines', [])
+        if remx_lines:
+            lines = {}
+            for text in code:
+                number = int(text.split(None, 1)[0])
+                if number in lines:
+                    raise SpectrumTokenizeError(f'Duplicate BASIC line {number}')
+                lines[number] = text
+            ending = re.search(r'[\r\n]+$', code[0]).group() if code else '\n'
+            for number, payload, token in remx_lines:
+                if number in lines:
+                    fail(f'REMX line {number} is already used; choose another line or -ls/-lp',
+                         token)
+                lines[number] = f'{number} REM {payload}{ending}'
+            code = [lines[number] for number in sorted(lines)]
         tokenize(''.join(code))
     except SpectrumTokenizeError as error:
         fail(str(error))
@@ -43,7 +58,7 @@ class Description(MSXDescription):
                         'TO', 'STEP', 'DIM', 'DATA', 'READ', 'RESTORE', 'RANDOMIZE',
                         'AT', 'TAB', 'FLASH', 'BRIGHT', 'INVERSE', 'OVER',
                         'PLOT', 'DRAW', 'CIRCLE', 'POKE', 'CLEAR',
-                        'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', '?']
+                        'RUN', 'LIST', 'NEW', 'CONTINUE', 'OUT', 'REMX', '?']
         jumps = ['GOTO', 'GO TO', 'GOSUB', 'GO SUB', 'THEN']
         operators = ['AND', 'OR', 'NOT', 'BIN']
         symbols = ['<=', '>=', '<>', '>', '=', '<', '+', '*', '/', '^',
@@ -82,6 +97,7 @@ class Description(MSXDescription):
 
 class Settings:
     def properties(self, stg):
+        stg.remx_lines = []
         if not 1 <= stg.line_start <= 9999 or stg.line_step < 1:
             fail('Spectrum requires line start 1..9999 and a positive line step')
         return self
@@ -98,6 +114,12 @@ class Expose:
 class Lexer(MSXLexer):
     def lexing(self):
         tk = self.lex.tk
+        if tk.tok == 'C_INSTRC' and tk.uval == 'REMX':
+            if self.lex.last_tok.tok != 'NEWLINE':
+                fail('REMX must be alone on a source line', tk)
+            arguments = self.pos.text[self.pos.col:].rstrip(self.des.newline_str)
+            self.pos.col = len(self.pos.text) - 1
+            return self.Tok(tok='Z_REMX', val=arguments, pos=tk.pos)
         if tk.tok == 'D_IDNTTP' and tk.val == 'PROGRAM' \
                 and tk.pos.lin >= self.pos.code_len - 1:
             return None
@@ -124,6 +146,16 @@ class Parser(MSXParser):
         self.des.d_defines['?'] = definition(replacement, self.par.tok_str('0,0'))
 
     def pass_1(self):
+        if self.par.tk.tok == 'Z_REMX':
+            token = self.par.tk
+            try:
+                number, payload = parse_remx(token.val)
+            except SpectrumTokenizeError as error:
+                fail(str(error), token)
+            self.stg.remx_lines.append((number, payload, token))
+            if self.par.next_tok().tok != 'NEWLINE':
+                fail('REMX must be alone on a source line', token)
+            return None
         return False
 
     def pass_2(self):
@@ -134,6 +166,11 @@ class Parser(MSXParser):
 
     def pass_4(self):
         tk = self.par.tk
+        if tk.tok == 'EOF':
+            self.par.line_report.extend(
+                (number, token.pos.lin, token.pos.text, token.pos.file)
+                for number, _, token in self.stg.remx_lines)
+            self.par.line_report.sort(key=lambda line: line[0])
         if tk.tok == 'D_IDNTTP':
             if self.par.last_tok().val == '~':
                 self.par.tok_list_out.pop()

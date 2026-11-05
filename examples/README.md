@@ -44,9 +44,7 @@ The classic ASCII code converted from the Dignified version.
   [`EXAMPLE.BCC`](https://github.com/farique1/basic-dignified/blob/main/examples/coco/EXAMPLE.BCC)  
 The classic binary code converted with the tokenizer.  
 
-## Addition: ZX Spectrum preview
-
-The original MSX/CoCo examples above are preserved.
+## ZX Spectrum
 
 - [hello.DZS](zxspectrum/hello.DZS): first Dignified example, using explicit
   LET, a long numeric scalar name and IF/GO TO with a label.
@@ -60,6 +58,10 @@ The original MSX/CoCo examples above are preserved.
   list the final PRINT/STOP lines; PRESS A KEY TO RUN introduces a second
   pause. Another key runs the finish label, clearing variables/display and
   printing DONE.
+- [graphics.DZS](zxspectrum/graphics.DZS): the 16 graphic blocks (128..143),
+  UDG A..U (144..164), an eight-row custom A bitmap, and REMX 1000 filled
+  with 32 copies of character '0'. The tables are in the
+  [character reference](../documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
 - [hello.AZS](zxspectrum/hello.AZS): numbered listing generated with `-rh -ca`.
 - [hello.tap](zxspectrum/hello.tap): tokenized BASIC in a standard TAP container.
 
@@ -76,11 +78,15 @@ without BASIC autorun. This is user-reported manual validation, separate
 from the automated conversion/format tests.
 The new native example also has AZS/TAP/TZX companions, but its manual
 emulator validation is still pending; it is not part of those 16 passes.
-Since 1.7.0 the canonical sources/listings are DZS/AZS; older DSP/ASP
+DZS/AZS are the canonical sources/listings; older DSP/ASP
 inputs remain accepted. [hello.z80](zxspectrum/hello.z80) and
 [hello.sna](zxspectrum/hello.sna) are representative 48K snapshots without
 BASIC autorun. Generating snapshots requires optional SkoolKit;
 `--tk_format all` produces tapes and snapshots. Load snapshots through
 the emulator's file-open command, then LIST/RUN manually. Their ROM state
 is tested automatically; manual EightyOne snapshot validation is pending.
+The graphics example also has AZS/TAP/TZX/Z80/SNA companions, without autorun.
+Its conversion and
+the underlying block/UDG pixel behavior are tested; manual EightyOne
+verification of this new demo remains pending.
 See the [Spectrum manual](../documentation/ZX_SPECTRUM.md).

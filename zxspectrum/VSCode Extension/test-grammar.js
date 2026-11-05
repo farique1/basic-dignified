@@ -40,6 +40,16 @@ async function main() {
         }
         assert(nativeAt(native.indexOf('BIN')).includes('keyword.operator.basic.spectrum'));
         assert(nativeAt(native.indexOf('1010')).includes('constant.numeric.basic.spectrum'));
+        const graphics = String.raw`PRINT "\8F%A%%\\": REM \{0D}%U`;
+        const graphicTokens = grammar.tokenizeLine(graphics).tokens;
+        for (const escape of [String.raw`\8F`, '%A', '%%', String.raw`\\`,
+                              String.raw`\{0D}`, '%U']) {
+            const index = graphics.indexOf(escape);
+            assert(graphicTokens.find(token => token.startIndex <= index
+                && token.endIndex > index).scopes.includes('constant.character.escape'));
+        }
+        assert(grammar.tokenizeLine('REMX 1000,256').tokens[0].scopes
+            .includes('keyword.control.basic.spectrum'));
     }
     registry.dispose();
     console.log('Task template and both grammars: strings, REM, functions, native commands and BIN verified.');

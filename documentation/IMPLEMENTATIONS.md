@@ -1,6 +1,10 @@
 # Implementation Ideas and Known Bugs  
   
 Not all topics presented here are going to be implemented. Some are just ideas and brainstorms.  
+
+The original suite/MSX/CoCo notes below are retained. **Spectrum** has an
+independent module version and system-specific status; shared-suite ideas
+are not promises that every Spectrum feature is available.
   
 ## Known Bugs  
 **Highlighting**  
@@ -11,6 +15,12 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - If `ENDIF` after a `:` on another line, `ENDIF` will be removed and the line after it will be joined.  
   
 ## Changes to this version  
+*ZX Spectrum module v1.8.0*
+- Integrated Spectrum usage, installation, editors and tools into the common manuals.
+- Added graphics 128..143, UDGs 144..164 and readable string/REM escapes.
+- Added absolute REMX reservations, decoded fill characters and line-report mapping.
+- Kept the suite version 2.2.1 and the original MSX/CoCo implementation.
+
 *v2.2.1*  
 - Fixed a bug recognizing an `EOF` command or variable as the end of file.
 - Changed the way the lexer finds the end of the file. It now looks for the last line instead of adding an arbitrary string at the end.
@@ -25,6 +35,13 @@ Not all topics presented here are going to be implemented. Some are just ideas a
 - Fixed a bug where `defusr` and `usr` where only being recognized as instructions if followed by a number.  
   
 ## To Do  
+**ZX Spectrum**
+- Native DEF FN/FN, remaining Sinclair keywords, streams and further models.
+- Manual emulator validation of the new demos and snapshots.
+- Fully integrated editor packaging with simplified converter/interpreter setup.
+- Classic-to-Dignified conversion; `-asc` is not a Spectrum DignifieR.
+- Detailed priorities and module history are in [OUTLINE.md](../OUTLINE.md).
+
   
 **General**  
 - Publish the VSCode extensions and the Sublime package on their online stores.  

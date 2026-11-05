@@ -1,5 +1,11 @@
 {
   "cmd": ["python", "-B", "badig.py", "$file", "-id", "zxspectrum", "--tk_tokenize", "--tk_format", "both"],
   "working_dir": "$project_path",
-  "selector": "source.basic.spectrum"
+  "selector": "source.basic.spectrum",
+  "variants": [
+    {
+      "name": "Classic AZS",
+      "cmd": ["python", "-B", "badig.py", "$file", "-id", "zxspectrum", "-asc", "--tk_tokenize", "--tk_format", "both"]
+    }
+  ]
 }

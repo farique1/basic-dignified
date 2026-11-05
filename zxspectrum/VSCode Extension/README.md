@@ -1,8 +1,10 @@
 # Basic Dignified ZX Spectrum
 
-Spectrum module 1.7.0 editor companion. Adds DZS/AZS highlighting and
+Spectrum module 1.8.0 editor companion. Adds DZS/AZS highlighting and
 Dignified snippets. It does not include Python, the converter, ROMs or EightyOne.
 Includes RUN/LIST/NEW/CONTINUE/OUT and BIN highlighting.
+REMX, graphic/UDG escapes and bitmap/reservation snippets are included.
+See the [character table](../../documentation/BASIC_DIGNIFIED.md#zx-spectrum-characters).
 
 Install the VSIX using VS Code's **Extensions: Install from VSIX** command.
 Legacy DSP/ASP associations remain supported. ASP also names web files:

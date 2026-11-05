@@ -46,6 +46,11 @@ WORD = re.compile(r'[A-Za-z][A-Za-z0-9_]*[$%!#]?')
 BINARY_NUMBER = re.compile(r'[ \t]*([01](?:[ \t]*[01])*)')
 LINE = re.compile(r'^\s*([0-9]+)\s+(.+)$')
 COMPOUND = re.compile(r'(GO\s+(?:TO|SUB)|DEF\s+FN|OPEN\s*#|CLOSE\s*#)\b', re.I)
+GRAPHIC_ESCAPE = re.compile(r'\\([0-9A-Fa-f]{2})')
+RAW_ESCAPE = re.compile(r'\\\{([0-9A-Fa-f]{2})\}')
+REMX_ARGS = re.compile(
+    r'\s*([0-9]+)\s*,\s*([0-9]+)\s*(?:,\s*([0-9]+|"(?:[^"]|"")*"|\'[^\']*\'))?\s*')
+MAX_REMX_COUNT = 65532
 
 
 class SpectrumTokenizeError(ValueError):
@@ -92,15 +97,86 @@ def encode_number(text):
     return bytes((exponent + 129,)) + (mantissa & 0x7FFFFFFF).to_bytes(4, 'big')
 
 
-def encode_text(text):
+def encode_text(text, raw=False):
     result = bytearray()
-    for character in text:
+    index = 0
+    while index < len(text):
+        character = text[index]
+        if text.startswith('\\\\', index) or text.startswith('%%', index):
+            result.append(ord(character))
+            index += 2
+            continue
+        if character == '\\':
+            escape = RAW_ESCAPE.match(text, index) if raw else None
+            if escape:
+                code = int(escape.group(1), 16)
+            else:
+                escape = GRAPHIC_ESCAPE.match(text, index)
+                if not escape:
+                    raise SpectrumTokenizeError(
+                        r'Invalid Spectrum escape: use \80..\A4, \\ or \{XX} inside REM')
+                code = int(escape.group(1), 16)
+                if not 128 <= code <= 164:
+                    raise SpectrumTokenizeError(r'Graphic escape must be within \80..\A4')
+            result.append(code)
+            index = escape.end()
+            continue
+        if character == '%' and index + 1 < len(text) and text[index + 1].isascii() \
+                and text[index + 1].isalpha():
+            letter = text[index + 1].upper()
+            if not 'A' <= letter <= 'U':
+                raise SpectrumTokenizeError('Spectrum UDG escapes use %A..%U')
+            result.append(144 + ord(letter) - ord('A'))
+            index += 2
+            continue
         code = {'\u00a3': 0x60, '\u00a9': 0x7F}.get(character, ord(character))
         if not 32 <= code <= 127 or character in ('`', '\x7f'):
             raise SpectrumTokenizeError(
                 f'Unsupported Spectrum character: U+{ord(character):04X}')
         result.append(code)
+        index += 1
     return bytes(result)
+
+
+def parse_remx(arguments):
+    """Return an absolute BASIC line and its readable REM payload."""
+    match = REMX_ARGS.fullmatch(arguments)
+    if not match:
+        raise SpectrumTokenizeError('REMX expects <line>,<count>[,<byte or quoted character>]')
+    values = []
+    for text, maximum, name in zip(match.group(1, 2), (9999, MAX_REMX_COUNT),
+                                   ('line', 'count')):
+        digits = text.lstrip('0') or '0'
+        if len(digits) > len(str(maximum)) or not 1 <= int(digits) <= maximum:
+            raise SpectrumTokenizeError(f'REMX {name} must be within 1..{maximum}')
+        values.append(int(digits))
+    fill = match.group(3)
+    if fill is None:
+        code = ord('0')
+    elif fill[0] in ('"', "'"):
+        encoded = encode_text(fill[1:-1].replace('""', '"') if fill[0] == '"'
+                              else fill[1:-1], raw=True)
+        if len(encoded) != 1:
+            raise SpectrumTokenizeError('REMX fill must encode exactly one character')
+        code = encoded[0]
+    else:
+        digits = fill.lstrip('0') or '0'
+        if len(digits) > 3 or int(digits) > 255:
+            raise SpectrumTokenizeError('REMX byte must be within 0..255')
+        code = int(digits)
+    if code == 92:
+        character = '\\\\'
+    elif code == 37:
+        character = '%%'
+    elif code in (96, 127):
+        character = '\u00a3' if code == 96 else '\u00a9'
+    elif 32 <= code <= 126:
+        character = chr(code)
+    elif 128 <= code <= 164:
+        character = f'\\{code:02X}'
+    else:
+        character = f'\\{{{code:02X}}}'
+    return values[0], character * values[1]
 
 
 def validate_identifier(name, array=False, for_control=False):
@@ -199,7 +275,7 @@ def tokenize_line(text):
                     previous_keyword = None
                     continue
                 if keyword == 'REM':
-                    result.extend(encode_text(text[match.end():]))
+                    result.extend(encode_text(text[match.end():], raw=True))
                     return bytes(result) + b'\x0d'
                 at_statement = keyword == 'THEN'
                 previous_keyword = keyword

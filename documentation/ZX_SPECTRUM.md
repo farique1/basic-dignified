@@ -1,126 +1,15 @@
-# ZX Spectrum module - v1.7.0 preview
+# ZX Spectrum Basic
 
-This is an **addition** to Fred Rique's original Basic Dignified
-documentation. The original MSX/CoCo manuals and suite version (2.2.1)
-are preserved. The Spectrum module has its own version and is being
-developed incrementally in the `suporte-zx-spectrum` branch of
-`wilsonpilon/basic-dignified`.
+**Module v1.8.0 preview**
 
-## Status and scope
+The **ZX Spectrum** module converts **Dignified** code to **Sinclair Basic**
+for the **48K English ROM**. Use `-id zxspectrum` to select it. The module
+version is independent of the Basic Dignified Suite version (2.2.1).
 
-Version 1.5.0 completes the five agreed milestones for the **48K English ROM**
-target. This is still a preview of a documented subset, not a claim of full
-Sinclair BASIC coverage. MSX/CoCo defaults and suite version 2.2.1 are unchanged.
-
-### Dedicated extensions and optional snapshots 1.7.0
-
-- `.DZS`: Dignified Spectrum source, without line numbers.
-- `.AZS`: numbered Sinclair BASIC text, **not tokenized**.
-- `.TAP` / `.TZX`: tokenized program in a tape container.
-- `.Z80` / `.SNA`: real 48K machine snapshots, including RAM and CPU state.
-
-DZS/AZS are now the defaults and the canonical example names. Legacy DSP
-sources and ASP listings remain accepted; a DSP conversion now defaults to
-AZS, unless an explicit ASP output is requested. Classic input, including
-AZS or legacy ASP, still requires `-asc`; extensions do not select a parser.
-Editor packages recognize new extensions and keep the old associations.
-
-Snapshots use an **optional local SkoolKit installation**, described below.
-Tapes and text conversion remain dependency-free. No engine or ROM is bundled
-in the source archive or editor packages.
-
-### Native commands and BIN 1.6.0
-
-Adds RUN, LIST, NEW, CONTINUE, OUT and binary literals with their actual
-Sinclair numeric records. RUN/LIST accept Dignified labels. Permanent
-regressions cover chained statements, IF/THEN, strings, REM and colon errors.
-VS Code/Sublime highlighting and the VSIX companion are updated to 1.6.0.
-See the reference below and [native.DZS](../examples/zxspectrum/native.DZS).
-DEF FN/FN remains separate work.
-
-### Stabilization 1.5.1
-
-Fatal shared parser, lexer, file and configuration diagnostics now exit 1
-when Spectrum is selected, including with `-vb 0`. Previously these could
-print an error but exit 0. Help, version, remtag help and successful INI
-writing still exit 0; argument syntax errors retain argparse's status 2.
-MSX/CoCo retain their original exit policy. No native commands were added,
-and tape contents and editor companion version 1.5.0 are unchanged.
-
-### Milestone 1.5.0
-
-- Optional BASIC autorun in TAP/TZX headers: `--tk_autorun 0` starts at the
-  first available line, `1..9999` selects a starting line, `-1` disables it.
-  Normal tape generation still defaults to disabled autorun.
-- Windows EightyOne integration with `--em_run --em_path "C:\zeddy\EightyOne.exe"`.
-  This enables tape generation and, unless explicitly overridden, autorun 0.
-  The converter waits for the emulator to close.
-- A private temporary copy of a 48K INI is used; original profiles are not
-  overwritten. FlashLoad/AutoStart/AutoLoad are enabled only in that copy.
-- VS Code extension source/VSIX, snippets and task templates; Sublime syntax
-  and build templates. Editor assets do not replace MSX/CoCo packages.
-
-## Release history
-
-### Milestone 1.4.0
-
-Dignified assignments now insert LET at the beginning of a statement,
-after a colon or after THEN. Classic `-asc` input still requires explicit LET.
-Scalar `+=`, `-=`, `*=`, `/=`, `^=`, `++`, `--` are lowered with a parenthesized
-right operand, preserving precedence. Strings support only `+=`.
-Array/slice compound targets are rejected instead of evaluating an index twice.
-Use explicit assignments for them.
-
-`?` is PRINT. `[?](row,column)` expands to `PRINT AT row,column;`;
-the parameter order is Sinclair row/column, not MSX LOCATE x/y.
-FUNC/RET use the existing Dignified GO SUB/RETURN lowering with LET inserted
-for parameter and result transfers. Parameters/results are global variables,
-not local stack frames; this does not add recursive-local semantics.
-See [functions.DZS](../examples/zxspectrum/functions.DZS).
-
-Additional native commands/modifiers: AT, TAB, FLASH, BRIGHT, INVERSE, OVER,
-PLOT, DRAW, CIRCLE, POKE and CLEAR.
-These additions supersede the corresponding baseline limitations below.
-
-### Milestone 1.3.0
-
-Adds DIM, numeric/string arrays and slices, string scalar variables,
-DATA expressions, READ, RESTORE, RANDOMIZE and native numeric/string
-functions (including RND, PI, LEN, STR$, CHR$, VAL, CODE, trigonometric
-functions, PEEK and USR). Functions retain Sinclair semantics.
-DEF FN/FN and BIN are not included in this milestone.
-
-Numeric scalars retain long alphanumeric names. String variables, arrays
-and FOR/NEXT controls require a single letter (plus `$` for strings).
-Use explicit DECLARE aliases for long Dignified names in these categories,
-for example `DECLARE title:n` followed by `LET title$="SPECTRUM"`.
-Aliases are shared across uses of that declared base name, as in the
-original DECLARE mechanism; there is no silent truncation/automatic allocator.
-
-String arrays follow the ROM's fixed-length rules: the last dimension
-is the string length, not an extra freely sized string element.
-Numeric scalars and arrays of the same letter may coexist in Sinclair BASIC.
-See [data.DZS](../examples/zxspectrum/data.DZS).
-These additions supersede the corresponding baseline limitations below.
-
-### Milestone 1.2.0
-
-The user manually confirmed that v1.1.0 `hello.tap` loads in EightyOne,
-LIST is correct and RUN prints the expected counter and DONE. This is
-user-reported emulator validation, not an automated execution test.
-
-Version 1.2.0 adds standard-speed TZX 1.20 output (block 0x10,
-1000 ms pauses), alongside unchanged default TAP output. Use
-`--tk_format tap`, `--tk_format tzx` or `--tk_format both`.
-INI `format` and remtag `TK_FORMAT` accept the same values.
-Each tape file is replaced atomically; writing both files is not a
-transaction across the pair.
-
-New commands: BORDER, INK, PAPER, PAUSE, BEEP, INPUT, GO SUB/GOSUB,
-RETURN, FOR/NEXT, TO and STEP. Use a single-letter FOR control variable.
-See [colours.DZS](../examples/zxspectrum/colours.DZS).
-The following reference describes the cumulative implementation, including
-these extensions to the original 1.1.0 baseline.
+The common [Basic Dignified manual](BASIC_DIGNIFIED.md),
+[installation](INSTALLATION.md) and [module tools](MODULE_TOOLS.md) apply
+alongside the system-specific rules below. The module supports a documented
+subset, not the complete Sinclair language or 128K extensions.
 
 ## Supported language
 
@@ -155,6 +44,7 @@ Implemented:
 - Decimal, scientific and binary literals, five-byte Sinclair numbers, numbered
   BASIC records, TAP header/data blocks and XOR checksums.
 - Existing common options such as line start/step and reports.
+- Graphic blocks **128..143**, UDGs **144..164**, and the **REMX** directive.
 
 Not implemented in this preview:
 
@@ -163,7 +53,7 @@ Not implemented in this preview:
   Microdrive/disk/128K extensions. Host-side tape generation is implemented.
 - Automatic contextual short-name allocation; explicit aliases are required.
 - Array/slice compound assignments and recursive local function frames.
-- UDG/graphics escapes and a Spectrum DignifieR.
+- A Spectrum DignifieR.
 - Automatic ROM runtime-error monitoring or assertions of emulated output.
 
 Unsupported native words are rejected rather than advertised as working.
@@ -183,7 +73,7 @@ For `IF condition THEN ...`, the entire remaining line stays conditional,
 as on the Spectrum; the converter does not split it into unconditional lines.
 Colons inside strings are literal text. REM consumes the rest of the line,
 including any colons or words that would otherwise be commands.
-The existing Dignified core normalizes `::` to `:`; direct classic ASP input
+The existing Dignified core normalizes `::` to `:`; direct classic AZS (or legacy ASP) input
 rejects an empty statement. A trailing `:` is rejected in both paths.
 
 | Form | Sinclair behavior |
@@ -194,7 +84,7 @@ rejects an empty statement. A trailing `:` is rejected in both paths.
 | `CONTINUE` | Resumes according to the ROM's saved stop/error state |
 | `OUT port,value` | Writes a byte to an I/O port, not to RAM |
 
-RUN/LIST accept one optional numeric expression; in DSP, `RUN {label}` and
+RUN/LIST accept one optional numeric expression; in Dignified source, `RUN {label}` and
 `LIST {label}` resolve to the numbered destination. They are not GO TO
 aliases: in particular, RUN resets variables and clears the display.
 NEW and CONTINUE take no
@@ -240,9 +130,29 @@ Its TAP/TZX conversion is tested; **manual execution of this new 1.6.0
 example remains pending**. The previously reported 16 passes apply only
 to the four older demos.
 
+## Characters and REM reservations
+
+**Graphic blocks** use `\80` to `\8F`. **UDGs A..U** use `%A` to `%U`
+or `\90` to `\A4`. These escapes are active in strings and REM text;
+write `\\` and `%%` for the literal symbols. AZS keeps this readable
+notation, while tokenized output contains the actual bytes.
+The [complete conversion table](BASIC_DIGNIFIED.md#zx-spectrum-characters)
+also describes the Spectrum keyboard and **POKE USR "A"** bitmap method.
+
+**REMX l,n[,c]** is a DZS directive that inserts an absolute REM line
+without changing normal line numbers or labels. Omitted c fills with
+**character '0'**, not binary zero. A decimal byte or one quoted character/
+escape may be supplied. Duplicates and collisions are errors; INCLUDE and
+rem toggles work normally. See the [REMX reference](BASIC_DIGNIFIED.md#remx)
+for counts, raw bytes and memory limits.
+
+[graphics.DZS](../examples/zxspectrum/graphics.DZS) demonstrates all 16
+blocks, UDG selection/definition and a reserved REM.
+
 ## Installation
 
-Use the source archive or clone the Spectrum branch of the fork.
+Follow the common [installation instructions](INSTALLATION.md) and use
+a source archive or branch containing the Spectrum module.
 Keep `badig.py`, `support`, `msx` and `zxspectrum` together: the new module
 reuses the existing MSX class scaffolding, but overrides the active dialect
 and does **not** use MSX tokenization.
@@ -527,8 +437,9 @@ Snapshot support is installed explicitly, using the configured interpreter.
 
 - Numbered program lines must increase strictly within 1..9999.
 - Line step zero and numbering overflow are errors.
-- The shared Dignified generator still has its original 256-character
-  text-line limit. The binary record has an independent 16-bit length.
+- The shared Dignified generator has its original 256-character text-line
+  limit for ordinary statements; REMX is expanded afterwards and may exceed
+  it. Binary records still have an independent 16-bit length.
 - TAP generation rejects a payload larger than 41612 bytes, based on the
   standard initial 48K PROG/RAMTOP addresses. This is only an upper bound:
   the ROM also needs space for variables, work areas and stacks, so practical
@@ -545,102 +456,28 @@ Snapshot support is installed explicitly, using the configured interpreter.
   temporary-file write. A failed conversion does not refresh an existing
   tape; do not mistake an older output for a newly generated one.
 
-## Verification and roadmap
+## Examples and verification
 
-Run the focused automated tests:
+The supplied examples cover [labels](../examples/zxspectrum/hello.DZS),
+[colour/sound/loops](../examples/zxspectrum/colours.DZS),
+[DATA and arrays](../examples/zxspectrum/data.DZS),
+[FUNC/RET](../examples/zxspectrum/functions.DZS),
+[native commands/BIN](../examples/zxspectrum/native.DZS) and
+[graphics/UDGs/REMX](../examples/zxspectrum/graphics.DZS).
+Run automated checks with `python -B -m unittest zxspectrum.test_zxspectrum -v`.
+Snapshot/ROM probes are explicitly skipped without optional SkoolKit.
 
-```powershell
-python -B -m unittest zxspectrum.test_zxspectrum -v
-```
+Graphics tests check all 37 character codes and, with the engine installed,
+actual display pixels, UDG RAM rows and REM control-byte data after resuming
+Z80/SNA. This is not manual EightyOne certification. The native and graphics
+demos and snapshot loading still need manual emulator confirmation.
+Release history and pending implementation work are kept in
+[OUTLINE.md](../OUTLINE.md), separate from the usage reference.
 
-They check fixed byte vectors, Sinclair number representations, labels,
-strings/REM, aliases/macros, reports, CLI/remtags, TAP fields/checksums and
-negative cases. The original manuals are also compared with the base to
-ensure their original lines remain in order.
+## Technical references
 
-For 1.6.0, 41 Python automated tests passed. New coverage checks fixed BIN
-bytes/values, malformed and overflowing binary literals, native command
-arity/context, macros, label destinations and chained statements in
-Dignified and classic input. The existing regressions include shared failures,
-quiet mode, INI dialect selection, resetting the policy between selections,
-successful help/INI writing, and legacy MSX/CoCo error exits.
-Focused MSX/CoCo conversions
-and the complete CoCo example matched the original implementation byte for
-byte. The supplied MSX example has obsolete remtags in the base branch,
-so its unmodified conversion was not counted as a passing regression.
-
-Version 1.7.0 passes 49 tests with SkoolKit 10.1 and adds
-legacy-extension compatibility, SNA stack/register
-serialization, preservation on engine failure/timeout, snapshot launch flags,
-ROM-loaded program/autorun checks and actual ROM continuation of Z80/SNA.
-Run the same suite with the optional interpreter for integration coverage;
-without SkoolKit those cases are explicitly skipped. The continuation probe
-uses the newer snapshot API and is skipped with 8.10; loading/state checks
-also run with 8.10. A bounded ROM test resumes a BASIC POKE with autorun and
-confirms it does not run with autorun disabled. This is not rendered-output
-verification or manual EightyOne snapshot certification.
-
-An isolated EightyOne 1.41 session selected the 48K model and recognized
-the TAP in its tape manager, but did not provide verified ROM loading or
-program execution in this environment. **Manual LOAD/LIST/RUN validation
-was pending in 1.1.0.** The user subsequently confirmed successful
-LOAD/LIST/RUN for hello.tap before implementation of 1.2.0.
-On 2026-11-04, the user reported that all 16 cases in the manual
-Spectrum 48K validation procedure passed: four examples, two tape
-containers, and loading with/without BASIC autorun.
-
-| Example | TAP manual | TZX manual | TAP autorun | TZX autorun |
-| --- | --- | --- | --- | --- |
-| hello | OK | OK | OK | OK |
-| colours | OK | OK | OK | OK |
-| data | OK | OK | OK | OK |
-| functions | OK | OK | OK | OK |
-
-This is user-reported manual validation of loading, listing and expected
-output; it is not automated ROM execution coverage or certification of
-every supported command.
-The new native/BIN example is not included in that historical manual matrix.
-
-The 1.5.0 launcher was
-also tested with the installed EightyOne 1.41: a responsive main window
-and `hello.TAP - Tape` were observed; normal close completed, the profile
-template remained unchanged, and the private INI was removed.
-This launch smoke test does not assert ROM execution or rendered output.
-
-Delivered module milestones:
-
-| Version | Functional focus |
-| --- | --- |
-| 1.1.0 | First Dignified -> numbered BASIC -> TAP milestone |
-| 1.2.0 | TZX and expansion of native command coverage |
-| 1.3.0 | Restricted variable categories, arrays, DATA and native functions |
-| 1.4.0 | Dignified conveniences and broader compatibility |
-| 1.5.0 | Autorun, isolated-profile launcher, editor packages and distribution |
-| 1.5.1 | Consistent Spectrum fatal exits, preserving legacy defaults |
-| 1.6.0 | Chaining regressions, RUN/LIST/NEW/CONTINUE/OUT, BIN and editor updates |
-| 1.7.0 | DZS/AZS defaults, legacy aliases, optional Z80/SNA and setup task |
-
-These are module versions, not replacements for the upstream suite's
-version. Versions 1.1.0 through 1.7.0 are implemented.
-The original four-demo manual validation and Spectrum error-exit correction
-are complete. Follow-up priorities are manual validation of the new demo,
-manual Z80/SNA loading, native DEF FN/FN, remaining native keywords,
-graphics/UDG escapes and the future fully integrated VSIX.
-
-See [OUTLINE.md](../OUTLINE.md) for the architecture and remaining work,
-and [the example sources](../examples/zxspectrum/hello.DZS).
-
-Technical references:
-
-- [Sinclair manual: program structure](https://worldofspectrum.org/ZXBasicManual/zxmanchap2.html)
-- [Sinclair manual: expressions and names](https://worldofspectrum.org/ZXBasicManual/zxmanchap7.html)
-- [Sinclair manual: memory and numbers](https://worldofspectrum.org/ZXBasicManual/zxmanchap24.html)
-- [Sinclair manual: command reference](https://worldofspectrum.org/ZXBasicManual/zxmanappc.html)
-- [ROM: BIN conversion and overflow](https://skoolkid.github.io/rom/asm/2C9B.html)
-- [ROM: hidden numeric records](https://skoolkid.github.io/rom/asm/268D.html)
-- [ROM: RUN](https://skoolkid.github.io/rom/asm/1EA1.html)
-- [Spectrum tape formats](https://worldofspectrum.org/faq/reference/formats.htm)
-- [Z80 snapshot format](https://worldofspectrum.org/faq/reference/z80format.htm)
+- [Sinclair character set and UDG definition](https://worldofspectrum.org/ZXBasicManual/zxmanchap14.html)
+- [Sinclair memory and BASIC record format](https://worldofspectrum.org/ZXBasicManual/zxmanchap24.html)
+- [Sinclair command reference](https://worldofspectrum.org/ZXBasicManual/zxmanappc.html)
+- [Tape and snapshot formats](https://worldofspectrum.org/faq/reference/formats.htm)
 - [SkoolKit documentation](https://skoolkit.ca/docs/skoolkit/index.html)
-- [ROM statement return](https://skoolkid.github.io/rom/asm/1B76.html)
-- [EightyOne project](https://sourceforge.net/projects/eightyone-sinclair-emulator/)

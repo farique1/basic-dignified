@@ -1,7 +1,7 @@
 # BASIC Dignified para ZX Spectrum: analise e plano
 
 Data: 2026-11-04.
-Estado: marcos implementados ate modulo Spectrum v1.7.0 preview.
+Estado: marcos implementados ate modulo Spectrum v1.8.0 preview.
 
 Atualizacao 1.2.0: usuario confirmou LOAD/LIST/RUN do hello.tap no
 EightyOne. TZX padrao, cores, som, INPUT, GO SUB/RETURN e FOR/NEXT
@@ -49,12 +49,24 @@ Task explicita de instalacao opcional no template VS Code; VSIX ainda
 depende de Python/conversor externos. Empacotamento realmente integrado
 fica para etapa final. Validacao manual EightyOne dos snapshots pendente.
 
+Atualizacao 1.8.0: escapes \80..\8F para blocos 128..143 e %A..%U
+(ou \90..\A4) para UDG 144..164, ativos em strings/REM. Literais usam
+\\ e %%; REM admite bytes arbitrarios como \{XX}. REMX l,n[,c]
+reserva linha absoluta, sem deslocar labels, com fill padrao '0' e
+contagens em bytes decodificados. Includes, toggles, colisoes, headers e
+relatorios cobertos. ROM retomou Z80/SNA, saltou REM com byte 13 e
+desenhou o bloco/UDG com pixels exatos. 54 testes aprovados com motor;
+sem motor, 5 integracoes puladas explicitamente.
+Manuais originais integrados: secoes, exemplos e instrucoes MSX/CoCo
+preservados, com tabelas, instalacao e referencias Spectrum no contexto.
+Demo graphics e editores atualizados; validacao manual do demo pendente.
+
 ## Progresso da implementacao (atualizado em 2026-11-04)
 
 O plano de analise abaixo continua como referencia de arquitetura, inclusive
 com seus registros historicos. O estado atual prevalece nesta secao:
 
-- [x] Modulo `-id zxspectrum`, versao propria 1.7.0; suite original 2.2.1.
+- [x] Modulo `-id zxspectrum`, versao propria 1.8.0; suite original 2.2.1.
 - [x] Primeiro subconjunto 48K: PRINT, LET explicito, IF/GO TO, REM, CLS, STOP.
 - [x] Escalares numericos alfanumericos longos; DECLARE explicito para snake_case.
 - [x] Labels, macros, includes, booleanos e strings com aspas duplicadas.
@@ -72,10 +84,14 @@ com seus registros historicos. O estado atual prevalece nesta secao:
 - [x] DZS/AZS como padrao, DSP/ASP compativeis, exemplos/editores migrados.
 - [x] Z80/SNA 48K opcionais, validacao de carga/autorun e retomada BASIC na ROM.
 - [x] Instalacao opcional explicita com o Python configurado no template VS Code.
+- [x] Blocos/UDGs, tabela de conversao, escapes literais e definicao de bitmap.
+- [x] REMX com linha absoluta, fill byte/caractere, colisoes e relatorios.
+- [x] Manuais integrados no estilo original, sem remover secoes/exemplos MSX/CoCo.
+- [ ] Validacao manual da nova demo graphics no EightyOne.
 - [ ] Validacao manual da nova demo native (TAP/TZX, com/sem autorun).
 - [ ] Validacao manual dos snapshots Z80/SNA no EightyOne.
 - [ ] VSIX realmente integrado com conversor e instalacao simplificada.
-- [ ] DEF FN/FN, demais keywords, streams e escapes graficos/UDG.
+- [ ] DEF FN/FN, demais keywords e streams.
 
 O detalhamento do comportamento implementado esta em
 [documentation/ZX_SPECTRUM.md](documentation/ZX_SPECTRUM.md).
