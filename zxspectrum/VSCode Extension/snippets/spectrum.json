@@ -1,0 +1,49 @@
+{
+  "Spectrum native function": {
+    "prefix": "deffn",
+    "body": ["DEF FN ${1:f}(${2:x})=${3:x*x}$0"],
+    "description": "Native Sinclair function; use single-letter names and parameters"
+  },
+  "Spectrum raw byte": {
+    "prefix": "byte",
+    "body": ["\\\\{${1:00}}$0"],
+    "description": "One literal hexadecimal byte in the BASIC body"
+  },
+  "Spectrum REM reserve": {
+    "prefix": "remx",
+    "body": ["REMX ${1:1000},${2:256}${3:,48}$0"],
+    "description": "Absolute REM line with a repeated fill byte (default is character 0)"
+  },
+  "Spectrum UDG bitmap": {
+    "prefix": "udg",
+    "body": [
+      "FOR ${1:i}=0 TO 7",
+      "    READ ${2:pixel}",
+      "    POKE USR \"${3:A}\"+${1:i},${2:pixel}",
+      "NEXT ${1:i}",
+      "DATA ${4:60,66,165,129,165,153,66,60}",
+      "PRINT \"%${3:A}\"$0"
+    ],
+    "description": "Define and print an eight-row Spectrum UDG"
+  },
+  "Spectrum loop": {
+    "prefix": "for",
+    "body": ["FOR ${1:i}=1 TO ${2:10}", "    $0", "NEXT ${1:i}"],
+    "description": "FOR/NEXT with a single-letter control"
+  },
+  "Spectrum label jump": {
+    "prefix": "goto",
+    "body": ["GO TO {${1:label}}"],
+    "description": "Dignified label jump"
+  },
+  "Spectrum positioned print": {
+    "prefix": "printat",
+    "body": ["[?](${1:row},${2:column}) \"${3:text}\"$0"],
+    "description": "PRINT AT row,column"
+  },
+  "Spectrum string alias": {
+    "prefix": "declarestr",
+    "body": ["DECLARE ${1:title}:${2:n}", "LET ${1:title}\\$=\"${3:text}\"$0"],
+    "description": "Explicit single-letter alias for a long string name"
+  }
+}

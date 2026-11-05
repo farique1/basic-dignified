@@ -1,0 +1,105 @@
+{
+  "name": "basic-dignified-zxspectrum",
+  "displayName": "Basic Dignified ZX Spectrum",
+  "description": "Sinclair BASIC and Dignified source highlighting, snippets and build templates.",
+  "version": "1.10.1",
+  "publisher": "wilsonpilon",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wilsonpilon/basic-dignified"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "spectrum-dignified",
+        "aliases": [
+          "Spectrum Dignified"
+        ],
+        "extensions": [
+          ".dzs",
+          ".DZS",
+          ".dsp",
+          ".DSP"
+        ],
+        "configuration": "./config/language-configuration.json"
+      },
+      {
+        "id": "spectrum-classic",
+        "aliases": [
+          "Sinclair BASIC"
+        ],
+        "extensions": [
+          ".azs",
+          ".AZS",
+          ".asp",
+          ".ASP"
+        ],
+        "configuration": "./config/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "spectrum-dignified",
+        "scopeName": "source.basic.spectrum",
+        "path": "./syntaxes/spectrum.tmLanguage.json"
+      },
+      {
+        "language": "spectrum-classic",
+        "scopeName": "source.basic.spectrum.classic",
+        "path": "./syntaxes/classic.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "spectrum-dignified",
+        "path": "./snippets/spectrum.json"
+      }
+    ],
+    "configuration": {
+      "title": "Basic Dignified ZX Spectrum",
+      "properties": {
+        "spectrum-basic.python": {
+          "type": "string",
+          "default": "python",
+          "description": "Python 3.8+ executable for the build template."
+        },
+        "spectrum-basic.badigPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to badig.py."
+        },
+        "spectrum-basic.model": {
+          "type": "string",
+          "enum": [
+            "48",
+            "128"
+          ],
+          "default": "48",
+          "description": "Spectrum ROM model for build and DignifieR tasks. Snapshots require 48. EightyOne automatic 128K loading has a known freeze; load 128K tapes manually."
+        },
+        "spectrum-basic.emulatorPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to EightyOne.exe on Windows."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node test-grammar.js",
+    "package": "vsce package --allow-missing-repository --skip-license"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.6.0",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.3.2"
+  }
+}

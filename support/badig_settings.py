@@ -76,6 +76,9 @@ class Settings:
                       so 'external' should contain the file to be called. This will
                       reset the arguments and also pass the file to be converted'''
 
+        Infolog.error_exit_code = 0
+        self.ini_error = None
+
         # Load the .ini file
         ini_response = self.get_ini()
 
@@ -90,9 +93,14 @@ class Settings:
         # Import classic modules
         try:
             self.Classic = importlib.import_module(system_language_module, system_package)
+            Infolog.error_exit_code = getattr(self.Classic, 'ERROR_EXIT_CODE', 0)
             self.Tools = importlib.import_module(system_tools_module, system_package)
         except ModuleNotFoundError as e:
             infolog.log(1, f'Classic module not found: {e}')
+
+        # Report INI errors after the selected dialect's exit policy is known.
+        if self.ini_error:
+            infolog.log(1, self.ini_error)
 
         # Expose Dignified module
         self.Dignified = Dignified
@@ -334,7 +342,7 @@ class Settings:
                     self.verbose_level = int(configs_sec.get('verbose_level') or self.verbose_level)
 
             except (ValueError, configparser.NoOptionError) as e:
-                infolog.log(1, f'Problem with: {self.BADIG_INI}: {str(e)}')
+                self.ini_error = f'Problem with: {self.BADIG_INI}: {str(e)}'
         else:
             infolog.log(2, f'.ini not found: {ini_path}\n'
                            '    A new one will be created with the current settings.')

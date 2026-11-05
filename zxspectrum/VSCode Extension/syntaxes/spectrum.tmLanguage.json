@@ -1,0 +1,15 @@
+{
+  "scopeName": "source.basic.spectrum",
+  "patterns": [
+    {"name": "comment.line.basic.spectrum", "begin": "(?i)(\\bREM\\b)|(\\\\\\{EA\\})", "beginCaptures": {"2": {"name": "constant.character.escape"}}, "end": "$", "patterns": [{"name": "constant.character.escape", "match": "\\\\\\{[0-9A-Fa-f]{2}\\}|\\\\(?:[89][0-9A-Fa-f]|[aA][0-4])|%[A-Ua-u]|%%|\\\\\\\\"}]},
+    {"name": "comment.line.basic.spectrum", "match": "##.*$"},
+    {"name": "string.quoted.double.basic.spectrum", "begin": "\"", "end": "\"", "applyEndPatternLast": true, "patterns": [{"name": "constant.character.escape", "match": "\"\"|\\\\\\{[0-9A-Fa-f]{2}\\}|\\\\(?:[89][0-9A-Fa-f]|[aA][0-4])|%[A-Ua-u]|%%|\\\\\\\\"}]},
+    {"name": "constant.character.escape", "match": "\\\\\\{[0-9A-Fa-f]{2}\\}"},
+    {"name": "entity.name.label.basic.spectrum", "match": "\\{[A-Za-z][A-Za-z0-9_]*\\}"},
+    {"name": "entity.name.function.basic.spectrum", "match": "\\.[A-Za-z][A-Za-z0-9_]*"},
+    {"name": "keyword.control.basic.spectrum", "match": "(?i)\\b(?:GO\\s+(?:TO|SUB)|DEF\\s+FN|GOTO|GOSUB|PRINT|LET|IF|THEN|FOR|NEXT|TO|STEP|INPUT|DIM|DATA|READ|RESTORE|STOP|RETURN|CLS|BORDER|INK|PAPER|PAUSE|BEEP|AT|TAB|FLASH|BRIGHT|INVERSE|OVER|PLOT|DRAW|CIRCLE|POKE|CLEAR|RANDOMIZE|RUN|LIST|NEW|CONTINUE|OUT|REMX|LOAD|SAVE|VERIFY|MERGE|LINE|OPEN|CLOSE|LPRINT|LLIST|COPY|PLAY|SPECTRUM|DEFINE|DECLARE|INCLUDE|FUNC|RET|EXIT|ENDIF|KEEP)\\b"},
+    {"name": "support.function.basic.spectrum", "match": "(?i)\\b(?:RND|INKEY\\$|PI|POINT|SCREEN\\$|ATTR|VAL\\$|CODE|VAL|LEN|SIN|COS|TAN|ASN|ACS|ATN|LN|EXP|INT|SQR|SGN|ABS|PEEK|IN|USR|STR\\$|CHR\\$|FN)(?![A-Za-z0-9_$])"},
+    {"name": "keyword.operator.basic.spectrum", "match": "(?i)\\b(?:AND|OR|NOT|BIN|TRUE|FALSE)\\b|\\+\\+|--|[+*/^=<>-]"},
+    {"name": "constant.numeric.basic.spectrum", "match": "(?i)\\b[0-9]+(?:\\.[0-9]*)?(?:E[+-]?[0-9]+)?\\b|\\.[0-9]+(?:[eE][+-]?[0-9]+)?"}
+  ]
+}

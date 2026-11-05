@@ -1,0 +1,15 @@
+{
+  "cmd": ["python", "-B", "badig.py", "$file", "-id", "zxspectrum", "--tk_tokenize", "--tk_format", "both"],
+  "working_dir": "$project_path",
+  "selector": "source.basic.spectrum",
+  "variants": [
+    {
+      "name": "Dignify AZS",
+      "cmd": ["python", "-B", "-m", "zxspectrum.dignifier", "$file", "$file.dignified.DZS"]
+    },
+    {
+      "name": "Classic AZS",
+      "cmd": ["python", "-B", "badig.py", "$file", "-id", "zxspectrum", "-asc", "--tk_tokenize", "--tk_format", "both"]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Spectrum: Dignify numbered AZS",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "-m", "zxspectrum.dignifier", "${file}", "${file}.dignified.DZS", "--sp_model", "${config:spectrum-basic.model}"],
+      "options": {"cwd": "${workspaceFolder}"},
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Install optional snapshot engine",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-m", "pip", "install", "skoolkit>=8.10,<11"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Convert all formats (optional engine required)",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--sp_model", "${config:spectrum-basic.model}", "--tk_tokenize", "--tk_format", "all"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Classic to all formats (optional engine required)",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--sp_model", "${config:spectrum-basic.model}", "-asc", "--tk_tokenize", "--tk_format", "all"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Convert TAP and TZX",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--sp_model", "${config:spectrum-basic.model}", "--tk_tokenize", "--tk_format", "both"],
+      "group": {"kind": "build", "isDefault": true},
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Classic to TAP and TZX",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--sp_model", "${config:spectrum-basic.model}", "-asc", "--tk_tokenize", "--tk_format", "both"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Spectrum: Convert and open EightyOne",
+      "type": "process",
+      "command": "${config:spectrum-basic.python}",
+      "args": ["-B", "${config:spectrum-basic.badigPath}", "${file}", "-id", "zxspectrum", "--sp_model", "${config:spectrum-basic.model}", "--em_run", "--em_path", "${config:spectrum-basic.emulatorPath}"],
+      "problemMatcher": []
+    }
+  ]
+}

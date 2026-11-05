@@ -15,6 +15,8 @@ class Infolog:
     bullet: Message leading marker
     show_file: Show the file name'''
 
+    error_exit_code = 0
+
     def __init__(self):
         super(Infolog, self).__init__()
         self.level = 5
@@ -42,7 +44,7 @@ class Infolog:
             desc += '\n    Conversion stopped.'
 
         if error and self.level == 0:
-            raise SystemExit(0)
+            raise SystemExit(self.error_exit_code)
 
         if self.level < lvl:
             return
@@ -60,7 +62,7 @@ class Infolog:
         print(self.message.format(bullet=bullet, file=file, pos=pos, desc=desc))
 
         if error:
-            raise SystemExit(0)
+            raise SystemExit(self.error_exit_code)
 
 
 infolog = Infolog()

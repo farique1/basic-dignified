@@ -1,4 +1,4 @@
-# MSX Basic DignifieR  
+# Basic DignifieR
   
 MSX Basic DignifieR **converts** **classic** MSX Basic **to** the **Dignified** format.  
 
@@ -7,6 +7,72 @@ It **eases** the heavily **repetitive** and **error** prone task of **removing**
 > The interplay between all the configurable options and the variety of the Basic itself is somewhat complex and was not nearly as tested as it should so please keep an eye and report any bugs.  
   
 ## Usage  
+
+### Supported systems
+
+**MSX Basic DignifieR** handles **MSX** classic-to-Dignified conversion;
+the options below keep that system's semantics.
+**ZX Spectrum DignifieR** converts numbered **AZS** to **DZS**.
+The separate `badig.py -id zxspectrum -asc` path only tokenizes numbered
+text; it does not remove numbers or create labels.
+See the [Spectrum reference](ZX_SPECTRUM.md) and
+[graphic/UDG table](BASIC_DIGNIFIED.md#zx-spectrum-characters).
+
+### ZX Spectrum DignifieR
+
+Run from the suite folder:
+
+`python -B -m zxspectrum.dignifier <CLASSIC_CODE> [DIGNIFIED_CODE] [arguments]`
+
+- *Source*: numbered **AZS**, legacy ASP or generic ASCII using Suite
+  escape notation. Binary tapes/snapshots are not inputs.
+- *Destination*: defaults to the source name with **.DZS**.
+- *Case*: nonliteral text becomes lowercase. **-tl** keeps its original case.
+  Strings, REM payloads and escapes retain their text.
+- *Encoding*: Latin-1 by default; **-tr** reads/writes UTF-8.
+- *Overwrite*: existing destinations are refused; **--force** explicitly
+  replaces them. Source and destination must always be different.
+- *Verbose*: **-vb 0..5**, default **3**. Errors use a nonzero status.
+- *Model*: **--sp_model 48** (default) or **128**, matching the source's ROM
+  token set. Required to accept 128K-only input (`SPECTRUM`, `PLAY`); it is
+  also passed to the internal validation pass, so a mismatched model is
+  rejected rather than silently producing an unusable DZS.
+
+Static **GO TO/GO SUB, RUN, RESTORE, LIST/LLIST** destinations and **SAVE LINE**
+become `{line_number}` labels. A destination between existing lines selects
+the next line, as on the ROM; one beyond the program is rejected.
+Statements joined by **:** remain joined, including the conditional tail
+of IF/THEN. Strings, DATA literals and graphic/raw escapes are preserved.
+
+The output contains **##BB:arguments=-rh -ls start -lp step**. Regular
+numbering retains its original start/step; irregular numbering uses 1/1.
+Dynamic destinations are preserved only with regular numbering; otherwise
+the converter rejects them rather than silently changing their meaning.
+Changing this remtag later requires reviewing dynamic/external references.
+The ordinary Dignified 256-character generated-line limit still applies.
+
+REM is written as **`\{EA}payload`**, without adding a separating space:
+this preserves the exact REM data instead of changing it during formatting.
+It remains an ordinary REM in the tokenized program and ROM LIST.
+Raw machine-code addresses and external programs still require review.
+Original macros/aliases cannot be recovered; detokenizing TAP/TZX or
+extracting programs from Z80/SNA remains separate work.
+Failures do not replace an existing destination.
+Before saving, the CLI runs the generated DZS through the real converter
+in a temporary directory, with emulator/tokenization disabled. This checks
+the actual generated-line limit after labels, not the length of the source
+placeholders.
+
+Example without overwriting the original demo:
+
+`python -B -m zxspectrum.dignifier examples\zxspectrum\fn.AZS fn_import.DZS`
+
+Convert the result normally with **-id zxspectrum**. See
+[remaining work](../OUTLINE.md#pendencias-priorizadas) for binary extraction.
+
+### MSX Basic DignifieR
+
+The following usage and formatting options apply to the **MSX tool**.
   
   
 Run with:  

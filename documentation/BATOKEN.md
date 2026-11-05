@@ -1,6 +1,11 @@
 # MSX Basic Tokenizer  
   
 Tokenize **ASCII** MSX Basic programs.  
+
+This tool uses the **MSX** token and character sets. **ZX Spectrum** uses
+its own language-module tokenizer, documented in
+[module tools](MODULE_TOOLS.md#tokenizer-interfaces) and the
+[Spectrum reference](ZX_SPECTRUM.md); it does not use MSX Batoken.
   
 **Besides** the tokenization, MSX Basic Tokenizer can **export** a **list file** similar to ones on **assemblers** with the **tokens** alongside the **ASCII** code and some statistics.  
   

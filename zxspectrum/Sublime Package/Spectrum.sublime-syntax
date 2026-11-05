@@ -1,0 +1,38 @@
+%YAML 1.2
+---
+name: Spectrum BASIC Dignified
+file_extensions: [DZS, dzs, AZS, azs, DSP, dsp, ASP, asp]
+scope: source.basic.spectrum
+contexts:
+  main:
+    - match: '(?i)\bREM\b|\\\{EA\}'
+      scope: comment.line.basic.spectrum
+      push: rem
+    - match: '##.*$'
+      scope: comment.line.basic.spectrum
+    - match: '"'
+      push: string
+    - match: '\\\{[0-9A-Fa-f]{2}\}'
+      scope: constant.character.escape
+    - match: '\{[A-Za-z][A-Za-z0-9_]*\}'
+      scope: entity.name.label.basic.spectrum
+    - match: '(?i)\b(?:PRINT|LET|IF|THEN|GO\s+(?:TO|SUB)|DEF\s+FN|GOTO|GOSUB|RETURN|FOR|NEXT|TO|STEP|INPUT|DIM|DATA|READ|RESTORE|STOP|CLS|BORDER|INK|PAPER|PAUSE|BEEP|AT|TAB|FLASH|BRIGHT|INVERSE|OVER|PLOT|DRAW|CIRCLE|POKE|CLEAR|RANDOMIZE|RUN|LIST|NEW|CONTINUE|OUT|REMX|LOAD|SAVE|VERIFY|MERGE|LINE|OPEN|CLOSE|LPRINT|LLIST|COPY|BIN|DEFINE|DECLARE|INCLUDE|FUNC|RET|KEEP|EXIT|ENDIF|AND|OR|NOT|TRUE|FALSE)\b'
+      scope: keyword.control.basic.spectrum
+    - match: '(?i)\b(?:RND|INKEY\$|PI|POINT|SCREEN\$|ATTR|VAL\$|CODE|VAL|LEN|SIN|COS|TAN|ASN|ACS|ATN|LN|EXP|INT|SQR|SGN|ABS|PEEK|IN|USR|STR\$|CHR\$|FN)(?![A-Za-z0-9_$])'
+      scope: support.function.basic.spectrum
+    - match: '(?i)\b[0-9]+(?:\.[0-9]*)?(?:E[+-]?[0-9]+)?\b|\.[0-9]+'
+      scope: constant.numeric.basic.spectrum
+  string:
+    - meta_scope: string.quoted.double.basic.spectrum
+    - match: '""'
+      scope: constant.character.escape
+    - match: '\\\{[0-9A-Fa-f]{2}\}|\\(?:[89][0-9A-Fa-f]|[aA][0-4])|%[A-Ua-u]|%%|\\\\'
+      scope: constant.character.escape
+    - match: '"'
+      pop: true
+  rem:
+    - meta_scope: comment.line.basic.spectrum
+    - match: '\\\{[0-9A-Fa-f]{2}\}|\\(?:[89][0-9A-Fa-f]|[aA][0-4])|%[A-Ua-u]|%%|\\\\'
+      scope: constant.character.escape
+    - match: '$'
+      pop: true

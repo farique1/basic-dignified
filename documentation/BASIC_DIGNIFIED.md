@@ -5,15 +5,21 @@
 Throughout the suite, the file **extensions** are derived from **generic** names and depend on the current **system module** and the **file type**.  
 The included modules use:  
 
-|  MSX  | CoCo | Generic |Type|
-|  :-:  | :-:  |   :-:   | :- |
-|`.dmx` |`.dcc`| `.bad`  | **Dignified** code.|
-|`.amx` |`.acc`| `.asc`  | **classic** Basic in **ASCII**.|  
-|`.bmx` |`.bcc`| `.bas`  | **classic** Basic in **binary**.|  
-|`.lmx` |      | `.lst`  | **list** format exported by the **tokenizer**.|  
+|  MSX  | CoCo | ZX Spectrum | Generic |Type|
+|  :-:  | :-:  | :-: |   :-:   | :- |
+|`.dmx` |`.dcc`| `.dzs` | `.bad`  | **Dignified** code.|
+|`.amx` |`.acc`| `.azs` | `.asc`  | **classic** Basic in **ASCII**.|  
+|`.bmx` |`.bcc`| `.tap`, `.tzx`, `.z80`, `.sna` | `.bas`  | **classic** Basic in **binary** or a machine snapshot.|  
+|`.lmx` |      | | `.lst`  | **list** format exported by the **tokenizer**.|  
   
 > The  system specific extensions will **avoid conflict** when more modules are available.  
 > Generic and system specific extensions will be mentioned **interchangeably** across the documentation. i.e.: `.dmx` is the same as `.bad`.  
+
+On **Spectrum**, `.AZS` is numbered **text**, not tokenized code. `.TAP` and
+`.TZX` contain a tokenized program in a tape container; `.Z80` and `.SNA`
+contain the **48K RAM and CPU state** and require the optional snapshot engine.
+Older `.DSP` sources and `.ASP` listings remain accepted. DZS/AZS are the
+defaults; extensions do not choose the dialect or the parser automatically.
   
 **[Features and usage](#Features-and-usage)**  
 **[Configurable arguments](#Configurable-arguments)**  
@@ -31,13 +37,17 @@ To run **Basic Dignified**, open a terminal window in its folder and type:
 > `python` may be omitted or be called `python3` depending on your installation.  
 
 > Basic Dignified default system is the **MSX**. If using a **CoCo**, add `coco` to the `id` in the `.ini` file or add `-id coco` to the command line.  
+> For **ZX Spectrum**, use `zxspectrum` in the `.ini` or `-id zxspectrum`.
+> Use `-asc` for an already numbered `.AZS` or legacy `.ASP` listing.
 
 >From now on, when showing code, usually the first excerpt is **Dignified** code, followed by the **program call** with the relevant **arguments** and the **classic** Basic output.  
 >For the sake of clarity only arguments relevant to the current topic will be shown on the program call.  
 
 > Differences between the included **MSX** and **CoCo** modules will be stated as needed.
+> **Spectrum** differences are stated alongside the common features. Its
+> [system reference](ZX_SPECTRUM.md) lists the supported Sinclair commands.
 
-> For an **explanation** on how to run Basic Dignified from **Visual Studio Code** or **Sublime Text** see [the page for the editor integration](https://github.com/farique1/basic-dignified/blob/main/documentation/IDE_TOOLS.md).  
+> For an **explanation** on how to run Basic Dignified from **Visual Studio Code** or **Sublime Text** see [the page for the editor integration](IDE_TOOLS.md).  
   
 Unlike traditional Basics, instructions, functions and variables in the Dignified version must be **separated** by spaces from alphanumeric characters as in modern languages. The **syntax highlight** will reflect this and there are settings to conform the spacing when the conversion is made.  
 Dignified code should always **end** with a **blank line**.  
@@ -49,7 +59,7 @@ Duplicated separate instruction symbols (`:`) are removed.
 > As an **example** you can **convert**, **tokenize**, **run** and **monitor** the Dignified program `test.dmx` **stripping** all spaces, **capitalizing** all instructions and adding a line **report** about the **program flow** with:  
 `python badig.py d:\msxapps\testdisk\test.dmx -ss -ca -lbr --tk_tokenize --em_run --em_monitor`  
 Or you can use the **included** **Visual Studio Code extension** or the **Sublime Text package** and just **run** the code from there.  
-> See below and [the module tools page](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for a detailed explanation of the arguments.
+> See below and [the module tools page](MODULE_TOOLS.md) for a detailed explanation of the arguments.
 
 ### Structure:  
   
@@ -123,6 +133,8 @@ For instance, using `define [pk][poke 100,[10]]`, a subsequent `[pk](30)` will b
       - If no `(x,y)` is given, a `0,0` will be used.  
 
   **CoCo:** `PRINT@c,`  
+  **Spectrum:** `PRINT AT row,column;`. Use `[?](row,column)`;
+  the order is **row, column**, not MSX LOCATE x, y.
 Depending on the content of `(x,y)`, `c` can be:  
       - No `(x,y)`: `0`  
       - Only `x`: `x`   
@@ -156,6 +168,11 @@ Depending on the content of `(x,y)`, `c` can be:
   
 - **Long named variables**  
 can be used on the Dignified code.  
+The automatic two-letter assignment described below applies to **MSX/CoCo**.
+On **Spectrum**, numeric scalars keep long **alphanumeric** names.
+String variables, arrays and FOR/NEXT controls need a **single letter**;
+use `declare title:n` and `title$` for an explicit string alias. Underscores
+also need explicit DECLARE aliases; they are not silently removed.
 They can only have **letters**, **numbers** and **underscore**, they cannot be only numbers, begin with a number or have less than 3 characters. Long named variable are **case insensitive**.  
 When converted they are replaced by an associated standard two letter variables. They are assigned on a **descending** order from `ZZ` to `AA` and **single letters** and **letter+number** are never used. Each long name is assigned to a short name independent of **type**, so if `variable1`  becomes `XX` so will `variable1$` become `XX$`.  
 An **explicit** assignment between a long and a short name can be **forced** using the `declare` instruction: `declare variable:va` will assign `VA` to `variable`. Several declares can be given on the same line, separated by commas: `declare variable1:v1,variable2:v2,variable3:v3`.  
@@ -196,6 +213,11 @@ A **summary** of the long and short name **associations** can be generated by us
 
 - **Proto-functions**  
 emulate the use of modern function definition and calls.  
+On **Spectrum**, FUNC/RET lowers to GO SUB/RETURN with LET assignments,
+using global variables. This does not add local recursion; native DEF FN/FN
+is a separate Sinclair feature, with single-letter names/parameters and
+optional `$`. The [Spectrum reference](ZX_SPECTRUM.md#native-functions-files-and-streams)
+describes its ROM parameter slots and calls.
 They are **defined** with `func .functionName(arg1, arg2, etc)` and must end with `ret`. Their names can only have **letters**, **numbers** and **underscore** and they cannot be only numbers or begin with a number.  
 The arguments can have **default values** as in `func .function(arg$="teste")` and `ret` can have **return variables** like `ret arg1, arg2, etc`.  
 `ret` must be at the start of a line but you can use a `:` on the line above to make it part of that line (see **line breaking**).  
@@ -252,6 +274,8 @@ is possible with Basic Dignified using `:` or `_` at the **end** or **start** of
 - **Exclusive comments**  
 are comments **stripped** during the conversion, they are defined by `##`.  
 **Regular** `REM` or `'` comments are **kept**.  
+On **Spectrum**, use **REM**: apostrophe is a PRINT newline separator,
+not a comment. `-lbr` uses `: REM` for its label annotations.
 **Block comments** can also be used, they are **opened** and **closed** with `''` or `###`, the text inside the first one will be **kept** while the text inside the later will be **removed**.  
   
 	```BASIC  
@@ -331,6 +355,173 @@ The supported **unicode** characters for the **MSX ASCII** set are:
     > The included modules have a **TrueType font** representing the fonts of the classic systems mapping those characters.  
   
   >When saving a Basic program as **ASCII** from **openMSX** (`save"file",a`) the text encode used is the `Western (Windows 1252)`. This is the format **Basic Dignified** uses to encode the `.asc` conversion and is the default encode for the `.bad` format as well. If **unicode translation** and special characters are used, the `.bad` format should be in the `UTF-8` format. The conversion will still generate a `Western (Windows 1252)` `.asc` file with the correct special characters translated to the **MSX ASCII** format.  
+
+#### ZX Spectrum characters
+
+**Spectrum** uses **16 graphic blocks** (codes **128 to 143**) and **21
+user-defined graphics**, or **UDGs** (codes **144 to 164**, letters **A to U**).
+In **strings** and **REM** text, write `\XX`, where **XX** is the two-digit
+**hexadecimal** code, or `%A` to `%U` for a UDG. Upper/lower case is accepted.
+These escapes are **active by default** in DZS and numbered AZS input.
+They apply to **emitted BASIC literals**, not INCLUDE filenames or removed
+Dignified comments. Use the ASCII escapes in Spectrum source, not the
+Unicode approximations shown in the block table.
+
+The notation stays **readable** in AZS; the tokenizer writes the **single
+Spectrum byte**, not the escape's characters, into TAP/TZX/Z80/SNA.
+An external ASCII importer will need the same decoding; these escapes are
+Suite notation, not additional Sinclair ROM commands.
+
+| Decimal | Hex | Escape | Block | Ink quadrants |
+| :-: | :-: | :-: | :-: | :- |
+| 128 | 80 | `\80` | blank | none |
+| 129 | 81 | `\81` | ▗ | bottom right |
+| 130 | 82 | `\82` | ▖ | bottom left |
+| 131 | 83 | `\83` | ▄ | bottom |
+| 132 | 84 | `\84` | ▝ | top right |
+| 133 | 85 | `\85` | ▐ | right |
+| 134 | 86 | `\86` | ▞ | top right, bottom left |
+| 135 | 87 | `\87` | ▟ | all except top left |
+| 136 | 88 | `\88` | ▘ | top left |
+| 137 | 89 | `\89` | ▚ | top left, bottom right |
+| 138 | 8A | `\8A` | ▌ | left |
+| 139 | 8B | `\8B` | ▙ | all except top right |
+| 140 | 8C | `\8C` | ▀ | top |
+| 141 | 8D | `\8D` | ▜ | all except bottom left |
+| 142 | 8E | `\8E` | ▛ | all except bottom right |
+| 143 | 8F | `\8F` | █ | all |
+
+The displayed blocks are **font-dependent approximations**. Ink and paper
+use the current Spectrum attributes. UDGs use their **current bitmap**;
+the ROM initially gives them the corresponding letters.
+
+| UDG | Escape | Decimal | Hex escape |
+| :-: | :-: | :-: | :-: |
+| A | `%A` | 144 | `\90` |
+| B | `%B` | 145 | `\91` |
+| C | `%C` | 146 | `\92` |
+| D | `%D` | 147 | `\93` |
+| E | `%E` | 148 | `\94` |
+| F | `%F` | 149 | `\95` |
+| G | `%G` | 150 | `\96` |
+| H | `%H` | 151 | `\97` |
+| I | `%I` | 152 | `\98` |
+| J | `%J` | 153 | `\99` |
+| K | `%K` | 154 | `\9A` |
+| L | `%L` | 155 | `\9B` |
+| M | `%M` | 156 | `\9C` |
+| N | `%N` | 157 | `\9D` |
+| O | `%O` | 158 | `\9E` |
+| P | `%P` | 159 | `\9F` |
+| Q | `%Q` | 160 | `\A0` |
+| R | `%R` | 161 | `\A1` |
+| S | `%S` | 162 | `\A2` |
+| T | `%T` | 163 | `\A3` |
+| U | `%U` | 164 | `\A4` |
+
+```BASIC
+print "\80\8F%A%U"
+print "literal %%A and \\80"
+```
+
+The first line prints codes **128, 143, 144 and 164**. The second prints
+literal **%A** and **\80**. Use **`%%` for a literal percent** and **`\\`
+for a literal backslash**, including paths in strings/REM. `%V` to `%Z`,
+incomplete escapes and graphics outside 128..164 are errors.
+`PRINT CHR$(128);CHR$(144)` remains the native runtime alternative.
+
+To **define** UDG A, write its eight bitmap rows at `USR "A"`:
+
+```BASIC
+for i=0 to 7
+    read pixel
+    poke usr "A"+i,pixel
+next i
+data 60,66,165,129,165,153,66,60
+print "%A"
+```
+
+Each row is a byte: bit 7 is the leftmost pixel; **1** selects ink and
+**0** selects paper. `%A` **selects** the character; it does not itself
+define the bitmap. On the Spectrum keyboard, **CAPS SHIFT+9** enters
+graphics mode: digits **1..8** select blocks (SHIFT inverts them), **A..U**
+select UDGs, and **9** leaves graphics mode.
+
+#### Literal bytes
+
+**Spectrum** accepts `\{XX}`, with exactly two hex digits **00..FF**, in
+strings, REM/REMX and directly in the emitted BASIC body. Each escape emits
+**one exact byte**; unlike `\XX`, it is not limited to graphic/UDG codes.
+The notation remains readable in AZS.
+
+```BASIC
+print "\{00}\{FF}"
+\{F5}"RAW PRINT"
+value=\{31}\{0E}\{00}\{00}\{01}\{00}\{00}
+```
+
+The last two lines supply a raw PRINT token and the byte representation
+of the number 1. Raw bytes do not add numeric caches or FN parameter slots.
+Use normal numeric/DEF FN syntax for automatic encoding.
+`\{EA}` is the REM token and consumes the rest of the physical line as
+literal text, without inserting a space. INCLUDE filenames and removed
+Dignified comments are not decoded.
+
+This is **expert-level raw insertion**, not a guarantee of valid Sinclair
+syntax. Quote/control/token bytes can change parsing or display behavior;
+arbitrary sequences may fail in the ROM. It does not alter tape headers or
+the automatically generated BASIC record headers/final terminator.
+
+#### REMX
+
+**Spectrum only:** `remx <l>,<n>[,<c>]` inserts a numbered **REM** with
+**n copies** of **c**. It is a **Dignified directive**, not a Sinclair
+instruction; put it **alone** on a DZS source line.
+
+- **l:** absolute BASIC line **1..9999**.
+- **n:** number of payload characters, **1..65532**.
+- **c:** a decimal byte **0..255** or one **quoted character/escape**.
+  Omitted c fills with the character **`'0'` (byte 48)**, not binary zero.
+
+The numeric fields are **decimal literals**, not runtime expressions.
+
+```BASIC
+remx 1000,8
+remx 1001,4,"X"
+remx 1002,4,0
+remx 1003,2,"%A"
+```
+
+Produces the readable AZS lines:
+
+```BASIC
+1000 REM 00000000
+1001 REM XXXX
+1002 REM \{00}\{00}\{00}\{00}
+1003 REM \90\90
+```
+
+The separating space after **REM** is **not included in n**. A quoted
+fill is decoded once and must produce exactly **one byte**. In REM,
+`\{XX}` represents a raw byte, including nonprintable bytes
+and token values; it is also accepted in strings and directly in BASIC code.
+Raw control bytes are **data**, not printable graphics, and can affect the
+appearance of LIST. The line's final terminator is stored separately from
+the n payload bytes; even byte 13 can be kept inside REM data.
+
+REMX lines are inserted in **numeric order**, **without renumbering**
+ordinary lines or changing their **labels**. Duplicate numbers, including
+collisions with the program's generated header, stop conversion. Choose
+another l or adjust **-ls/-lp**; labels before REMX still refer to the next
+ordinary statement, not to the inserted REM. INCLUDE and rem toggles apply;
+removed REMX directives do not reserve a line.
+
+REMX can exceed the ordinary **256-character source-output line limit**.
+The binary line length, **48K program size** and snapshot stack limits still
+apply. A single REMX with n=41605 reaches the TAP payload upper bound;
+any additional lines need more space. An AZS listing fitting the record
+limit is not necessarily loadable on a 48K machine.
+See the [Spectrum limits](ZX_SPECTRUM.md#limits-and-failure-handling).
   
 - **Include**  
 is a command to **insert** an **external** Dignified file anywhere in the code.  
@@ -368,6 +559,8 @@ The same **Long named** variables are also assigned **different short names** ac
   
 - **True** and **false**  
 statements can be used with **numeric** variables, they will be converted to `-1` and `0` respectively and their variables can be treated as true **booleans** on `IF`s and with `NOT` operators.  
+On **Spectrum**, TRUE becomes **1** and FALSE **0**, following Sinclair's
+logical semantics instead of MSX/CoCo's -1 convention.
   
 	```BASIC  
     var_bool = true  
@@ -385,6 +578,9 @@ statements can be used with **numeric** variables, they will be converted to `-1
   
 - **Shorthand** and **compound**  
 arithmetic operators (`++`, `--`, `+=`, `-=`, `*=`, `/=`, `^=`) can be used and will be converted to **normal** classic Basic **operations**.  
+On **Spectrum**, implicit LET and scalar compounds are supported; the
+right operand is parenthesized to preserve precedence. Strings support only
+`+=`; array/slice compound targets are rejected rather than evaluated twice.
   
 	```BASIC  
     var1++ :var2--  
@@ -731,5 +927,4 @@ They are commonly used at the start of the Dignified code:
   > You can easily **disable** a remtag by simply **adding a space** between `##` and `BB`, transforming them in a regular **exclusive comment**.  
   
   > Command line arguments and remtags can be **expanded** by **exposing** new ones on **language** and **tools** modules.  
-	See the [modules section](https://github.com/farique1/basic-dignified/blob/main/documentation/MODULE_TOOLS.md) for an explanation of their **exposed** configs.  
-  
+	See the [modules section](MODULE_TOOLS.md) for an explanation of their **exposed** configs.

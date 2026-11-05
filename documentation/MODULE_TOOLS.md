@@ -1,14 +1,16 @@
 # Additional Features of the included modules  
 
 There are two fairly complete included modules with Basic Dignified: **MSX** and **Tandy Color Computer**.  
+**ZX Spectrum** is also included, with a documented **48K Sinclair**
+subset, its own tokenizer and optional snapshot engine.
 
 Beyond their Basic **dialect** description, they have **tokenizers** available and can automatically **execute** their code on emulators.  
 
 Below is an explanation of these modules and their uses.  
 
-> Due to the similarities between both systems, they will be described in parallel, with the differences pointed as needed.  
+> Due to their similarities, **MSX and CoCo** are described in parallel, with the differences pointed as needed. Spectrum-specific features are described separately.
 
-> This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](https://github.com/farique1/basic-dignified/blob/main/documentation/NEW_MODULES.md).  
+> This sections deals only with the features of the modules. For an in depth exploration, see the section about [creating modules for other systems](NEW_MODULES.md).  
 
 **[Language Modules](#Language-Module)**  
 **[Tokenizer Interfaces](#Tokenizer-Interfaces)**  
@@ -17,12 +19,24 @@ Below is an explanation of these modules and their uses.
 
 ## Language Module
 
-The language modules are very **similar** for both systems with some notable **exceptions** like the `[?](x,y)` handling for instance.  
-This is the module that exposed the **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` features explained on the [main Basic Dignified section](https://github.com/farique1/basic-dignified/blob/main/documentation/BASIC_DIGNIFIED.md) section. Their `.ini` files are `\msx\badig_msx.ini` and `\coco\badig_coco.ini`.  
+The language modules are very **similar** for MSX/CoCo with some notable **exceptions** like the `[?](x,y)` handling for instance.
+This is the module that exposed the **Convert Print** `-cp p|?` and **Strip THEN/GOTO** `-tg t|g` features explained on the [main Basic Dignified section](BASIC_DIGNIFIED.md) section. Their `.ini` files are `\msx\badig_msx.ini` and `\coco\badig_coco.ini`.  
+
+### ZX Spectrum
+
+Select **-id zxspectrum**. The module supplies Sinclair commands and numbers,
+long numeric scalars, explicit aliases for restricted variable categories,
+implicit LET, scalar compounds and **PRINT AT**.
+**-cp/-tg** are MSX/CoCo options, not Spectrum shortcuts.
+**REMX** reserves an absolute numbered REM, and **\80..\A4 / %A..%U**
+encode graphic/UDG bytes. See the
+[language and character reference](BASIC_DIGNIFIED.md#zx-spectrum-characters).
+Unsupported Sinclair words fail explicitly; the ROM still checks runtime
+expression types/ranges.
 
 ## Tokenizer Interfaces
 
-**Both** included systems have tokenizer modules **available**.  
+**All three** included systems have tokenizer modules **available**.
 They **control** the actual tokenizers, **bridging** them with Basic Dignified and expose **command line arguments** and **remtags**.  
 Their **default** behavior can be **set** on `tokenizer_interface.ini` on their respective **modules** folder.  
 The tokenized used for the **MSX** is the **custom** made **MSX Batoken**.  
@@ -63,6 +77,50 @@ Exports a list file similar to the ones exported by assemblers with the tokens a
     `rmtg:` `##BB:tk_list=[0-32]`  
 
  
+### ZX Spectrum
+
+The **Spectrum tokenizer** reads the generated AZS or an existing numbered
+listing with **-asc**. It uses the Sinclair token table, numeric records and
+checksums; it does **not** use MSX Batoken or CoCo DECB.
+Defaults are in `zxspectrum\tokenizer_interface.ini`.
+INI < command line < **remtags** determines the final settings.
+
+- *Tokenize*  
+  Generate the selected binary formats after validating the listing.  
+  `Default:` `False`  
+  `.ini:` `tokenize = [True|False]`  
+  `cmdl:` `--tk_tokenize`  
+  `rmtg:` `##BB:tk_tokenize=[True|False]`
+
+- *Output format*  
+  TAP/TZX are **tapes**; Z80/SNA are real **48K snapshots**.  
+  `Default:` `tap`  
+  `.ini:` `format = tap|tzx|both|z80|sna|all`  
+  `cmdl:` `--tk_format <format>`  
+  `rmtg:` `##BB:tk_format=<format>`  
+  **both** means TAP+TZX; **all** adds Z80+SNA. Snapshots require
+  [optional SkoolKit](INSTALLATION.md#zx-spectrum-snapshots); tapes do not.
+
+- *Tape name*  
+  Name stored in the intermediate tape header, also used when building snapshots.  
+  `Default:` first 10 characters of the output stem  
+  `.ini:` `name =`  
+  `cmdl:` `--tk_name <1..10 printable ASCII characters>`  
+  `rmtg:` `##BB:tk_name=<name>`
+
+- *BASIC autorun*  
+  **-1** disables it, **0** starts at the first line, **1..9999** selects a line.  
+  `Default:` `-1` (`0` with --em_run unless overridden)  
+  `.ini:` `autorun = -1`  
+  `cmdl:` `--tk_autorun <line>`  
+  `rmtg:` `##BB:tk_autorun=<line>`
+
+The Spectrum adapter does not expose MSX/CoCo-only tokenizer arguments,
+including list export and ASCII deletion. Use the common **-vb** for feedback.
+Each output is replaced atomically after successful generation; the whole
+set is not a multi-file transaction. Snapshot failure preserves all existing
+binary outputs. An AZS listing may already exist when binary generation fails.
+
 ## Emulator Interfaces
 
 **Both** included systems have modules that can automatically **run** the converted code on **emulators**.  
@@ -196,21 +254,57 @@ Run XRoar at full speed.
 	`cmdl:` `--em_noratelimit`  
     `rmtg:` `##BB:em_noratelimit=[True|False]`  
   
-## Helper Tools  
+### ZX Spectrum
+
+**EightyOne** integration is available on **Windows**. The profile must select
+**MachineName=48K Spectrum** and have an installed English ROM.
+The adapter copies the profile into a temporary directory, waits for the
+emulator to close and checks its exit status. It does not monitor BASIC errors.
+
+- *Run emulator*  
+  `Default:` `False`  
+  `.ini:` `[CONFIGS] run = False`  
+  `cmdl:` `--em_run`  
+  `rmtg:` `##BB:em_run=True|False`
+- *Executable path*  
+  `.ini:` `[CONFIGS] emulator_path =`  
+  `cmdl:` `--em_path PATH`  
+  `rmtg:` `##BB:em_path=PATH`
+- *48K profile to copy*  
+  `Default:` bundled 48K template  
+  `.ini:` `[CONFIGS] setting =`  
+  `cmdl:` `--em_setting PATH`  
+  `rmtg:` `##BB:em_setting=PATH`
+
+**EM_RUN** enables generation; **TK_TOKENIZE=False** conflicts with it.
+TAP/TZX use private autoload/flash-load settings; Z80/SNA disable tape
+autoload. With **both/all**, the first output, TAP, is opened. Select
+**z80** or **sna** to launch that snapshot directly. Manual loading is
+described in the [Spectrum reference](ZX_SPECTRUM.md).
+
+## Helper Tools
 
 Bundled with the system modules are some helper tools that can be used independently.  
 
 ### MSX
-**[MSX Basic Tokenizer](https://github.com/farique1/basic-dignified/blob/main/documentation/BATOKEN.md)**  
+**[MSX Basic Tokenizer](BATOKEN.md)**  
 A tokenizer made **for** Basic Dignified that **can** be used **independently** of it.  
 
-**[MSX Basic DignifieR](https://github.com/farique1/basic-dignified/blob/main/documentation/DIGNIFIER.md)**  
+**[MSX Basic DignifieR](DIGNIFIER.md)**  
 A tool to convert **classic** Basic **to** the **Dignified** format.  
 Helps **automate** the conversion of large **programs** or **libraries**.  
 
 ### CoCo  
 
-**[CoCo to CAS](https://github.com/farique1/basic-dignified/blob/main/documentation/COCOTOCAS.md)**  
+**[CoCo to CAS](COCOTOCAS.md)**  
 Another tool made **for** Basic Dignified that **can** be used **independently**.  
-Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.  
-  
+Converts **ASCII** Basic, **tokenized** Basic or **binary** files to the **cassette** (`.cas`) format.
+
+### ZX Spectrum
+
+The [Spectrum reference](ZX_SPECTRUM.md) describes numbered input, TAP/TZX,
+optional Z80/SNA and **REMX**. The tokenizer is part of the language module;
+MSX DignifieR and CoCo to CAS do not convert Spectrum programs.
+The [Spectrum DignifieR](DIGNIFIER.md#zx-spectrum-dignifier) converts
+numbered AZS to DZS through `python -m zxspectrum.dignifier`; **-asc**
+instead preserves the numbered listing. Both use Suite graphic/raw escapes.

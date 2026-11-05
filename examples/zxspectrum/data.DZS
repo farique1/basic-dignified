@@ -1,0 +1,15 @@
+REM STRINGS ARRAYS DATA AND FUNCTIONS
+DECLARE title:n
+DIM a(3)
+DATA 2,4,8
+FOR i=1 TO 3
+    READ a(i)
+NEXT i
+LET title$="SPECTRUM"
+PRINT title$;" ";LEN title$
+PRINT a(1)+a(2)+a(3)
+PRINT STR$ ABS (-3)
+RESTORE
+READ total
+PRINT total
+STOP

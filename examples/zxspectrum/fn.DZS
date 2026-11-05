@@ -1,0 +1,13 @@
+CLS
+DEF FN f(x,a$)=x+LEN a$
+DEF FN s$(a$)=a$+"!"
+DEF FN z()=42
+DEF FN g(x)=FN f(x,"AB")*2
+x=99
+PRINT "FN NUMERIC ";FN f(3,"AB")
+PRINT "FN STRING ";FN s$("SPECTRUM")
+PRINT "FN NO ARGS ";FN z()
+PRINT "FN NESTED ";FN g(3)
+PRINT "GLOBAL X ";x
+STOP
+

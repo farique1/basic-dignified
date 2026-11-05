@@ -11,6 +11,10 @@ The **language** module **describes** and adds **control** to the **conversion**
 The **tools** module **control** all **interfaces** associated with **programs** helping the **conversion** like **tokenizers** and **emulators**.  
 The **interfaces** directly **control** the **external programs** like **tokenizers** and **emulators**, making a **bridge** between them and Basic Dignified and adding **configurations** and **features**.  
 
+The included system IDs are **msx**, **coco** and **zxspectrum**.
+The Spectrum example below shows how a dialect can reuse the shared
+pipeline while supplying a different tokenizer, characters and output formats.
+
 The **MSX folder** opened with its **files** as an example of a **typical** module.
 
 ```  
@@ -132,3 +136,41 @@ The structure of the lexer and parser on the main Basic Dignified and MSX module
 <!-- 
 Note:
 Standardize `em_run` and `tk_tokenize` arguments when available so the build systems are compatible. -->
+
+## ZX Spectrum
+
+The `zxspectrum` package provides a small working example of the dynamic module contract:
+`badig_zxspectrum.py`, `tools_zxspectrum.py`, `tokenizer_interface.py`,
+`tokenizer_zxspectrum.py`, `tape_zxspectrum.py` and `emulator_interface.py`.
+The optional `snapshot_zxspectrum.py` worker invokes locally installed
+SkoolKit in a temporary directory, validates the ROM-loaded state and
+serializes the matching 48K SNA. DZS/AZS are module defaults, not changes
+to the shared MSX/CoCo source/listing defaults.
+
+Two optional core hooks are used without changing MSX/CoCo defaults:
+
+- `Classic.Lexer.quoted_string(tok, end, part, position)` reads a quoted
+  literal when implemented by a dialect, allowing Sinclair doubled quotes.
+- `Classic.postprocess(code, settings)` checks the final numbered listing
+  before it is saved; Spectrum also inserts its absolute REMX reservations
+  here, after normal numbering/labels and ordinary line-size checks.
+
+REMX is recognized by the dialect lexer as a literal directive and collected
+in parser pass 1, so INCLUDE and rem toggles retain their normal behavior.
+Pass 4 includes its source positions in line reports. Character escapes are
+decoded by the Spectrum tokenizer inside strings/REM, not by the shared lexer.
+
+Since Spectrum 1.5.1, a language module may also declare `ERROR_EXIT_CODE = 1`
+to opt into nonzero fatal exits from the shared `Infolog`. Modules without
+this attribute retain the legacy code 0. Settings initialization resets this
+process-wide policy before selecting a dialect, then applies the selected
+module's value to all logger instances, including those created earlier.
+Caught main-INI diagnostics are reported after selection so `-id` overrides
+and INI-selected systems use the appropriate status. Level-1 messages with
+a custom bullet remain nonfatal; help and successful INI writing still exit 0.
+
+Spectrum inherits existing class scaffolding but supplies its own lexical
+groups, category-aware name validation, number encoding and TAP/TZX structure.
+The emulator adapter copies profiles into a temporary directory, passes
+arguments without a shell, waits for exit and reports failures explicitly.
+See the [Spectrum manual](ZX_SPECTRUM.md) and [implementation plan](../OUTLINE.md).
